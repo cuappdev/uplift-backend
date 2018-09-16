@@ -1,78 +1,127 @@
-from graphene import InputObjectType, ObjectType, String, List, Int, InputField
-from graphene.types.datetime import DateTime
-import utils
+from datetime import datetime, time, timedelta
+from graphene import Field, ObjectType, String, List, Int, ID, Boolean
+from graphene.types import Scalar
+from graphene.types.datetime import DateTime, Time
+from graphql.language.ast import StringValue
+
+gyms = {}
+classes = {}
+class_details = {}
+
+class DayTimeRangeType(ObjectType):
+  day = Int()
+  start_time = Time()
+  end_time = Time()
 
 class GymType(ObjectType):
-  id = Int()
+  id = ID()
   name = String()
   description = String()
   popular = List(List(Int))
+  times = List(DayTimeRangeType)
 
-  def __init__(self, gym):
-    self.id = gym['id']
-    self.name = gym['name']
-    self.description = gym['description']
-    self.popular = gym['popular']
+  def is_open(self, now=None):
+    if now is None:
+      return True
+    for dt_range in self.times:
+      print(dt_range.day, dt_range.start_time, dt_range.end_time, now.weekday(), now.time())
+      if (now.weekday() == dt_range.day
+              and now.time() >= dt_range.start_time
+              and now.time() <= dt_range.end_time):
+        return True
+    return False
+
+class ClassDetailType(ObjectType):
+  id = ID()
+  name = String()
+  description = String()
+  tags = List(String)
 
 class ClassType(ObjectType):
-  name = String()
-  gym_id = Int()
-  description = String()
+  id = ID()
+  gym_id = ID()
+  gym = Field(GymType)
+  details_id = ID()
+  details = Field(ClassDetailType)
   start_time = DateTime()
   end_time = DateTime()
   instructor = String()
-  tags = List(String)
+  is_cancelled = Boolean()
 
-  def __init__(self, class_data, class_details_data):
-    self.instructor = class_data['instructor']
-    self.gym_id = class_data['gym_id']
-    self.description = class_details_data['description']
-    self.name = class_details_data['name']
-    self.tags = class_details_data['tags']
-    self.start_time = class_data['start_time']
-    self.end_time = class_data['end_time']
+  def resolve_gym(self, info):
+    return gyms.get(self.gym_id)
+
+  def resolve_details(self, info):
+    return class_details.get(self.details_id)
+
+  def filter(self, now=None, tags=None, gym_id=None, instructor=None):
+    details = class_details.get(self.details_id)
+    return (
+        (now is None or now.date() == self.start_time.date())
+        and (tags is None
+             or any([tag in details.tags for tag in tags]))
+        and (gym_id is None or gym_id == self.gym_id)
+        and (instructor is None or instructor == self.instructor)
+    )
 
 class Query(ObjectType):
   gyms = List(GymType, now=DateTime(), gym_id=Int(name='id'))
   classes = List(
-    ClassType,
-    now=DateTime(),
-    tags=List(String),
-    gym_id=Int(),
-    instructor=String()
+      ClassType,
+      now=DateTime(),
+      tags=List(String),
+      gym_id=Int(),
+      instructor=String()
   )
 
   def resolve_gyms(self, info, now=None, gym_id=None):
-    gyms_data = info.context['gyms']
-
     if gym_id is not None:
-      if gym_id in gyms_data:
-        return [GymType(gyms_data[gym_id])]
-      return None
+      gym = gyms.get(gym_id)
+      return [gym] if gym is not None else []
+    return [gym for gym in gyms.values() if gym.is_open(now)]
 
-    gyms = []
+  def resolve_classes(self, info, **kwargs):
+    return [c for c in classes.values() if c.filter(**kwargs)]
 
-    for gym_id, gym_data in gyms_data.items():
-      if now is None or utils.is_gym_open(now, gym_data):
-        gyms.append(GymType(gym_data))
+def init_data():
+  global gyms, class_details, classes
+  gyms = {
+      0: GymType(
+          id=0, name='Helen Newman', description='hnh description',
+          popular=[
+              [0,0,0,0,0,0,0,0,0,0,19,31,32,23,26,43,59,57,51,51,47,34,17,3],
+              [0,0,0,0,0,0,15,25,27,22,21,31,47,53,45,34,36,52,70,75,60,35,14,0]
+          ],
+          times=[
+              DayTimeRangeType(
+                  day=0,
+                  start_time=time(hour=6),
+                  end_time=time(hour=23, minute=30)
+              ),
+              DayTimeRangeType(
+                  day=6,
+                  start_time=time(hour=10),
+                  end_time=time(hour=23, minute=30)
+              )
+          ]
+      )
+  }
 
-    return gyms
+  class_details = {
+      0: ClassDetailType(
+          id=0, name='class name', description='class description',
+          tags=['tag1', 'tag2']
+      )
+  }
 
-  def resolve_classes(self, info,
-                      now=None, tags=None,
-                      gym_id=None, instructor=None):
-    classes_data = info.context['classes']
-    class_details_data = info.context['class_details']
-    classes = []
+  classes = {
+      0: ClassType(
+          id=0, gym_id=0, details_id=0,
+          start_time=datetime.now(),
+          end_time=datetime.now() + timedelta(hours=1),
+          instructor='instructor',
+          is_cancelled=False
+      )
+  }
 
-    for class_id, class_data in classes_data.items():
-      class_detail_data = class_details_data[class_data['class_description_id']]
-
-      if ((now is None or now.date() == class_data['start_time'].date()) \
-          and (tags is None \
-              or any([tag in class_detail_data['tags'] for tag in tags])) \
-          and (gym_id is None or gym_id == class_data['gym_id'])
-          and (instructor is None or instructor == class_data['instructor'])):
-        classes.append(ClassType(class_data, class_detail_data))
-
-    return classes
+init_data()
