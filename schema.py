@@ -14,7 +14,7 @@ class DayTimeRangeType(ObjectType):
   end_time = Time()
 
 class GymType(ObjectType):
-  id = ID()
+  id = String()
   name = String()
   description = String()
   popular = List(List(Int))
@@ -32,16 +32,16 @@ class GymType(ObjectType):
     return False
 
 class ClassDetailType(ObjectType):
-  id = ID()
+  id = String()
   name = String()
   description = String()
   tags = List(String)
 
 class ClassType(ObjectType):
-  id = ID()
-  gym_id = ID()
+  id = String()
+  gym_id = String()
   gym = Field(GymType)
-  details_id = ID()
+  details_id = String()
   details = Field(ClassDetailType)
   start_time = DateTime()
   end_time = DateTime()

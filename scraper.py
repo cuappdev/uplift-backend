@@ -1,16 +1,21 @@
 from bs4 import BeautifulSoup
+from datetime import datetime
+import hashlib
 from lxml import html
+import os
 import requests
+from schema import DayTimeRangeType, GymType, ClassDetailType, ClassType
 
-BASE_URL = "https://recreation.athletics.cornell.edu"
+BASE_URL = 'https://recreation.athletics.cornell.edu'
+CLASSES_PATH = '/fitness-centers/group-fitness-classes?&page='
 
-"""
+'''
 Scrape class descrption from [class_href]
-"""
+'''
 def scrape_class(class_href):
-    ret = {}
+    class_detail = ClassDetailType()
     page = requests.get(BASE_URL + class_href).text
-    soup = BeautifulSoup(page, "lxml")
+    soup = BeautifulSoup(page, 'lxml')
     contents = soup.find(
         'div',
         {'class': 'taxonomy-term-description'}
@@ -20,7 +25,7 @@ def scrape_class(class_href):
         'div',
         {'id': 'main-body'}
     ).h1.contents[0]
-    description = ""
+    description = ''
     for c in contents:
       if isinstance(c, str):
         description += c
@@ -30,59 +35,67 @@ def scrape_class(class_href):
         except:
           break
 
-    ret["description"] = description
-    ret["name"] = title
-    return ret
+    class_detail.description = description
+    class_detail.name = title
+    class_detail.id = hashlib.sha1(os.urandom(64)).hexdigest()
+    return class_detail
 
-"""
+'''
 Scrape classes from the group-fitness-classes page
 Params:
   num_pages: number of pages to scrape
 Returns:
-  dict of classes, list of class instances
-"""
+  dict of ClassDetailType objects, list of ClassType objects
+'''
 def scrape_classes(num_pages):
-  lst = []
-  classes = {}
+  classes = []
+  class_details = {}
 
   for i in range(num_pages):
     page = requests.get(
-        BASE_URL + '/fitness-centers/group-fitness-classes?&page=' + str(i)
+        BASE_URL + CLASSES_PATH + str(i)
     ).text
-    soup = BeautifulSoup(page, "lxml")
+    soup = BeautifulSoup(page, 'lxml')
 
-    schedule = soup.find_all("table")[1] # first table is irrelevant
+    schedule = soup.find_all('table')[1] # first table is irrelevant
 
-    data = schedule.find_all("tr")[1:] # first row is header
+    data = schedule.find_all('tr')[1:] # first row is header
 
     for row in data:
-      current_row = {}
-      row_elems = row.find_all("td")
-      current_row["date"] = row_elems[0].span.string
-      current_row["day_of_week"] = row_elems[1].span.string
-      current_row["class_name"] = row_elems[2].a.string
+      gym_class = ClassType()
+      row_elems = row.find_all('td')
+      date = row_elems[0].span.string
+      class_name = row_elems[2].a.string
+      gym_class.id = hashlib.sha1(os.urandom(64)).hexdigest()
 
-      class_href = row_elems[2].a["href"]
-      if class_href not in classes:
-        classes[class_href] = scrape_class(class_href)
+      class_href = row_elems[2].a['href']
+      if class_href not in class_details:
+        class_details[class_href] = scrape_class(class_href)
 
+      gym_class.details_id = class_details[class_href].id
       # special handling for time (cancelled)
-      div = row_elems[3].span.div
+      div = row_elems[3].span.span
 
       if div is not None:
-        current_row["is_cancelled"] = False
-        current_row["start_time"] = row_elems[3].span.div.span.string
-        current_row["end_time"] = row_elems[3].span.div.find_all(
-            "span"
+        gym_class.is_cancelled = False
+        start_time = row_elems[3].span.span.find_all(
+            'span'
+        )[0].string
+        end_time = row_elems[3].span.span.find_all(
+            'span'
         )[1].string
+        gym_class.start_time = datetime.strptime(date + ' ' + start_time, '%m/%d/%Y %I:%M%p')
+        gym_class.end_time = datetime.strptime(date + ' ' + end_time, '%m/%d/%Y %I:%M%p')
+
+
       else:
-        current_row["is_cancelled"] = True
+        gym_class.is_cancelled = True
 
       try:
-        current_row["instructor_name"] = row_elems[4].a.string
+        gym_class.instructor = row_elems[4].a.string
       except:
-        current_row["instructor_name"] = "" # edge case w/ no instructor name
+        gym_class.instructor = '' # edge case w/ no instructor name
 
-      current_row["location"] = row_elems[5].a.string
-      lst.append(current_row)
-  return classes, lst
+      location = row_elems[5].a.string # TODO: change to gym_id
+      classes.append(gym_class)
+  return class_details, classes
