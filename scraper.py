@@ -1,16 +1,18 @@
-from bs4 import BeautifulSoup
 from datetime import datetime
 import hashlib
-from lxml import html
 import os
+
+from bs4 import BeautifulSoup
+from lxml import html
 import requests
-from schema import DayTimeRangeType, GymType, ClassDetailType, ClassType
+
+from schema import ClassDetailType, ClassType, DayTimeRangeType, GymType
 
 BASE_URL = 'https://recreation.athletics.cornell.edu'
 CLASSES_PATH = '/fitness-centers/group-fitness-classes?&page='
 
 '''
-Scrape class descrption from [class_href]
+Scrape class detail from [class_href]
 '''
 def scrape_class(class_href):
     class_detail = ClassDetailType()
@@ -37,7 +39,7 @@ def scrape_class(class_href):
 
     class_detail.description = description
     class_detail.name = title
-    class_detail.id = hashlib.sha1(os.urandom(64)).hexdigest()
+    class_detail.id = encode_id()
     return class_detail
 
 '''
@@ -52,21 +54,16 @@ def scrape_classes(num_pages):
   class_details = {}
 
   for i in range(num_pages):
-    page = requests.get(
-        BASE_URL + CLASSES_PATH + str(i)
-    ).text
+    page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
     soup = BeautifulSoup(page, 'lxml')
-
     schedule = soup.find_all('table')[1] # first table is irrelevant
-
     data = schedule.find_all('tr')[1:] # first row is header
 
     for row in data:
       gym_class = ClassType()
       row_elems = row.find_all('td')
       date = row_elems[0].span.string
-      class_name = row_elems[2].a.string
-      gym_class.id = hashlib.sha1(os.urandom(64)).hexdigest()
+      gym_class.id = encode_id()
 
       class_href = row_elems[2].a['href']
       if class_href not in class_details:
@@ -78,16 +75,11 @@ def scrape_classes(num_pages):
 
       if div is not None:
         gym_class.is_cancelled = False
-        start_time = row_elems[3].span.span.find_all(
-            'span'
-        )[0].string
-        end_time = row_elems[3].span.span.find_all(
-            'span'
-        )[1].string
+        start_time = row_elems[3].span.span.find_all('span')[0].string
+        end_time = row_elems[3].span.span.find_all('span')[1].string
+
         gym_class.start_time = datetime.strptime(date + ' ' + start_time, '%m/%d/%Y %I:%M%p')
         gym_class.end_time = datetime.strptime(date + ' ' + end_time, '%m/%d/%Y %I:%M%p')
-
-
       else:
         gym_class.is_cancelled = True
 
@@ -99,3 +91,9 @@ def scrape_classes(num_pages):
       location = row_elems[5].a.string # TODO: change to gym_id
       classes.append(gym_class)
   return class_details, classes
+
+'''
+Generate a random id String
+'''
+def encode_id():
+  return hashlib.sha1(os.urandom(64)).hexdigest()
