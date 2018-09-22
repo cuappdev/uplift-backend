@@ -1,4 +1,6 @@
 aniso8601==3.0.2
+beautifulsoup4==4.6.3
+bs4==0.0.1
 click==6.7
 Flask==1.0.2
 Flask-GraphQL==2.0.0
@@ -8,8 +10,10 @@ graphql-relay==0.4.5
 graphql-server-core==1.1.1
 itsdangerous==0.24
 Jinja2==2.10
+lxml==4.1.1
 MarkupSafe==1.0
 promise==2.1
+requests==2.18.4
 Rx==1.6.1
 six==1.11.0
 typing==3.6.6
