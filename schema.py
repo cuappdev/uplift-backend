@@ -13,12 +13,23 @@ class DayTimeRangeType(ObjectType):
   start_time = Time()
   end_time = Time()
 
+  def __init__(self, day, start_time, end_time):
+      self.day = day
+      self.start_time = start_time
+      self.end_time = end_time
+
 class GymType(ObjectType):
   id = String()
   name = String()
   description = String()
   popular = List(List(Int))
   times = List(DayTimeRangeType)
+
+  def __init__(self, name, description, popular, times):
+      self.name = name
+      self.description = description
+      self.popular = popular
+      self.times = times
 
   def is_open(self, now=None):
     if now is None:
