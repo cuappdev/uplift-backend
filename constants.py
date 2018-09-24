@@ -1,8 +1,15 @@
-from datetime import datetime as dt
+import datetime as dt
 import hashlib
 import os
 
 from schema import DayTimeRangeType, GymType
+
+'''
+Generate a random id String
+'''
+def encode_id():
+  return hashlib.sha1(os.urandom(64)).hexdigest()
+
 
 GYMS_LIST = [
     GymType(
@@ -108,7 +115,7 @@ GYMS_LIST = [
             [0, 0, 0, 0, 0, 0, 0, 16, 26, 37, 46, 52, 53, 52, 51, 53, 53, 47, 45, 58, 59, 32, 7, 0],
             [0, 0, 0, 0, 0, 0, 0, 12, 26, 32, 38, 48, 56, 54, 50, 52, 53, 44, 26, 11, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 17, 27, 36, 41, 36, 24, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 13, 21, 24, 34, 36, 14 ,0 ,0 ,0 ,0 ,0]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 13, 21, 24, 34, 36, 14, 0, 0, 0, 0, 0]
         ],
         times=[
             DayTimeRangeType(day=0, start_time=dt.time(7), end_time=dt.time(22, 45)),
@@ -119,26 +126,8 @@ GYMS_LIST = [
             DayTimeRangeType(day=5, start_time=dt.time(12), end_time=dt.time(17, 45)),
             DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45))
         ]
-    ),
-    GymType(
-        id=None,
-        name='Bartels',
-        description='',
-        popular=[],
-        times=[]
     )
 ]
 
-GYMS = {
-    GYMS_LIST[0].id: GYMS_LIST[0],
-    GYMS_LIST[1].id: GYMS_LIST[1],
-    GYMS_LIST[2].id: GYMS_LIST[2],
-    GYMS_LIST[3].id: GYMS_LIST[3],
-    GYMS_LIST[4].id: GYMS_LIST[4]
-}
+GYMS = {gym.id:gym for gym in GYMS_LIST}
 
-'''
-Generate a random id String
-'''
-def encode_id():
-  return hashlib.sha1(os.urandom(64)).hexdigest()
