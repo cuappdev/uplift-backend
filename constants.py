@@ -1,3 +1,4 @@
+import csv
 import datetime as dt
 import hashlib
 import os
@@ -130,3 +131,14 @@ GYMS_LIST = [
 
 GYMS = {gym.id: gym for gym in GYMS_LIST}
 
+def parse_tags():
+  result = {}
+  with open('tags-grid-view.csv', 'r') as tags:
+    reader = csv.reader(tags)
+    next(reader)
+    for row in reader:
+      class_name = row[0]
+      result[class_name] = str.split(row[1], ',') + str.split(row[2], ',')
+  return result
+
+TAGS_BY_CLASS_NAME = parse_tags()
