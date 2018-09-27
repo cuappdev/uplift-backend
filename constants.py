@@ -3,16 +3,11 @@ import hashlib
 import os
 
 from schema import DayTimeRangeType, GymType
-
-'''
-Generate a random id String
-'''
-def encode_id():
-  return hashlib.sha1(os.urandom(64)).hexdigest()
+from utils import generate_id
 
 GYMS_LIST = [
     GymType(
-        id=encode_id(),
+        id=generate_id(),
         name='Helen Newman',
         description='description',
         popular=[
@@ -35,7 +30,7 @@ GYMS_LIST = [
         ]
     ),
     GymType(
-        id=encode_id(),
+        id=generate_id(),
         name='Appel',
         description='description',
         popular=[
@@ -58,7 +53,7 @@ GYMS_LIST = [
         ]
     ),
     GymType(
-        id=encode_id(), 
+        id=generate_id(),
         name='Noyes',
         description='description',
         popular=[
@@ -81,7 +76,7 @@ GYMS_LIST = [
         ]
     ),
     GymType(
-        id=encode_id(),
+        id=generate_id(),
         name='Teagle Up',
         description='description',
         popular=[
@@ -104,7 +99,7 @@ GYMS_LIST = [
         ]
     ),
     GymType(
-        id=encode_id(),
+        id=generate_id(),
         name='Teagle Down',
         description='description',
         popular=[
@@ -129,4 +124,5 @@ GYMS_LIST = [
 ]
 
 GYMS = {gym.id: gym for gym in GYMS_LIST}
-
+PAGE_LIMIT = 10
+UPDATE_DELAY = 3600
