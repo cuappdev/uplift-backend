@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from lxml import html
 import requests
 
+import constants
 from schema import ClassDetailType, ClassType, DayTimeRangeType, GymType
 from utils import generate_id
 
@@ -40,6 +41,7 @@ def scrape_class(class_href):
 
   class_detail.description = description
   class_detail.name = title
+  class_detail.tags = constants.TAGS_BY_CLASS_NAME[title]
   class_detail.id = generate_id()
   return class_detail
 
