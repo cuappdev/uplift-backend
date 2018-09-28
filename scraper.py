@@ -7,6 +7,7 @@ from lxml import html
 import requests
 
 from schema import ClassDetailType, ClassType, DayTimeRangeType, GymType
+from utils import generate_id
 
 BASE_URL = 'https://recreation.athletics.cornell.edu'
 CLASSES_PATH = '/fitness-centers/group-fitness-classes?&page='
@@ -15,32 +16,32 @@ CLASSES_PATH = '/fitness-centers/group-fitness-classes?&page='
 Scrape class detail from [class_href]
 '''
 def scrape_class(class_href):
-    class_detail = ClassDetailType()
-    page = requests.get(BASE_URL + class_href).text
-    soup = BeautifulSoup(page, 'lxml')
-    contents = soup.find(
-        'div',
-        {'class': 'taxonomy-term-description'}
-    ).p.contents
+  class_detail = ClassDetailType()
+  page = requests.get(BASE_URL + class_href).text
+  soup = BeautifulSoup(page, 'lxml')
+  contents = soup.find(
+      'div',
+      {'class': 'taxonomy-term-description'}
+  ).p.contents
 
-    title = soup.find(
-        'div',
-        {'id': 'main-body'}
-    ).h1.contents[0]
-    description = ''
-    for c in contents:
-      if isinstance(c, str):
-        description += c
-      else:
-        try:
-          description += c.string
-        except:
-          break
+  title = soup.find(
+      'div',
+      {'id': 'main-body'}
+  ).h1.contents[0]
+  description = ''
+  for c in contents:
+    if isinstance(c, str):
+      description += c
+    else:
+      try:
+        description += c.string
+      except:
+        break
 
-    class_detail.description = description
-    class_detail.name = title
-    class_detail.id = encode_id()
-    return class_detail
+  class_detail.description = description
+  class_detail.name = title
+  class_detail.id = generate_id()
+  return class_detail
 
 '''
 Scrape classes from the group-fitness-classes page
@@ -50,7 +51,7 @@ Returns:
   dict of ClassDetailType objects, list of ClassType objects
 '''
 def scrape_classes(num_pages):
-  classes = []
+  classes = {}
   class_details = {}
 
   for i in range(num_pages):
@@ -60,10 +61,9 @@ def scrape_classes(num_pages):
     data = schedule.find_all('tr')[1:] # first row is header
 
     for row in data:
-      gym_class = ClassType()
+      gym_class = ClassType(id=generate_id())
       row_elems = row.find_all('td')
       date = row_elems[0].span.string
-      gym_class.id = encode_id()
 
       class_href = row_elems[2].a['href']
       if class_href not in class_details:
@@ -86,14 +86,12 @@ def scrape_classes(num_pages):
       try:
         gym_class.instructor = row_elems[4].a.string
       except:
-        gym_class.instructor = '' # edge case w/ no instructor name
+        pass
 
-      location = row_elems[5].a.string # TODO: change to gym_id
-      classes.append(gym_class)
-  return class_details, classes
+      try:
+        gym_class.location = row_elems[5].a.string
+      except:
+        pass
 
-'''
-Generate a random id String
-'''
-def encode_id():
-  return hashlib.sha1(os.urandom(64)).hexdigest()
+      classes[gym_class.id] = gym_class
+  return {detail.id: detail for detail in class_details.values()}, classes
