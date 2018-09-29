@@ -6,7 +6,7 @@ import os
 from schema import DayTimeRangeType, GymType
 from utils import generate_id
 
-GYMS_LIST = [
+GYMS = [
     GymType(
         id=generate_id(),
         name='Helen Newman',
@@ -124,7 +124,7 @@ GYMS_LIST = [
     )
 ]
 
-GYMS = {gym.id: gym for gym in GYMS_LIST}
+GYMS_BY_ID = {gym.id: gym for gym in GYMS}
 
 def parse_tags():
   result = {}
@@ -133,7 +133,7 @@ def parse_tags():
     next(reader)
     for row in reader:
       class_name = row[0]
-      result[class_name] = str.split(row[1], ',') + str.split(row[2], ',')
+      result[class_name] = row[1].lower().split(',') + row[2].lower().split(',')
   return result
 
 TAGS_BY_CLASS_NAME = parse_tags()
