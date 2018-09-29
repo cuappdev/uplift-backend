@@ -41,7 +41,7 @@ def scrape_class(class_href):
 
   class_detail.description = description
   class_detail.name = title
-  class_detail.tags = constants.TAGS_BY_CLASS_NAME[title]
+  class_detail.tags = constants.TAGS_BY_CLASS_NAME.get(title, None)
   class_detail.id = generate_id()
   return class_detail
 
@@ -91,7 +91,12 @@ def scrape_classes(num_pages):
         pass
 
       try:
-        gym_class.location = row_elems[5].a.string
+        location = row_elems[5].a.string
+        gym_class.location = location
+        for gym_id, gym in constants.GYMS_BY_ID.items():
+          if gym.name in location:
+            gym_class.gym_id = gym_id
+            break
       except:
         pass
 
