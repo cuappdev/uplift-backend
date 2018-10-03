@@ -3,7 +3,7 @@ import datetime as dt
 import hashlib
 import os
 
-from schema import DayTimeRangeType, GymType
+from schema import DayTimeRangeType, GymType, TagType, ColorType
 from utils import generate_id
 
 GYMS = [
@@ -126,17 +126,38 @@ GYMS = [
 
 GYMS_BY_ID = {gym.id: gym for gym in GYMS}
 
-def parse_tags():
-  result = {}
-  with open('tags-grid-view.csv', 'r') as tags:
-    reader = csv.reader(tags)
+BASE_TAG_URL = 'https://raw.githubusercontent.com/cuappdev/assets/master/uplift/class_tags/'
+
+TAG_COLORS = {
+    'Energy': ColorType(red=19, green=149, blue=254, alpha=0.55),
+    'Strength': ColorType(red=254, green=143, blue=19, alpha=0.53),
+    'Toning': ColorType(red=19, green=254, blue=215, alpha=0.55),
+    'Zen': ColorType(red=74, green=210, blue=242, alpha=0.64),
+    'Intensity': ColorType(red=56, green=19, blue=254, alpha=0.48),
+    'Cardio': ColorType(red=254, green=19, blue=19, alpha=0.4),
+}
+
+TAGS_BY_LABEL = {
+    label: TagType(
+        label=label,
+        url=BASE_TAG_URL + label.lower() + '.png',
+        color=TAG_COLORS[label]
+    ) for label in TAG_COLORS
+}
+
+def parse_metadata():
+  tags = {}
+  categories = {}
+  with open('class_metadata.csv', 'r') as metadata_file:
+    reader = csv.reader(metadata_file)
     next(reader)
     for row in reader:
       class_name = row[0]
-      result[class_name] = row[1].lower().split(',') + row[2].lower().split(',')
-  return result
+      tags[class_name] = [TAGS_BY_LABEL[label] for label in row[1].split(',')]
+      categories[class_name] = row[2].split(',')
+  return tags, categories
 
-TAGS_BY_CLASS_NAME = parse_tags()
+TAGS_BY_CLASS_NAME, CATEGORIES_BY_CLASS_NAME = parse_metadata()
 
 PAGE_LIMIT = 10
 UPDATE_DELAY = 3600
