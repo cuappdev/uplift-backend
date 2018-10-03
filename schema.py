@@ -69,13 +69,13 @@ class ClassType(ObjectType):
     )
 
 class Query(ObjectType):
-  gyms = List(GymType, now=DateTime(), gym_id=Int(name='id'))
+  gyms = List(GymType, now=DateTime(), gym_id=String(name='id'))
   classes = List(
       ClassType,
       now=DateTime(),
       name=String(),
       tags=List(String),
-      gym_id=Int(),
+      gym_id=String(),
       instructor=String()
   )
 
