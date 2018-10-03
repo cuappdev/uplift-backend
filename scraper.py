@@ -25,7 +25,7 @@ def scrape_class(class_href):
       {'class': 'taxonomy-term-description'}
   ).p.contents
 
-  title = soup.find(
+  name = soup.find(
       'div',
       {'id': 'main-body'}
   ).h1.contents[0]
@@ -40,8 +40,9 @@ def scrape_class(class_href):
         break
 
   class_detail.description = description
-  class_detail.name = title
-  class_detail.tags = constants.TAGS_BY_CLASS_NAME.get(title, None)
+  class_detail.name = name
+  class_detail.tags = constants.TAGS_BY_CLASS_NAME.get(name, None)
+  class_detail.categories = constants.CATEGORIES_BY_CLASS_NAME.get(name, None)
   class_detail.id = generate_id()
   return class_detail
 

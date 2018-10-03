@@ -1,4 +1,4 @@
-from graphene import Field, ObjectType, String, List, Int, Boolean
+from graphene import Field, ObjectType, String, List, Int, Float, Boolean
 from graphene.types.datetime import DateTime, Time
 
 class Data(object):
@@ -33,11 +33,23 @@ class GymType(ObjectType):
         return True
     return False
 
+class ColorType(ObjectType):
+  red = Int()
+  green = Int()
+  blue = Int()
+  alpha = Float()
+
+class TagType(ObjectType):
+  label = String()
+  url = String()
+  color = Field(ColorType)
+
 class ClassDetailType(ObjectType):
   id = String()
   name = String()
   description = String()
-  tags = List(String)
+  tags = List(TagType)
+  categories = List(String)
 
 class ClassType(ObjectType):
   id = String()
