@@ -103,7 +103,7 @@ GYMS = [
             DayTimeRangeType(day=5, start_time=dt.time(12), end_time=dt.time(17, 45)),
             DayTimeRangeType(day=6, start_time=dt.time(12),end_time=dt.time(17, 45))
         ],
-        image_url=ASSET_BASE_URL + 'gyms/Teagle.jpg'
+        image_url=ASSET_BASE_URL + 'gyms/Teagle_Up.jpg'
     ),
     GymType(
         id=generate_id(),
@@ -127,7 +127,7 @@ GYMS = [
             DayTimeRangeType(day=5, start_time=dt.time(12), end_time=dt.time(17, 45)),
             DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45))
         ],
-        image_url=ASSET_BASE_URL + 'gyms/Teagle.jpg'
+        image_url=ASSET_BASE_URL + 'gyms/Teagle_Down.jpg'
     )
 ]
 
