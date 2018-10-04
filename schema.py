@@ -56,6 +56,7 @@ class ClassType(ObjectType):
   end_time = DateTime()
   instructor = String(required=True)
   is_cancelled = Boolean(required=True)
+  image_url = String(required=True)
 
   def resolve_gym(self, info):
     return Data.gyms.get(self.gym_id)

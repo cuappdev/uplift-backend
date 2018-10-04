@@ -89,7 +89,7 @@ def scrape_classes(num_pages):
       try:
         gym_class.instructor = row_elems[4].a.string
       except:
-        pass
+        gym_class.instructor = ''
 
       try:
         location = row_elems[5].a.string
@@ -99,7 +99,10 @@ def scrape_classes(num_pages):
             gym_class.gym_id = gym_id
             break
       except:
-        pass
+        gym_class.location = ''
+
+      # TODO: Get real images
+      gym_class.image_url = constants.ASSET_BASE_URL + 'classes/hiit.jpg'
 
       classes[gym_class.id] = gym_class
   return {detail.id: detail for detail in class_details.values()}, classes

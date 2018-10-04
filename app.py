@@ -9,8 +9,6 @@ from schema import Query
 app = Flask(__name__)
 
 schema = Schema(query=Query)
-with open('schema.json', 'w') as schema_file:
-  json.dump(schema.introspect(), schema_file)
 
 app.add_url_rule(
     '/',
