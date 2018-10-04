@@ -3,8 +3,10 @@ import datetime as dt
 import hashlib
 import os
 
-from schema import DayTimeRangeType, GymType, TagType, ColorType
+from schema import DayTimeRangeType, GymType, TagType
 from utils import generate_id
+
+ASSET_BASE_URL = 'https://raw.githubusercontent.com/cuappdev/assets/master/uplift/'
 
 GYMS = [
     GymType(
@@ -28,7 +30,8 @@ GYMS = [
             DayTimeRangeType(day=4, start_time=dt.time(6), end_time=dt.time(23, 30)),
             DayTimeRangeType(day=5, start_time=dt.time(10), end_time=dt.time(22)),
             DayTimeRangeType(day=6, start_time=dt.time(10), end_time=dt.time(23, 30))
-        ]
+        ],
+        image_url=ASSET_BASE_URL + 'gyms/Helen_Newman.jpg'
     ),
     GymType(
         id=generate_id(),
@@ -51,7 +54,8 @@ GYMS = [
             DayTimeRangeType(day=4, start_time=dt.time(15), end_time=dt.time(23, 30)),
             DayTimeRangeType(day=5, start_time=dt.time(9), end_time=dt.time(13)),
             DayTimeRangeType(day=6, start_time=dt.time(9), end_time=dt.time(13))
-        ]
+        ],
+        image_url=ASSET_BASE_URL + 'gyms/Appel.jpg'
     ),
     GymType(
         id=generate_id(),
@@ -74,7 +78,8 @@ GYMS = [
             DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(23, 30)),
             DayTimeRangeType(day=5, start_time=dt.time(11, 30), end_time=dt.time(22)),
             DayTimeRangeType(day=6, start_time=dt.time(11, 30), end_time=dt.time(23, 30))
-        ]
+        ],
+        image_url=ASSET_BASE_URL + 'gyms/Noyes.jpg'
     ),
     GymType(
         id=generate_id(),
@@ -97,7 +102,8 @@ GYMS = [
             DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(20)),
             DayTimeRangeType(day=5, start_time=dt.time(12), end_time=dt.time(17, 45)),
             DayTimeRangeType(day=6, start_time=dt.time(12),end_time=dt.time(17, 45))
-        ]
+        ],
+        image_url=ASSET_BASE_URL + 'gyms/Teagle.jpg'
     ),
     GymType(
         id=generate_id(),
@@ -120,29 +126,18 @@ GYMS = [
             DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(20)),
             DayTimeRangeType(day=5, start_time=dt.time(12), end_time=dt.time(17, 45)),
             DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45))
-        ]
+        ],
+        image_url=ASSET_BASE_URL + 'gyms/Teagle.jpg'
     )
 ]
 
 GYMS_BY_ID = {gym.id: gym for gym in GYMS}
 
-BASE_TAG_URL = 'https://raw.githubusercontent.com/cuappdev/assets/master/uplift/class_tags/'
-
-TAG_COLORS = {
-    'Energy': ColorType(red=19, green=149, blue=254, alpha=0.55),
-    'Strength': ColorType(red=254, green=143, blue=19, alpha=0.53),
-    'Toning': ColorType(red=19, green=254, blue=215, alpha=0.55),
-    'Zen': ColorType(red=74, green=210, blue=242, alpha=0.64),
-    'Intensity': ColorType(red=56, green=19, blue=254, alpha=0.48),
-    'Cardio': ColorType(red=254, green=19, blue=19, alpha=0.4),
-}
-
 TAGS_BY_LABEL = {
     label: TagType(
         label=label,
-        url=BASE_TAG_URL + label.lower() + '.png',
-        color=TAG_COLORS[label]
-    ) for label in TAG_COLORS
+        image_url=ASSET_BASE_URL + 'class_tags/' + label.lower() + '.png'
+    ) for label in ['Cardio', 'Intensity', 'Strength', 'Zen', 'Toning', 'Energy']
 }
 
 def parse_metadata():

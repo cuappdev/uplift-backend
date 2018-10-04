@@ -13,16 +13,17 @@ class Data(object):
     Data.class_details = kwargs.get('class_details')
 
 class DayTimeRangeType(ObjectType):
-  day = Int()
-  start_time = Time()
-  end_time = Time()
+  day = Int(required=True)
+  start_time = Time(required=True)
+  end_time = Time(required=True)
 
 class GymType(ObjectType):
-  id = String()
-  name = String()
-  description = String()
+  id = String(required=True)
+  name = String(required=True)
+  description = String(required=True)
   popular = List(List(Int))
-  times = List(DayTimeRangeType)
+  times = List(DayTimeRangeType, required=True)
+  image_url = String()
 
   def is_open(self, now=None):
     if now is None:
@@ -33,35 +34,28 @@ class GymType(ObjectType):
         return True
     return False
 
-class ColorType(ObjectType):
-  red = Int()
-  green = Int()
-  blue = Int()
-  alpha = Float()
-
 class TagType(ObjectType):
-  label = String()
-  url = String()
-  color = Field(ColorType)
+  label = String(required=True)
+  image_url = String(required=True)
 
 class ClassDetailType(ObjectType):
-  id = String()
-  name = String()
-  description = String()
-  tags = List(TagType)
-  categories = List(String)
+  id = String(required=True)
+  name = String(required=True)
+  description = String(required=True)
+  tags = List(TagType, required=True)
+  categories = List(String, required=True)
 
 class ClassType(ObjectType):
-  id = String()
+  id = String(required=True)
   gym_id = String()
   gym = Field(GymType)
-  location = String()
-  details_id = String()
-  details = Field(ClassDetailType)
+  location = String(required=True)
+  details_id = String(required=True)
+  details = Field(ClassDetailType, required=True)
   start_time = DateTime()
   end_time = DateTime()
-  instructor = String()
-  is_cancelled = Boolean()
+  instructor = String(required=True)
+  is_cancelled = Boolean(required=True)
 
   def resolve_gym(self, info):
     return Data.gyms.get(self.gym_id)
