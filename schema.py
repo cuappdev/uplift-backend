@@ -1,5 +1,5 @@
 from graphene import Field, ObjectType, String, List, Int, Float, Boolean
-from graphene.types.datetime import DateTime, Time
+from graphene.types.datetime import Date, Time
 
 class Data(object):
   gyms = {}
@@ -52,8 +52,9 @@ class ClassType(ObjectType):
   location = String(required=True)
   details_id = String(required=True)
   details = Field(ClassDetailType, required=True)
-  start_time = DateTime()
-  end_time = DateTime()
+  date = Date(required=True)
+  start_time = Time()
+  end_time = Time()
   instructor = String(required=True)
   is_cancelled = Boolean(required=True)
   image_url = String(required=True)
@@ -64,10 +65,10 @@ class ClassType(ObjectType):
   def resolve_details(self, info):
     return Data.class_details.get(self.details_id)
 
-  def filter(self, now=None, name=None, tags=None, gym_id=None, instructor=None):
+  def filter(self, today=None, name=None, tags=None, gym_id=None, instructor=None):
     details = Data.class_details.get(self.details_id)
     return (
-        (now is None or now.date() == self.start_time.date())
+        (today is None or today == self.date)
         and (name is None or name in details.name)
         and (tags is None
              or any([tag in details.tags for tag in tags]))
@@ -76,10 +77,10 @@ class ClassType(ObjectType):
     )
 
 class Query(ObjectType):
-  gyms = List(GymType, now=DateTime(), gym_id=String(name='id'))
+  gyms = List(GymType, today=Date(), gym_id=String(name='id'))
   classes = List(
       ClassType,
-      now=DateTime(),
+      today=Date(),
       name=String(),
       tags=List(String),
       gym_id=String(),
