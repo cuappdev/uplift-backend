@@ -1,5 +1,5 @@
 import hashlib
 import os
 
-def generate_id():
-  return hashlib.sha1(os.urandom(64)).hexdigest()
+def generate_id(data):
+  return hashlib.sha1(data.encode('utf-8')).hexdigest()

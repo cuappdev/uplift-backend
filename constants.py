@@ -10,7 +10,7 @@ ASSET_BASE_URL = 'https://raw.githubusercontent.com/cuappdev/assets/master/uplif
 
 GYMS = [
     GymType(
-        id=generate_id(),
+        id=generate_id('Helen Newman'),
         name='Helen Newman',
         description='description',
         popular=[
@@ -34,7 +34,7 @@ GYMS = [
         image_url=ASSET_BASE_URL + 'gyms/Helen_Newman.jpg'
     ),
     GymType(
-        id=generate_id(),
+        id=generate_id('Appel'),
         name='Appel',
         description='description',
         popular=[
@@ -58,7 +58,7 @@ GYMS = [
         image_url=ASSET_BASE_URL + 'gyms/Appel.jpg'
     ),
     GymType(
-        id=generate_id(),
+        id=generate_id('Noyes'),
         name='Noyes',
         description='description',
         popular=[
@@ -82,7 +82,7 @@ GYMS = [
         image_url=ASSET_BASE_URL + 'gyms/Noyes.jpg'
     ),
     GymType(
-        id=generate_id(),
+        id=generate_id('Teagle Up'),
         name='Teagle Up',
         description='description',
         popular=[
@@ -106,7 +106,7 @@ GYMS = [
         image_url=ASSET_BASE_URL + 'gyms/Teagle_Up.jpg'
     ),
     GymType(
-        id=generate_id(),
+        id=generate_id('Teagle Down'),
         name='Teagle Down',
         description='description',
         popular=[

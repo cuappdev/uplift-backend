@@ -43,7 +43,7 @@ def scrape_class_detail(class_href):
   class_detail.name = name
   class_detail.tags = constants.TAGS_BY_CLASS_NAME.get(name, [])
   class_detail.categories = constants.CATEGORIES_BY_CLASS_NAME.get(name, [])
-  class_detail.id = generate_id()
+  class_detail.id = generate_id(name)
   return class_detail
 
 '''
@@ -64,7 +64,7 @@ def scrape_classes(num_pages):
     data = schedule.find_all('tr')[1:] # first row is header
 
     for row in data:
-      gym_class = ClassType(id=generate_id())
+      gym_class = ClassType()
       row_elems = row.find_all('td')
       date_string = row_elems[0].span.string
       gym_class.date = datetime.strptime(date_string, '%m/%d/%Y').date()
@@ -102,6 +102,7 @@ def scrape_classes(num_pages):
       except:
         gym_class.location = ''
 
+      gym_class.id = generate_id(gym_class.details_id + date_string + gym_class.instructor)
       # TODO: Get real images
       gym_class.image_url = constants.ASSET_BASE_URL + 'classes/hiit.jpg'
 
