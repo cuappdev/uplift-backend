@@ -25,14 +25,8 @@ class GymType(ObjectType):
   times = List(DayTimeRangeType, required=True)
   image_url = String()
 
-  def is_open(self, now=None):
-    if now is None:
-      return True
-    for dt_range in self.times:
-      if (now.weekday() == dt_range.day
-              and dt_range.start_time <= now.time() <= dt_range.end_time):
-        return True
-    return False
+  def is_open(self, day=None):
+    return day is None or any([day == dt_range.day for dt_range in self.times])
 
 class TagType(ObjectType):
   label = String(required=True)
@@ -65,10 +59,12 @@ class ClassType(ObjectType):
   def resolve_details(self, info):
     return Data.class_details.get(self.details_id)
 
-  def filter(self, today=None, name=None, tags=None, gym_id=None, instructor=None):
+  def filter(self, detail_ids=None, day=None, name=None, tags=None,
+             gym_id=None, instructor=None):
     details = Data.class_details.get(self.details_id)
     return (
-        (today is None or today == self.date)
+        (detail_ids is None or self.details_id in detail_ids)
+        and (day is None or day == self.date)
         and (name is None or name in details.name)
         and (tags is None
              or any([tag in details.tags for tag in tags]))
@@ -77,21 +73,22 @@ class ClassType(ObjectType):
     )
 
 class Query(ObjectType):
-  gyms = List(GymType, today=Date(), gym_id=String(name='id'))
+  gyms = List(GymType, day=Date(), gym_id=String(name='id'))
   classes = List(
       ClassType,
-      today=Date(),
+      detail_ids=List(String),
+      day=Date(),
       name=String(),
       tags=List(String),
       gym_id=String(),
       instructor=String()
   )
 
-  def resolve_gyms(self, info, now=None, gym_id=None):
+  def resolve_gyms(self, info, day=None, gym_id=None):
     if gym_id is not None:
       gym = Data.gyms.get(gym_id)
       return [gym] if gym is not None else []
-    return [gym for gym in Data.gyms.values() if gym.is_open(now)]
+    return [gym for gym in Data.gyms.values() if gym.is_open(day)]
 
   def resolve_classes(self, info, **kwargs):
     return [c for c in Data.classes.values() if c.filter(**kwargs)]
