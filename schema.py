@@ -1,15 +1,28 @@
+import datetime as dt
+
 from graphene import Field, ObjectType, String, List, Int, Float, Boolean
 from graphene.types.datetime import Date, Time
 
 class Data(object):
   gyms = {}
-  classes = {}
+  classes_by_date = {}
   class_details = {}
 
   @staticmethod
   def update_data(**kwargs):
     Data.gyms = kwargs.get('gyms')
-    Data.classes = kwargs.get('classes')
+
+    date_limit = dt.date.today() - dt.timedelta(days=kwargs.get('limit'))
+    classes_by_date = Data.classes_by_date
+    classes_data = kwargs.get('classes')
+    for class_id, class_data in classes_data.items():
+      if class_data.date in classes_by_date:
+        classes_by_date[class_data.date][class_id] = class_data
+      else:
+        classes_by_date[class_data.date] = {class_id:class_data}
+    classes_by_date = {date: classes_data for date, classes_data in classes_by_date.items() if date > date_limit}
+    Data.classes_by_date = classes_by_date
+
     Data.class_details = kwargs.get('class_details')
 
 class DayTimeRangeType(ObjectType):
@@ -91,4 +104,9 @@ class Query(ObjectType):
     return [gym for gym in Data.gyms.values() if gym.is_open(day)]
 
   def resolve_classes(self, info, **kwargs):
-    return [c for c in Data.classes.values() if c.filter(**kwargs)]
+    result = []
+    for classes in Data.classes_by_date.values():
+      for c in classes.values():
+        if c.filter(**kwargs):
+          result.append(c)
+    return result
