@@ -1,6 +1,7 @@
 from datetime import datetime
 import hashlib
 import os
+import random
 
 from bs4 import BeautifulSoup
 from lxml import html
@@ -103,8 +104,26 @@ def scrape_classes(num_pages):
         gym_class.location = ''
 
       gym_class.id = generate_id(gym_class.details_id + date_string + gym_class.instructor)
-      # TODO: Get real images
-      gym_class.image_url = constants.ASSET_BASE_URL + 'classes/hiit.jpg'
-
+      gym_class.image_url = get_image_url(class_details[class_href].name)
+      
       classes[gym_class.id] = gym_class
+
   return {detail.id: detail for detail in class_details.values()}, classes
+
+"""
+Return an image URL that contains keywords in the name of the class
+Params:
+  name: name of the class
+Returns:
+  a string of image URL
+"""
+def get_image_url(name):
+  image_keyword = 'General'
+  for keyword in constants.CLASS_IMAGE_KEYWORDS:
+    if keyword in name:
+      image_keyword = keyword
+      break
+  if image_keyword in constants.IMAGE_CHOICES:
+    image_number = random.choice(range(1, constants.IMAGE_CHOICES[image_keyword]+1))
+    image_keyword = image_keyword + str(image_number)
+  return constants.ASSET_BASE_URL + 'classes/' + image_keyword + '.jpg'

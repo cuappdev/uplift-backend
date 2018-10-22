@@ -157,3 +157,8 @@ TAGS_BY_CLASS_NAME, CATEGORIES_BY_CLASS_NAME = parse_metadata()
 PAGE_LIMIT = 10
 UPDATE_DELAY = 3600
 CLASS_HISTORY_LIMIT = 4
+
+CLASS_IMAGE_KEYWORDS = ['Abs', 'Barre', 'Chi', 'Dance', 'H.I.I.T', 'OULA', 'Pilates', 'Pump',
+                        'ShockWave', 'Spinning', 'Strength', 'TRX', 'Yoga', 'ZUMBA']
+
+IMAGE_CHOICES = {'General': 2, 'Yoga': 3}
