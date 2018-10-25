@@ -1,0 +1,5 @@
+#!/bin/bash
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+docker build -t uplift --no-cache .
+docker tag $(docker images -q uplift) cornellappdev/uplift:"$TRAVIS_COMMIT"
+docker push cornellappdev/uplift:"$TRAVIS_COMMIT"
