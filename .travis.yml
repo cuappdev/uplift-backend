@@ -1,0 +1,17 @@
+language: python
+python:
+    - '3.6'
+sudo: required
+services:
+    - docker
+script:
+    - 
+deploy:
+    provider: script
+    script: bash docker_push
+    on:
+        branch: release
+env:
+    global:
+        - secure: pu+TJdYKNhOhX5Pgaea9c6lJ2DVHVzw4TU5no3pXLRspQAcWqeliEoyd1nesRTaBWxUKeerz7/QFW9VoPmTHHaMBTv7BQLtPTTrfUIpye/N5bo43qpZ/P4WhIqAbVnkjjZawgTh+8IZc0E3NIqOdeySeQT8QVrxDJx97wnXuuGGd7Hjpejy7YHBFERhnuDcMP8/dLiuhZtOjryJy+UXcHxAEp04e1mQUsumLSnzatO07+Jm41ygsDv8TD9JSstr2hCWNrkiVFr8yofLLhlcR2vf0RH0czXW2lwMOcpC0/STYjCFwBSuvfh1ELy+Wdl4MCDjSMVDMsnVPMyAFmoj4tPAA4pMXKGq0+VhxybwWOsB/IUQB/OlOAakzauBiVzhDuUHiDCrT/0R9AR5F994vCGKgEkPnIGfb0ZRs9xiM5eqUA+hM7+yDeeF/KebLlkqCcK53qM8/U3CTfpT9dAuBDJtiKhFUXdD7fnfxaFlhRDsDDko5DZ2cdkizroB87FQfyV9VQJ0gbGJkjnpt1D80rBw6z7ZiyaYrxlt6LbT7mBNLCN2V8hVVhY98HOGEN2SwoYk/oek6AHk1+oLSDsZyoy1j57oPWjyi7zkFbZZL1NcC6uPcS3FnrGkFrZrKFWZ1ciJ/CmT7Eajwe4sGSg0ndpqjyJM+NBhqhxnObSwKW4Y=
+        - secure: qC/BEUKZKfof1AFxkU/waEPTaIRjdNyeDhG1Bde/71ujNCfgj72vMDp4JvYAnG2lYzB/fliqI2ttotJ762Soy2lS3QsYFemFuphjzJiuAasaLxDVDc3LMDrQaUj3l+gR/3yaHkdCRqb/36SjPdE8k6dWLNQten2hBgBKaXAzNsNDGgnqRVDreTxP73cmTnMKQ8unk2npb/whRrInMUlGZAXvggNfJ11zV5aHioEjODGGcPDjJBkmrp23YoWf4C9qLiWggLgczbkm9p01KZI/+Vutj5tp9sw2h97Y+DReHc45CpJWH9fD0jqj0MxNkWNyHODKI1oTfp8+TvvsHLVCDpMMxhzyhG0cQMdIkyBicoIK9SZ4T5KBFn4AxB4k7UMkJP1iCnz17gHsjOxXbCDkuUVbFHmdJ5X366n+2ckuY0CjlYK7/6Rpk+KbyBNI5ZrZ20PbbxYmT5zubbgNXQ2aZBeXA53FSXr+jXdlNTacKFWJeoEcvQP8b+coWGiUEF8xu2m22dfUY7d+YzFtyyOixEamumlHkaFUruM9rlD4VL4VDNa3ARg8BUAgErkGka5cIWdKHIobwjdWNcxwNha5/6Kp4E6rwtCyvbt6mUkUBjpIrxoJAeArt7AkibmARRTZ3L90ZuyHrSf1bvKgp5393FGtojr9ZdmXmWMJXo+tlvE=
