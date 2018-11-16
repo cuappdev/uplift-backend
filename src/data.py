@@ -1,8 +1,8 @@
 from datetime import datetime
 import threading
-import constants
-import scraper
-from schema import Data
+import src.constants as constants
+import src.scraper as scraper
+from src.schema import Data
 
 def start_update():
   try:

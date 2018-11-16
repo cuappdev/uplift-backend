@@ -3,8 +3,8 @@ import json
 from flask import Flask
 from flask_graphql import GraphQLView
 from graphene import Schema
-import data
-from schema import Query
+import src.data
+from src.schema import Query
 
 app = Flask(__name__)
 

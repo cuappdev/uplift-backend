@@ -1,12 +1,14 @@
 import unittest
+import sys 
+sys.path.append('..')
 
 from graphene import Schema
 from graphene.test import Client
 from snapshottest import TestCase
 
-from constants import CLASS_HISTORY_LIMIT, GYMS_BY_ID, PAGE_LIMIT
-from schema import Data, Query
-import scraper
+from src.constants import CLASS_HISTORY_LIMIT, GYMS_BY_ID, PAGE_LIMIT
+from src.schema import Data, Query
+import src.scraper as scraper
 
 schema = Schema(query=Query)
 client = Client(schema)

@@ -5,7 +5,8 @@ sudo: required
 services:
     - docker
 script:
-    - 
+    cd tests;
+    python tests.py
 deploy:
     provider: script
     script: bash docker_push

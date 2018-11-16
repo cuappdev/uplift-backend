@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 from lxml import html
 import requests
 
-import constants
-from schema import ClassDetailType, ClassType, DayTimeRangeType, GymType
-from utils import generate_id
+import src.constants as constants
+from src.schema import ClassDetailType, ClassType, DayTimeRangeType, GymType
+from src.utils import generate_id
 
 BASE_URL = 'https://recreation.athletics.cornell.edu'
 CLASSES_PATH = '/fitness-centers/group-fitness-classes?&page='
