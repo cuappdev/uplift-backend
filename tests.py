@@ -1,6 +1,4 @@
 import unittest
-import sys 
-sys.path.append('..')
 
 from graphene import Schema
 from graphene.test import Client

@@ -143,7 +143,7 @@ TAGS_BY_LABEL = {
 def parse_metadata():
   tags = {}
   categories = {}
-  with open('../data/class_metadata.csv', 'r') as metadata_file:
+  with open('data/class_metadata.csv', 'r') as metadata_file:
     reader = csv.reader(metadata_file)
     next(reader)
     for row in reader:
