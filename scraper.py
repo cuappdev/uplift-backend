@@ -61,6 +61,8 @@ def scrape_classes(num_pages):
   for i in range(num_pages):
     page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
     soup = BeautifulSoup(page, 'lxml')
+    if len(soup.find_all('table')) == 1:
+      continue
     schedule = soup.find_all('table')[1] # first table is irrelevant
     data = schedule.find_all('tr')[1:] # first row is header
 
