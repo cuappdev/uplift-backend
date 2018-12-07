@@ -1,5 +1,8 @@
 #!/bin/bash
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-docker build -t uplift --no-cache .
-docker tag $(docker images -q uplift) cornellappdev/uplift:"$TRAVIS_COMMIT"
+docker build -t cornellappdev/uplift:"$TRAVIS_COMMIT" --no-cache .
 docker push cornellappdev/uplift:"$TRAVIS_COMMIT"
+chmod 600 server.pem
+ssh -i server.pem appdev@uplift-backend.cornellappdev.com "cd docker-compose; export IMAGE_TAG='$TRAVIS_COMMIT';
+    docker stack deploy --compose-file docker-compose.yml the-stack"
+
