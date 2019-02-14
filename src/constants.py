@@ -3,8 +3,8 @@ import datetime as dt
 import hashlib
 import os
 
-from schema import DayTimeRangeType, GymType, TagType
-from utils import generate_id
+from src.schema import DayTimeRangeType, GymType, TagType
+from src.utils import generate_id
 
 ASSET_BASE_URL = 'https://raw.githubusercontent.com/cuappdev/assets/master/uplift/'
 
@@ -146,7 +146,7 @@ TAGS_BY_LABEL = {
 def parse_metadata():
   tags = {}
   categories = {}
-  with open('class_metadata.csv', 'r') as metadata_file:
+  with open('src/data/class_metadata.csv', 'r') as metadata_file:
     reader = csv.reader(metadata_file)
     next(reader)
     for row in reader:

@@ -16,7 +16,7 @@ snapshots['TestQuery::test_gyms 1'] = {
                     {
                         'day': 0,
                         'endTime': '23:30:00',
-                        'startTime': '06:00:00'
+                        'startTime': '10:00:00'
                     },
                     {
                         'day': 1,
@@ -40,12 +40,12 @@ snapshots['TestQuery::test_gyms 1'] = {
                     },
                     {
                         'day': 5,
-                        'endTime': '22:00:00',
-                        'startTime': '10:00:00'
+                        'endTime': '23:30:00',
+                        'startTime': '06:00:00'
                     },
                     {
                         'day': 6,
-                        'endTime': '23:30:00',
+                        'endTime': '22:00:00',
                         'startTime': '10:00:00'
                     }
                 ]
@@ -55,8 +55,8 @@ snapshots['TestQuery::test_gyms 1'] = {
                 'times': [
                     {
                         'day': 0,
-                        'endTime': '23:30:00',
-                        'startTime': '15:00:00'
+                        'endTime': '13:00:00',
+                        'startTime': '09:00:00'
                     },
                     {
                         'day': 1,
@@ -80,8 +80,8 @@ snapshots['TestQuery::test_gyms 1'] = {
                     },
                     {
                         'day': 5,
-                        'endTime': '13:00:00',
-                        'startTime': '09:00:00'
+                        'endTime': '23:30:00',
+                        'startTime': '15:00:00'
                     },
                     {
                         'day': 6,
@@ -96,7 +96,7 @@ snapshots['TestQuery::test_gyms 1'] = {
                     {
                         'day': 0,
                         'endTime': '23:30:00',
-                        'startTime': '07:00:00'
+                        'startTime': '11:30:00'
                     },
                     {
                         'day': 1,
@@ -120,12 +120,12 @@ snapshots['TestQuery::test_gyms 1'] = {
                     },
                     {
                         'day': 5,
-                        'endTime': '22:00:00',
-                        'startTime': '11:30:00'
+                        'endTime': '23:30:00',
+                        'startTime': '07:00:00'
                     },
                     {
                         'day': 6,
-                        'endTime': '23:30:00',
+                        'endTime': '22:00:00',
                         'startTime': '11:30:00'
                     }
                 ]
@@ -135,8 +135,8 @@ snapshots['TestQuery::test_gyms 1'] = {
                 'times': [
                     {
                         'day': 0,
-                        'endTime': '22:45:00',
-                        'startTime': '07:00:00'
+                        'endTime': '17:45:00',
+                        'startTime': '12:00:00'
                     },
                     {
                         'day': 1,
@@ -155,13 +155,13 @@ snapshots['TestQuery::test_gyms 1'] = {
                     },
                     {
                         'day': 4,
-                        'endTime': '20:00:00',
+                        'endTime': '22:45:00',
                         'startTime': '07:00:00'
                     },
                     {
                         'day': 5,
-                        'endTime': '17:45:00',
-                        'startTime': '12:00:00'
+                        'endTime': '20:00:00',
+                        'startTime': '07:00:00'
                     },
                     {
                         'day': 6,
@@ -175,8 +175,8 @@ snapshots['TestQuery::test_gyms 1'] = {
                 'times': [
                     {
                         'day': 0,
-                        'endTime': '22:45:00',
-                        'startTime': '07:00:00'
+                        'endTime': '17:45:00',
+                        'startTime': '12:00:00'
                     },
                     {
                         'day': 1,
@@ -195,13 +195,13 @@ snapshots['TestQuery::test_gyms 1'] = {
                     },
                     {
                         'day': 4,
-                        'endTime': '20:00:00',
+                        'endTime': '22:45:00',
                         'startTime': '07:00:00'
                     },
                     {
                         'day': 5,
-                        'endTime': '17:45:00',
-                        'startTime': '12:00:00'
+                        'endTime': '20:00:00',
+                        'startTime': '07:00:00'
                     },
                     {
                         'day': 6,
