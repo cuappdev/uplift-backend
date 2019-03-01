@@ -27,8 +27,9 @@ class Data(object):
 
 class DayTimeRangeType(ObjectType):
   day = Int(required=True)
-  start_time = Time(required=True)
   end_time = Time(required=True)
+  special_hours = Boolean(default_value=False, required=True)
+  start_time = Time(required=True)
 
 class GymType(ObjectType):
   id = String(required=True)
