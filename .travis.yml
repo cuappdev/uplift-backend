@@ -5,7 +5,7 @@ sudo: required
 services:
 - docker
 script:
--
+- python tests.py
 addons:
   ssh_known_hosts: uplift-backend.cornellappdev.com
 deploy:
