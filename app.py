@@ -4,9 +4,8 @@ from flask import Flask
 from flask_graphql import GraphQLView
 from graphene import Schema
 import src.data
+from src.app import app
 from src.schema import Query
-
-app = Flask(__name__)
 
 schema = Schema(query=Query)
 
