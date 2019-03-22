@@ -20,6 +20,12 @@ The required environment variables for this API are the following:
 
 ````bash
 export FLASK_ENV=development
+export DB_USERNAME=CHANGE_ME
+export DB_PASSWORD=CHANGE_ME
+export DB_HOST=localhost
+export DB_NAME=upliftdb
+export APP_SETTINGS=src.config.DevelopmentConfig
+export CLIENT_ID=CHANGE_ME
 ````
 
 To use `autoenv` with this repository, run the following and set the variables appropriately.
