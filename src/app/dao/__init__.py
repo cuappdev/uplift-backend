@@ -1,2 +1,2 @@
-from app.models._all import *
-from app.utils import db_utils
+from src.app.models._all import *
+from src.app.utils import db_utils
