@@ -59,7 +59,7 @@ def check_for_special_hours():
           if reg_hours.day not in days_covered:
             hours.append(reg_hours)
 
-      gym.times = hours
+      gym.times = sorted(hours, key = lambda hour: hour.day)
 
   return gyms
 
