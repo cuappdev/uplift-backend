@@ -18,4 +18,3 @@ class UpdateSessionController(AppDevController):
     return {'session_token': user.session_token,
             'session_expiration': user.session_expiration,
             'update_token': user.update_token}
-            

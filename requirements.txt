@@ -1,6 +1,9 @@
+alembic==1.0.9
 aniso8601==3.0.2
+-e git+https://github.com/cuappdev/appdev.py.git@fffe58a01ba5bc00493213e2baa00a6a9e393280#egg=appdev.py
 beautifulsoup4==4.6.3
 bs4==0.0.1
+cachetools==3.1.0
 certifi==2018.8.24
 chardet==3.0.4
 click==6.7
@@ -17,18 +20,25 @@ graphql-server-core==1.1.1
 gunicorn==19.9.0
 idna==2.6
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.10.1
 lxml==4.1.1
+Mako==1.0.9
 MarkupSafe==1.0
 marshmallow==3.0.0rc4
-marshmallow_sqlalchemy==0.15.0
+marshmallow-sqlalchemy==0.16.2
 promise==2.1
 psycopg2==2.7.6
+pyasn1==0.4.5
+pyasn1-modules==0.2.4
+python-dateutil==2.8.0
+python-editor==1.0.4
 requests==2.20.0
+rsa==4.0
 Rx==1.6.1
 six==1.11.0
 snapshottest==0.5.0
 SQLAlchemy==1.2.18
+termcolor==1.1.0
 typing==3.6.6
 urllib3==1.23
 Werkzeug==0.14.1

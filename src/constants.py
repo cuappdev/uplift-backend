@@ -1,7 +1,5 @@
 import csv
 import datetime as dt
-import hashlib
-import os
 
 from src.schema import DayTimeRangeType, GymType, TagType
 from src.utils import generate_id
@@ -98,7 +96,7 @@ GYMS = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 13, 21, 24, 34, 36, 14, 0, 0, 0, 0, 0]
         ],
         times=[
-            DayTimeRangeType(day=0, start_time=dt.time(12),end_time=dt.time(17, 45)),
+            DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(17, 45)),
             DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(22, 45)),
             DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(22, 45)),
             DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(22, 45)),
