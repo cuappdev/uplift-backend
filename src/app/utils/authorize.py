@@ -29,4 +29,3 @@ def authorize_user(f):
     return f(user=user, *args, **kwargs)
 
   return inner
-

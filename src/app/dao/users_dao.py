@@ -10,7 +10,7 @@ def get_user_by_update_token(update_token):
   return User.query.filter(User.update_token == update_token).first()
 
 def create_user(id_info):
-  optional_user = get_user_by_google_id(google_id)
+  optional_user = get_user_by_google_id(id_info['sub'])
   if optional_user is not None:
     # user with google_id exists
     return False, optional_user
@@ -20,13 +20,13 @@ def create_user(id_info):
   given_name = id_info['given_name']
   name = id_info['name']
   picture = id_info['picture']
- 
+
   user = User(
     google_id=google_id,
     email=email,
     given_name=given_name,
     name=name,
-    picture=picutre
+    picture=picture
   )
   db_utils.commit_model(user)
   return True, user
