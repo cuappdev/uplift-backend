@@ -10,9 +10,15 @@ class Post(Base):
   large_picture = db.Column(db.String(200), nullable=False)
   name = db.Column(db.String(100), nullable=False)
   quote = db.Column(db.String(100), nullable=False)
+  routines = db.relationship('Routine', backref='posts')
+  routines_id = db.Column(
+    db.Integer, db.ForeignKey('routines.id', ondelete='CASCADE')
+  )
   small_picture = db.Column(db.String(200), nullable=False)
   social_media = db.relationship('SocialMedia', backref='posts')
-  suggested_routines = db.relationship('Routine', backref='posts')
+  social_media_id = db.Column(
+    db.Integer, db.ForeignKey('social_media.id', ondelete='CASCADE')
+  )
   summary = db.Column(db.String(300), nullable=False)
 
   def __init__(self, **kwargs):
@@ -21,7 +27,9 @@ class Post(Base):
     self.large_picture = kwargs.get('large_picture', '')
     self.name = kwargs.get('name', '')
     self.quote = kwargs.get('quote', '')
+    self.routines_id = kwargs.get('routines_id')
     self.small_picture = kwargs.get('small_picture', '')
+    self.social_media_id = kwargs.get('social_media_id')
     self.summary = kwargs.get('summary', '')
 
   def serialize(self):
