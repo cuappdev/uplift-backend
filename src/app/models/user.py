@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 import hashlib
 import os
 from . import *
@@ -15,7 +15,7 @@ class User(Base):
   session_token = db.Column(db.String(255), nullable=False, unique=True)
   session_expiration = db.Column(db.DateTime, nullable=False)
   update_token = db.Column(db.String(255), nullable=False, unique=True)
-  created_at = db.Column(db.DateTime, default=datetime.utcnow())
+  created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
 
   def __init__(self, **kwargs):
     self.google_id = kwargs.get('google_id')
