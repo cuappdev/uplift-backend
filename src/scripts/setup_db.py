@@ -36,3 +36,8 @@ def delete_migrations():
 def init_data():
   # TODO: Set up posts
   print("Adding posts to db...")
+
+if __name__ == '__main__':
+  delete_migrations()
+  setup_dbs()
+  init_data()
