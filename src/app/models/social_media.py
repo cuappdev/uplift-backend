@@ -8,6 +8,7 @@ class SocialMedia(Base):
   facebook = db.Column(db.String(200), nullable=True)
   instagram = db.Column(db.String(200), nullable=True)
   linkedin = db.Column(db.String(200), nullable=True)
+  post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
   twitter = db.Column(db.String(200), nullable=True)
   website = db.Column(db.String(200), nullable=True)
 
@@ -15,6 +16,7 @@ class SocialMedia(Base):
     self.facebook = kwargs.get('facebook', '')
     self.instagram = kwargs.get('instagram', '')
     self.linkedin = kwargs.get('linkedin', '')
+    self.post_id = kwargs.get('post_id', '')
     self.twitter = kwargs.get('twitter', '')
     self.website = kwargs.get('website', '')
 

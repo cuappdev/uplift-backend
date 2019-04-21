@@ -12,12 +12,16 @@ def get_routines_by_category(category):
 def get_routines_by_title(title):
   return Routine.query.filter(Routine.title == title).all()
 
+def get_routines_by_post_id(post_id):
+  return Routine.query.filter(Routine.post_id == post_id).all()
+
 def serialize_routine(routine):
   return routine_schema.dump(routine).data
 
-def create_routine(category, steps, title):
+def create_routine(category, post_id, steps, title):
   new_routine = Routine(
     category=category, 
+    post_id=post_id,
     steps=steps, 
     title=title)
   db_utils.commit_model(new_routine)
