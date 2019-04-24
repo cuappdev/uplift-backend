@@ -12,7 +12,7 @@ def get_social_media_by_post_id(post_id):
 def serialize_social_media(social_media):
   return social_media_schema.dump(social_media).data
 
-def create_social_media(facebook="", instagram="", linkedin="", post_id, twitter="", website=""):
+def create_social_media(post_id, facebook="", instagram="", linkedin="", twitter="", website=""):
   new_social_media = SocialMedia(
     facebook=facebook, 
     instagram=instagram, 
