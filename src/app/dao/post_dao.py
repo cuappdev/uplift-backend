@@ -15,14 +15,14 @@ def get_posts_by_name(name):
 def serialize_post(post):
   return post_schema.dump(post).data
 
-def create_post(args):
-  biography = args.get('biography')
-  college = args.get('college')
-  expertises = args.get('expertises', '')
-  large_picture = args.get('large_picture', '')
-  name = args.get('name')
-  quote = args.get('quote', '')
-  small_picture = args.get('small_picture', '')
+def create_post(**kwargs):
+  biography = kwargs.get('biography')
+  college = kwargs.get('college')
+  expertises = kwargs.get('expertises', '')
+  large_picture = kwargs.get('large_picture', '')
+  name = kwargs.get('name')
+  quote = kwargs.get('quote', '')
+  small_picture = kwargs.get('small_picture', '')
 
   new_post = Post(
     biography=biography, 
