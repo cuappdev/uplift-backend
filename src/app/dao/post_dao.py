@@ -16,22 +16,14 @@ def serialize_post(post):
   return post_schema.dump(post).data
 
 def create_post(**kwargs):
-  biography = kwargs.get('biography')
-  college = kwargs.get('college')
-  expertises = kwargs.get('expertises', '')
-  large_picture = kwargs.get('large_picture', '')
-  name = kwargs.get('name')
-  quote = kwargs.get('quote', '')
-  small_picture = kwargs.get('small_picture', '')
-
   new_post = Post(
-    biography=biography, 
-    college=college,
-    expertises=expertises,
-    large_picture=large_picture, 
-    name=name, 
-    quote=quote,
-    small_picture=small_picture
+    biography=kwargs.get('biography', ''), 
+    college=kwargs.get('college', ''),
+    expertises=kwargs.get('expertises', ''),
+    large_picture=kwargs.get('large_picture', ''), 
+    name=kwargs.get('name', ''), 
+    quote=kwargs.get('quote', ''),
+    small_picture=kwargs.get('small_picture', '')
     )
   db_utils.commit_model(new_post)
   return True, new_post

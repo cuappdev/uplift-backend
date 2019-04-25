@@ -18,11 +18,11 @@ def get_routines_by_post_id(post_id):
 def serialize_routine(routine):
   return routine_schema.dump(routine).data
 
-def create_routine(category, post_id, steps, title):
+def create_routine(**kwargs):
   new_routine = Routine(
-    category=category, 
-    post_id=post_id,
-    steps=steps, 
-    title=title)
+    category=kwargs.get('category', ''), 
+    post_id=kwargs.get('post_id', 0),
+    steps=kwargs.get('steps', ''), 
+    title=kwargs.get('title', ''))
   db_utils.commit_model(new_routine)
   return True, new_routine

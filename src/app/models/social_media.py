@@ -16,7 +16,7 @@ class SocialMedia(Base):
     self.facebook = kwargs.get('facebook', '')
     self.instagram = kwargs.get('instagram', '')
     self.linkedin = kwargs.get('linkedin', '')
-    self.post_id = kwargs.get('post_id', '')
+    self.post_id = kwargs.get('post_id', 0)
     self.twitter = kwargs.get('twitter', '')
     self.website = kwargs.get('website', '')
 

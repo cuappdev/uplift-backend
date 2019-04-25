@@ -12,7 +12,7 @@ class Routine(Base):
 
   def __init__(self, **kwargs):
     self.category = kwargs.get('category', '')
-    self.post_id = kwargs.get('post_id', '')
+    self.post_id = kwargs.get('post_id', 0)
     self.steps = kwargs.get('steps', '')
     self.title = kwargs.get('title', '')
 
