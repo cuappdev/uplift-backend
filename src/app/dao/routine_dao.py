@@ -16,7 +16,7 @@ def get_routines_by_post_id(post_id):
   return Routine.query.filter(Routine.post_id == post_id).all()
 
 def serialize_routine(routine):
-  return routine_schema.dump(routine).data
+  return routine_schema.dump(routine)
 
 def create_routine(**kwargs):
   new_routine = Routine(

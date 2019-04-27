@@ -29,13 +29,13 @@ def delete_migrations():
     print('No migrations folder to delete...')
 
 def init_data():
-  # TODO: Set up posts
+  image_prefix = 'https://raw.githubusercontent.com/cuappdev/assets/master/uplift/influencers/'
   print('Adding posts to db...')
   _, juan_garcia_post = pd.create_post(
     biography='My name is Juan Garcia and I\'m a junior studying Operations Research and Information Engineering with a minor in Business. I\'m from Edinburg, Texas which is a border town alongside the Rio Grande River which separates Texas and Mexico. I began my lifting career the summer after high school when I was here at Cornell participating in the Prefreshman Summer Program.(shoutout to my 2016 PSP class!) Outside of classes and lifting, I enjoy playing a variety of sports, more importantly basketball, hiking when it\'s a beautiful day outside, playing video games, and collaborating with others on ideas that can potentially make positive impacts on communities.', 
     college='Engineering',
     expertises='Weightlifting',
-    large_picture='', 
+    large_picture=image_prefix+'juan.png', 
     name='Juan Garcia', 
     quote='',
     small_picture=''
@@ -77,7 +77,7 @@ def init_data():
     biography='I\'m a National Academy of Sports Medicine Certified Personal Trainer and Performance Enhancement Specialist (NASM-CPT, PES), and I\'m a certified instructor in Spinning, SpinPower, TRX, Power HIIT and Shockwave. Other than that, I\'m a proud Chicago native and a senior at Cornell. Can\'t wait to see you in a class!', 
     college='Arts & Sciences',
     expertises='Spinning, Weightlifting, Strength & Conditioning',
-    large_picture='', 
+    large_picture=image_prefix+'madeline.jpg', 
     name='Madeline Ugarte', 
     quote='',
     small_picture=''
@@ -118,7 +118,7 @@ def init_data():
     biography='We\'re twin powerbuilders: people who lift to get stronger and look better. As students, we\'re computational biology majors who intend to attend graduate school in bioinformatics, computational biology, or computer science.', 
     college='Arts & Sciences',
     expertises='Powerlifting and Bodybuilding',
-    large_picture='', 
+    large_picture=image_prefix+'starks.png', 
     name='Austin and Justin Starks', 
     quote='',
     small_picture=''
@@ -159,7 +159,7 @@ def init_data():
     biography='I\'m a long distance runner who got hooked onto CrossFit along the way! I love feeling strong and sharing my knowledge to help people reach their goals. I\'m also the 2018-19 Fitness Club prez and a member of Track Club!', 
     college='Engineering',
     expertises='Running, Olympic lifting, CrossFit',
-    large_picture='', 
+    large_picture=image_prefix+'cleo.png',  
     name='Cleo Kyriakides', 
     quote='',
     small_picture=''
@@ -200,7 +200,7 @@ def init_data():
     biography='A proponent of every body is beautiful. I like to tailor workouts for myself because each person has different gene, muscle insertions, and body proportions. There\'s no \'end\' to a fitness journey in my opinion but a lifestyle to celebrate the amazing capabilities of our body. I believe our body was made to move and feel incredible. I hope to set people on the right path towards loving themselves and exercise.',
     college='CALS',
     expertises='Weightlifting, circuits, diet, body building, aesthetics',
-    large_picture='', 
+    large_picture=image_prefix+'clarie.png', 
     name='Clarie Ng', 
     quote='',
     small_picture=''
@@ -241,7 +241,7 @@ def init_data():
     biography='I used to be a competitive strength athlete participating in powerlifting and strongman competitions. However, I\'ve transitioned into combat sports ~ recently completing a fighting camp in Phuket Thailand! ', 
     college='Johnson School of Business / Hotelie',
     expertises='Weightlifting',
-    large_picture='', 
+    large_picture=image_prefix+'mark.png', 
     name='Mark Rittiboon', 
     quote='',
     small_picture=''

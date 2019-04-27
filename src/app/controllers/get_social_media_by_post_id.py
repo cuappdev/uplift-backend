@@ -3,7 +3,7 @@ from . import *
 class GetSocialMediaByPostIdController(AppDevController):
 
   def get_path(self):
-    return '/social_media/<post_id>/'
+    return '/social_media_by_post/<post_id>/'
 
   def get_methods(self):
     return ['GET']

@@ -5,7 +5,7 @@ class Post(Base):
   __tablename__ = "posts"
 
   id = db.Column(db.Integer, primary_key=True)
-  biography = db.Column(db.String(1500), nullable=False)
+  biography = db.Column(db.String(100000), nullable=False)
   college = db.Column(db.String(100), nullable=False)
   expertises = db.Column(db.String(1000), nullable=False)
   large_picture = db.Column(db.String(500), nullable=False)

@@ -13,7 +13,7 @@ def get_posts_by_name(name):
   return Post.query.filter(Post.name == name).all()
 
 def serialize_post(post):
-  return post_schema.dump(post).data
+  return post_schema.dump(post)
 
 def create_post(**kwargs):
   new_post = Post(
