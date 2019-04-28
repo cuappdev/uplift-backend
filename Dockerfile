@@ -8,4 +8,5 @@ COPY . .
 RUN pip install -r requirements.txt
 
 EXPOSE 5000
+RUN python setup_db.py
 CMD sh start_server.sh

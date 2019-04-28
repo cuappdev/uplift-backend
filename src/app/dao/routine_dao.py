@@ -12,13 +12,17 @@ def get_routines_by_category(category):
 def get_routines_by_title(title):
   return Routine.query.filter(Routine.title == title).all()
 
-def serialize_routine(routine):
-  return routine_schema.dump(routine).data
+def get_routines_by_post_id(post_id):
+  return Routine.query.filter(Routine.post_id == post_id).all()
 
-def create_routine(category, steps, title):
+def serialize_routine(routine):
+  return routine_schema.dump(routine)
+
+def create_routine(**kwargs):
   new_routine = Routine(
-    category=category, 
-    steps=steps, 
-    title=title)
+    category=kwargs.get('category', ''), 
+    post_id=kwargs.get('post_id', 0),
+    steps=kwargs.get('steps', ''), 
+    title=kwargs.get('title', ''))
   db_utils.commit_model(new_routine)
   return True, new_routine
