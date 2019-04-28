@@ -1,9 +1,6 @@
-import sys
 import os
 import shutil
-import datetime as dt
 
-#sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.app.dao import post_dao as pd
 from src.app.dao import routine_dao as rd
 from src.app.dao import social_media_dao as smd
@@ -32,11 +29,17 @@ def init_data():
   image_prefix = 'https://raw.githubusercontent.com/cuappdev/assets/master/uplift/influencers/'
   print('Adding posts to db...')
   _, juan_garcia_post = pd.create_post(
-    biography='My name is Juan Garcia and I\'m a junior studying Operations Research and Information Engineering with a minor in Business. I\'m from Edinburg, Texas which is a border town alongside the Rio Grande River which separates Texas and Mexico. I began my lifting career the summer after high school when I was here at Cornell participating in the Prefreshman Summer Program.(shoutout to my 2016 PSP class!) Outside of classes and lifting, I enjoy playing a variety of sports, more importantly basketball, hiking when it\'s a beautiful day outside, playing video games, and collaborating with others on ideas that can potentially make positive impacts on communities.', 
+    biography=('My name is Juan Garcia and I\'m a junior studying Operations Research and Information Engineering '
+               'with a minor in Business. I\'m from Edinburg, Texas which is a border town alongside the Rio Grande '
+               'River which separates Texas and Mexico. I began my lifting career the summer after high school when '
+               'I was here at Cornell participating in the Prefreshman Summer Program.(shoutout to my 2016 PSP class!)'
+               ' Outside of classes and lifting, I enjoy playing a variety of sports, more importantly basketball, '
+               'hiking when it\'s a beautiful day outside, playing video games, and collaborating with others on '
+               'ideas that can potentially make positive impacts on communities.'),
     college='Engineering',
     expertises='Weightlifting',
-    large_picture=image_prefix+'juan.png', 
-    name='Juan Garcia', 
+    large_picture=image_prefix+'juan.png',
+    name='Juan Garcia',
     quote='',
     small_picture=''
   )
@@ -44,21 +47,33 @@ def init_data():
   _, juan_garcia_cardio = rd.create_routine(
       category='cardio',
       post_id=juan_garcia_post.id,
-      steps='If you\'re going for distance, start off at a distance that you are comfortable with(i.e. 1 mile) and add .25-.5 miles to it with every week that you go to challenge yourself to reach your hidden potential. On the other hand, if you\'re going for speed, do short bursts(10-20 seconds) of sprinting on the treadmill followed by 45 seconds to a minute of rest and repeat 8-10 times.',
+      steps=('If you\'re going for distance, start off at a distance that you are comfortable with(i.e. 1 mile) '
+             'and add .25-.5 miles to it with every week that you go to challenge yourself to reach your hidden '
+             'potential. On the other hand, if you\'re going for speed, do short bursts(10-20 seconds) of '
+             'sprinting on the treadmill followed by 45 seconds to a minute of rest and repeat 8-10 times.'),
       title='Juan Garcia Cardio'
   )
 
   _, juan_garcia_strength = rd.create_routine(
       category='strength',
       post_id=juan_garcia_post.id,
-      steps='Know what your one rep max is for compound movements which include Bench Press, Squats, and Deadlifts to name a few. From there, begin performing these movements ranging from 3 reps to 5 reps for 3 to 5 sets with a weight that is 70-75% of your one rep max. In addition, work on accessories that are needed for each compound movement(i.e. Chest, shoulders and triceps for Bench Press). Never do the same exercises when you go to the gym, best thing for muscle growth/strength is shocking your muscles with different routines or training methods. For example, one training method that I like to do is dropsetting, which consists of starting at a particular weight and performing reps with it until failure, followed by dropping the weight by 5-10 pounds and repeating this cycle of reaching failure until you get to a weight that stops challenging you.',
+      steps=('Know what your one rep max is for compound movements which include Bench Press, Squats, and Deadlifts '
+             'to name a few. From there, begin performing these movements ranging from 3 reps to 5 reps for 3 to 5 '
+             'sets with a weight that is 70-75% of your one rep max. In addition, work on accessories that are needed '
+             'for each compound movement(i.e. Chest, shoulders and triceps for Bench Press). Never do the same '
+             'exercises when you go to the gym, best thing for muscle growth/strength is shocking your muscles with '
+             'different routines or training methods. For example, one training method that I like to do is '
+             'dropsetting, which consists of starting at a particular weight and performing reps with it until failure'
+             ', followed by dropping the weight by 5-10 pounds and repeating this cycle of reaching failure until you '
+             'get to a weight that stops challenging you.'),
       title='Juan Garcia Strength'
   )
 
   _, juan_garcia_mindfulness = rd.create_routine(
       category='mindfulness',
       post_id=juan_garcia_post.id,
-      steps='I\'d recommend either reading a book for 10 min a day or going on a walk for 10-15 without music playing.',
+      steps=('I\'d recommend either reading a book for 10 min a day or going on a walk for 10-15 without music '
+             'playing.'),
       title='Juan Garcia Mindfulness'
   )
 
@@ -77,8 +92,8 @@ def init_data():
     biography='I\'m a National Academy of Sports Medicine Certified Personal Trainer and Performance Enhancement Specialist (NASM-CPT, PES), and I\'m a certified instructor in Spinning, SpinPower, TRX, Power HIIT and Shockwave. Other than that, I\'m a proud Chicago native and a senior at Cornell. Can\'t wait to see you in a class!', 
     college='Arts & Sciences',
     expertises='Spinning, Weightlifting, Strength & Conditioning',
-    large_picture=image_prefix+'madeline.jpg', 
-    name='Madeline Ugarte', 
+    large_picture=image_prefix+'madeline.jpg',
+    name='Madeline Ugarte',
     quote='',
     small_picture=''
   )
@@ -118,7 +133,7 @@ def init_data():
     biography='We\'re twin powerbuilders: people who lift to get stronger and look better. As students, we\'re computational biology majors who intend to attend graduate school in bioinformatics, computational biology, or computer science.', 
     college='Arts & Sciences',
     expertises='Powerlifting and Bodybuilding',
-    large_picture=image_prefix+'starks.png', 
+    large_picture=image_prefix+'starks.png',
     name='Austin and Justin Starks', 
     quote='',
     small_picture=''
@@ -159,8 +174,8 @@ def init_data():
     biography='I\'m a long distance runner who got hooked onto CrossFit along the way! I love feeling strong and sharing my knowledge to help people reach their goals. I\'m also the 2018-19 Fitness Club prez and a member of Track Club!', 
     college='Engineering',
     expertises='Running, Olympic lifting, CrossFit',
-    large_picture=image_prefix+'cleo.png',  
-    name='Cleo Kyriakides', 
+    large_picture=image_prefix+'cleo.png',
+    name='Cleo Kyriakides',
     quote='',
     small_picture=''
   )
@@ -200,8 +215,8 @@ def init_data():
     biography='A proponent of every body is beautiful. I like to tailor workouts for myself because each person has different gene, muscle insertions, and body proportions. There\'s no \'end\' to a fitness journey in my opinion but a lifestyle to celebrate the amazing capabilities of our body. I believe our body was made to move and feel incredible. I hope to set people on the right path towards loving themselves and exercise.',
     college='CALS',
     expertises='Weightlifting, circuits, diet, body building, aesthetics',
-    large_picture=image_prefix+'clarie.png', 
-    name='Clarie Ng', 
+    large_picture=image_prefix+'clarie.png',
+    name='Clarie Ng',
     quote='',
     small_picture=''
   )
@@ -241,8 +256,8 @@ def init_data():
     biography='I used to be a competitive strength athlete participating in powerlifting and strongman competitions. However, I\'ve transitioned into combat sports ~ recently completing a fighting camp in Phuket Thailand! ', 
     college='Johnson School of Business / Hotelie',
     expertises='Weightlifting',
-    large_picture=image_prefix+'mark.png', 
-    name='Mark Rittiboon', 
+    large_picture=image_prefix+'mark.png',
+    name='Mark Rittiboon',
     quote='',
     small_picture=''
   )
