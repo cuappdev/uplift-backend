@@ -16,9 +16,9 @@ def setup_dbs():
 def delete_migrations():
   try:
     shutil.rmtree('migrations')
-    os.system('export PGPASSWORD={}; psql --user={} --host={} {} '
+    os.system('export PGPASSWORD={}; psql --user={} --host={} -p {} {} '
               .format(os.environ['DB_PASSWORD'], os.environ['DB_USERNAME'],
-                      os.environ['DB_HOST'], os.environ['DB_NAME'])
+                      os.environ['DB_HOST'], os.environ['DB_PORT'], os.environ['DB_NAME'])
               + '-c \'drop table alembic_version\'')
     print('Migrations folder deleted...')
 
