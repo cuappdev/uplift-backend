@@ -74,7 +74,10 @@ def init_data():
   juan_garcia_post.social_media.append(juan_garcia_sm)
 
   _, madeline_ugarte_post = pd.create_post(
-    biography='I\'m a National Academy of Sports Medicine Certified Personal Trainer and Performance Enhancement Specialist (NASM-CPT, PES), and I\'m a certified instructor in Spinning, SpinPower, TRX, Power HIIT and Shockwave. Other than that, I\'m a proud Chicago native and a senior at Cornell. Can\'t wait to see you in a class!', 
+    biography=('I\'m a National Academy of Sports Medicine Certified Personal Trainer and Performance Enhancement '
+      'Specialist (NASM-CPT, PES), and I\'m a certified instructor in Spinning, SpinPower, TRX, Power HIIT and '
+      'Shockwave. Other than that, I\'m a proud Chicago native and a senior at Cornell. Can\'t wait to see you '
+      'in a class!'), 
     college='Arts & Sciences',
     expertises='Spinning, Weightlifting, Strength & Conditioning',
     large_picture=image_prefix+'madeline.jpg', 
@@ -84,24 +87,31 @@ def init_data():
   )
 
   _, madeline_ugarte_cardio = rd.create_routine(
-      category='cardio',
-      post_id=madeline_ugarte_post.id,
-      steps='You\'re already probably getting your steps in without even realizing it (you can thank all the Cornell hills for that!). So to step it up a notch I\'d recommend a group fitness class like Spinning for beginners so they can increase their cardio performance with some guidance!',
-      title='Madeline Ugarte Cardio'
+    category='cardio',
+    post_id=madeline_ugarte_post.id,
+    steps=('You\'re already probably getting your steps in without even realizing it (you can thank all the Cornell '
+      'hills for that!). So to step it up a notch I\'d recommend a group fitness class like Spinning for beginners '
+      'so they can increase their cardio performance with some guidance!'),
+    title='Madeline Ugarte Cardio'
   )
 
   _, madeline_ugarte_strength = rd.create_routine(
-      category='strength',
-      post_id=madeline_ugarte_post.id,
-      steps='Start small, stay consistent and pick something you actually like! My advice would be to pick a skill that you\'d like to improve and incorporate it consistently at the end of your workouts or throughout the day. When I first started out I really wanted to get better at pushups so I always ended my workouts with 10 pushups, now it\'s part of my warm up instead!',
-      title='Madeline Ugarte Strength'
+    category='strength',
+    post_id=madeline_ugarte_post.id,
+    steps=('Start small, stay consistent and pick something you actually like! My advice would be to pick a skill '
+      'that you\'d like to improve and incorporate it consistently at the end of your workouts or throughout the '
+      'day. When I first started out I really wanted to get better at pushups so I always ended my workouts with 10 '
+      'pushups, now it\'s part of my warm up instead!'),
+    title='Madeline Ugarte Strength'
   )
 
   _, madeline_ugarte_mindfulness = rd.create_routine(
-      category='mindfulness',
-      post_id=madeline_ugarte_post.id,
-      steps='Give yourself 30 minutes a day to do something that makes you happy. I wake up earlier than I need to every morning for an oat milk latte and 30 minutes to lightly stretch and go through my Instagram feed--just to have some time to myself!',
-      title='Madeline Ugarte Mindfulness'
+    category='mindfulness',
+    post_id=madeline_ugarte_post.id,
+    steps=('Give yourself 30 minutes a day to do something that makes you happy. I wake up earlier than I need to '
+      'every morning for an oat milk latte and 30 minutes to lightly stretch and go through my Instagram feed--just '
+      'to have some time to myself!'),
+    title='Madeline Ugarte Mindfulness'
   )
 
   _, madeline_ugarte_sm = smd.create_social_media(
@@ -115,7 +125,9 @@ def init_data():
   madeline_ugarte_post.social_media.append(madeline_ugarte_sm)
 
   _, starks_twins_post = pd.create_post(
-    biography='We\'re twin powerbuilders: people who lift to get stronger and look better. As students, we\'re computational biology majors who intend to attend graduate school in bioinformatics, computational biology, or computer science.', 
+    biography=('We\'re twin powerbuilders: people who lift to get stronger and look better. As students, we\'re '
+      'computational biology majors who intend to attend graduate school in bioinformatics, computational biology, '
+      'or computer science.'), 
     college='Arts & Sciences',
     expertises='Powerlifting and Bodybuilding',
     large_picture=image_prefix+'starks.png', 
@@ -125,24 +137,28 @@ def init_data():
   )
 
   _, starks_twins_cardio = rd.create_routine(
-      category='cardio',
-      post_id=starks_twins_post.id,
-      steps='Walk to class everyday. Unless it\'s sub-zero outside, walking to class on a campus like Cornell will get thousands of steps per day. Plus, with all of the slopes and hills, you are bound to get an effective cardio workout everyday.',
-      title='Starks Twins Cardio'
+    category='cardio',
+    post_id=starks_twins_post.id,
+    steps=('Walk to class everyday. Unless it\'s sub-zero outside, walking to class on a campus like Cornell will '
+      'get thousands of steps per day. Plus, with all of the slopes and hills, you are bound to get an effective '
+      'cardio workout everyday.'),
+    title='Starks Twins Cardio'
   )
 
   _, starks_twins_strength = rd.create_routine(
-      category='strength',
-      post_id=starks_twins_post.id,
-      steps='Go to the gym, and go consistently. Even if you plan to go twice per week, it is important to establish the routine. Going consistently is what will get you to your goals.',
-      title='Starks Twins Strength'
+    category='strength',
+    post_id=starks_twins_post.id,
+    steps=('Go to the gym, and go consistently. Even if you plan to go twice per week, it is important to establish '
+      'the routine. Going consistently is what will get you to your goals.'),
+    title='Starks Twins Strength'
   )
 
   _, starks_twins_mindfulness = rd.create_routine(
-      category='mindfulness',
-      post_id=starks_twins_post.id,
-      steps='Take time for yourself everyday. It is important to relax your mind and brain and do something you enjoy, even if it is just for 20 minutes a day.',
-      title='Starks Twins Mindfulness'
+    category='mindfulness',
+    post_id=starks_twins_post.id,
+    steps=('Take time for yourself everyday. It is important to relax your mind and brain and do something you '
+      'enjoy, even if it is just for 20 minutes a day.'),
+    title='Starks Twins Mindfulness'
   )
 
   _, starks_twins_sm = smd.create_social_media(
@@ -156,7 +172,9 @@ def init_data():
   starks_twins_post.social_media.append(starks_twins_sm)
 
   _, cleo_kyriakides_post = pd.create_post(
-    biography='I\'m a long distance runner who got hooked onto CrossFit along the way! I love feeling strong and sharing my knowledge to help people reach their goals. I\'m also the 2018-19 Fitness Club prez and a member of Track Club!', 
+    biography=('I\'m a long distance runner who got hooked onto CrossFit along the way! I love feeling strong and '
+      'sharing my knowledge to help people reach their goals. I\'m also the 2018-19 Fitness Club prez and a member '
+      'of Track Club!'), 
     college='Engineering',
     expertises='Running, Olympic lifting, CrossFit',
     large_picture=image_prefix+'cleo.png',  
@@ -166,24 +184,30 @@ def init_data():
   )
 
   _, cleo_kyriakides_cardio = rd.create_routine(
-      category='cardio',
-      post_id=cleo_kyriakides_post.id,
-      steps='Start out with small, achievable goals. Start by running up to a mile at a time every time you run, and don\'t increase by more than a mile each week. Listen to your body, get the right shoes, and make sure someone checks your form!',
-      title='Cleo Kyriakides Cardio'
+    category='cardio',
+    post_id=cleo_kyriakides_post.id,
+    steps=('Start out with small, achievable goals. Start by running up to a mile at a time every time you run, and '
+      'don\'t increase by more than a mile each week. Listen to your body, get the right shoes, and make sure '
+      'someone checks your form!'),
+    title='Cleo Kyriakides Cardio'
   )
 
   _, cleo_kyriakides_strength = rd.create_routine(
-      category='strength',
-      post_id=cleo_kyriakides_post.id,
-      steps='First of all, form is EVERYTHING. Work with someone who can spot you for the movements as you start. Muscle fatigue each time is not desired, so start by doing small rep/low weight circuits of simple movements (back squats, presses, deadlifts) 3x a week, increasing weight 5-10lbs each week.',
-      title='Cleo Kyriakides Strength'
+    category='strength',
+    post_id=cleo_kyriakides_post.id,
+    steps=('First of all, form is EVERYTHING. Work with someone who can spot you for the movements as you start. '
+      'Muscle fatigue each time is not desired, so start by doing small rep/low weight circuits of simple movements '
+      '(back squats, presses, deadlifts) 3x a week, increasing weight 5-10lbs each week.'),
+    title='Cleo Kyriakides Strength'
   )
 
   _, cleo_kyriakides_mindfulness = rd.create_routine(
-      category='mindfulness',
-      post_id=cleo_kyriakides_post.id,
-      steps='I am an avid knitter and I do yoga regularly. Find something that relaxes you that isn\'t physically taxing and turn it into a habit! Additionally, take time to reflect at the beginning or end of each day, actively watching thoughts pass through your head without dwelling on them.',
-      title='Cleo Kyriakides Mindfulness'
+    category='mindfulness',
+    post_id=cleo_kyriakides_post.id,
+    steps=('I am an avid knitter and I do yoga regularly. Find something that relaxes you that isn\'t physically '
+      'taxing and turn it into a habit! Additionally, take time to reflect at the beginning or end of each day, '
+      'actively watching thoughts pass through your head without dwelling on them.'),
+    title='Cleo Kyriakides Mindfulness'
   )
 
   _, cleo_kyriakides_sm = smd.create_social_media(
@@ -197,7 +221,10 @@ def init_data():
   cleo_kyriakides_post.social_media.append(cleo_kyriakides_sm)
 
   _, clarie_ng_post = pd.create_post(
-    biography='A proponent of every body is beautiful. I like to tailor workouts for myself because each person has different gene, muscle insertions, and body proportions. There\'s no \'end\' to a fitness journey in my opinion but a lifestyle to celebrate the amazing capabilities of our body. I believe our body was made to move and feel incredible. I hope to set people on the right path towards loving themselves and exercise.',
+    biography=('A proponent of every body is beautiful. I like to tailor workouts for myself because each person has '
+      'different gene, muscle insertions, and body proportions. There\'s no \'end\' to a fitness journey in my '
+      'opinion but a lifestyle to celebrate the amazing capabilities of our body. I believe our body was made to move '
+      'and feel incredible. I hope to set people on the right path towards loving themselves and exercise.'),
     college='CALS',
     expertises='Weightlifting, circuits, diet, body building, aesthetics',
     large_picture=image_prefix+'clarie.png', 
@@ -207,24 +234,31 @@ def init_data():
   )
 
   _, clarie_ng_cardio = rd.create_routine(
-      category='cardio',
-      post_id=clarie_ng_post.id,
-      steps='10,000 Steps a day or incorporate walking from place to places. I rather someone be active the entire day than run for 30 minutes and sit on the couch for the rest of the day. Cardio should not be a chore but assimilated into your life. (unless you have some speed or endurance goal or have a time crunch during exam season)',
-      title='Clarie Ng Cardio'
+    category='cardio',
+    post_id=clarie_ng_post.id,
+    steps=('10,000 Steps a day or incorporate walking from place to places. I rather someone be active the entire '
+    'day than run for 30 minutes and sit on the couch for the rest of the day. Cardio should not be a chore but '
+    'assimilated into your life. (unless you have some speed or endurance goal or have a time crunch during exam '
+    'season)'),
+    title='Clarie Ng Cardio'
   )
 
   _, clarie_ng_strength = rd.create_routine(
-      category='strength',
-      post_id=clarie_ng_post.id,
-      steps='PROPER form is king! Never lift something heavier for the sake of ego. You can make better muscle gains by going lighter but doing the full range of motion. Body weights are fantastic and should be the goal of everyone: imagine being able to bench heavy and yet can\'t even do a push up. That\'s lame. Being able to carry your own weight is a sign of balance!',
-      title='Clarie Ng Strength'
+    category='strength',
+    post_id=clarie_ng_post.id,
+    steps=('PROPER form is king! Never lift something heavier for the sake of ego. You can make better muscle gains'
+    ' by going lighter but doing the full range of motion. Body weights are fantastic and should be the goal of '
+    'everyone: imagine being able to bench heavy and yet can\'t even do a push up. That\'s lame. Being able to '
+    'carry your own weight is a sign of balance!'),
+    title='Clarie Ng Strength'
   )
 
   _, clarie_ng_mindfulness = rd.create_routine(
-      category='mindfulness',
-      post_id=clarie_ng_post.id,
-      steps='Do something for yourself. Chase your own best version of you and not how you think other people will like you to look. I don\'t meditate but I heard many friends who high encourage it. Yoga is great for practicing mindfulness.',
-      title='Clarie Ng Mindfulness'
+    category='mindfulness',
+    post_id=clarie_ng_post.id,
+    steps=('Do something for yourself. Chase your own best version of you and not how you think other people will '
+    'like you to look. I don\'t meditate but I heard many friends who high encourage it. Yoga is great for practicing mindfulness.'),
+    title='Clarie Ng Mindfulness'
   )
 
   _, clarie_ng_sm = smd.create_social_media(
@@ -238,7 +272,8 @@ def init_data():
   clarie_ng_post.social_media.append(clarie_ng_sm)
 
   _, mark_rittiboon_post = pd.create_post(
-    biography='I used to be a competitive strength athlete participating in powerlifting and strongman competitions. However, I\'ve transitioned into combat sports ~ recently completing a fighting camp in Phuket Thailand! ', 
+    biography=('I used to be a competitive strength athlete participating in powerlifting and strongman competitions.'
+    ' However, I\'ve transitioned into combat sports ~ recently completing a fighting camp in Phuket Thailand!'), 
     college='Johnson School of Business / Hotelie',
     expertises='Weightlifting',
     large_picture=image_prefix+'mark.png', 
@@ -248,24 +283,27 @@ def init_data():
   )
 
   _, mark_rittiboon_cardio = rd.create_routine(
-      category='cardio',
-      post_id=mark_rittiboon_post.id,
-      steps='I don\'t enjoy running and Ithaca is really cold so I don\'t do it haha... I find swimming to be really fun and effective. For me, it\'s also the best form of active recovery! ',
-      title='Mark Rittiboon Cardio'
+    category='cardio',
+    post_id=mark_rittiboon_post.id,
+    steps=('I don\'t enjoy running and Ithaca is really cold so I don\'t do it haha... I find swimming to be really'
+      ' fun and effective. For me, it\'s also the best form of active recovery! '),
+    title='Mark Rittiboon Cardio'
   )
 
   _, mark_rittiboon_strength = rd.create_routine(
-      category='strength',
-      post_id=mark_rittiboon_post.id,
-      steps='I think everyone looking to build strength should focus on compound lifts (Squats, Deadlifts, Bench, etc). A 5x5 beginner program is a good start! ',
-      title='Mark Rittiboon Strength'
+    category='strength',
+    post_id=mark_rittiboon_post.id,
+    steps=('I think everyone looking to build strength should focus on compound lifts (Squats, Deadlifts, Bench, etc)'
+    '. A 5x5 beginner program is a good start!'),
+    title='Mark Rittiboon Strength'
   )
 
   _, mark_rittiboon_mindfulness = rd.create_routine(
-      category='mindfulness',
-      post_id=mark_rittiboon_post.id,
-      steps='I love to cook! Nothing like Spotify\'s \'cooking music\' playlist and eggs in the morning :) https://open.spotify.com/user/123149640/playlist/2xhceuxK7ERTQnBCfIEt1y?si=ZvmFtf3mQvevS5zz75eNKA',
-      title='Mark Rittiboon Mindfulness'
+    category='mindfulness',
+    post_id=mark_rittiboon_post.id,
+    steps=('I love to cook! Nothing like Spotify\'s \'cooking music\' playlist and eggs in the morning :) '
+      'https://open.spotify.com/user/123149640/playlist/2xhceuxK7ERTQnBCfIEt1y?si=ZvmFtf3mQvevS5zz75eNKA'),
+    title='Mark Rittiboon Mindfulness'
   )
 
   _, mark_rittiboon_sm = smd.create_social_media(
