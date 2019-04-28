@@ -272,7 +272,8 @@ def init_data():
     category='mindfulness',
     post_id=clarie_ng_post.id,
     steps=('Do something for yourself. Chase your own best version of you and not how you think other people will '
-    'like you to look. I don\'t meditate but I heard many friends who high encourage it. Yoga is great for practicing mindfulness.'),
+    'like you to look. I don\'t meditate but I heard many friends who high encourage it. Yoga is great for '
+    'practicing mindfulness.'),
     title='Clarie Ng Mindfulness'
   )
 
