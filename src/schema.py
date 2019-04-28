@@ -1,6 +1,6 @@
 import datetime as dt
 
-from graphene import Field, ObjectType, String, List, Int, Float, Boolean
+from graphene import Field, ObjectType, String, List, Int, Boolean
 from graphene.types.datetime import Date, Time
 
 class Data(object):
@@ -19,7 +19,7 @@ class Data(object):
       if class_data.date in classes_by_date:
         classes_by_date[class_data.date][class_id] = class_data
       else:
-        classes_by_date[class_data.date] = {class_id:class_data}
+        classes_by_date[class_data.date] = {class_id: class_data}
     classes_by_date = {date: classes_data for date, classes_data in classes_by_date.items() if date > date_limit}
     Data.classes_by_date = classes_by_date
 

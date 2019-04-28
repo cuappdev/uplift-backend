@@ -1,15 +1,12 @@
 from datetime import datetime
 import datetime as dt
-import hashlib
-import os
 import random
 
 from bs4 import BeautifulSoup
-from lxml import html
 import requests
 
 import src.constants as constants
-from src.schema import ClassDetailType, ClassType, DayTimeRangeType, GymType
+from src.schema import ClassDetailType, ClassType, DayTimeRangeType
 from src.utils import generate_id
 
 BASE_URL = 'https://recreation.athletics.cornell.edu'
@@ -75,8 +72,8 @@ def scrape_classes(num_pages):
     soup = BeautifulSoup(page, 'lxml')
     if len(soup.find_all('table')) == 1:
       continue
-    schedule = soup.find_all('table')[1] # first table is irrelevant
-    data = schedule.find_all('tr')[1:] # first row is header
+    schedule = soup.find_all('table')[1]  # first table is irrelevant
+    data = schedule.find_all('tr')[1:]  # first row is header
 
     for row in data:
       gym_class = ClassType()
@@ -119,7 +116,7 @@ def scrape_classes(num_pages):
 
       gym_class.id = generate_id(gym_class.details_id + date_string + gym_class.instructor)
       gym_class.image_url = get_image_url(class_details[class_href].name)
-      
+
       classes[gym_class.id] = gym_class
 
   return {detail.id: detail for detail in class_details.values()}, classes
@@ -138,7 +135,7 @@ def get_image_url(name):
       image_keyword = keyword
       break
   if image_keyword in constants.IMAGE_CHOICES:
-    image_number = random.choice(range(1, constants.IMAGE_CHOICES[image_keyword]+1))
+    image_number = random.choice(range(1, constants.IMAGE_CHOICES[image_keyword] + 1))
     image_keyword = image_keyword + str(image_number)
   return constants.ASSET_BASE_URL + 'classes/' + image_keyword + '.jpg'
 
@@ -199,7 +196,7 @@ def scrape_special_hours():
 
           # The start and end times use 'a' or 'p' to indicate 'am' vs 'pm'
           start_time_string = time_text[0:mid_index] + 'm'
-          end_time_string = time_text[mid_index+1:] + 'm'
+          end_time_string = time_text[mid_index + 1:] + 'm'
 
           start_time = datetime.strptime(start_time_string, '%I:%M%p').time()
           end_time = datetime.strptime(end_time_string, '%I:%M%p').time()

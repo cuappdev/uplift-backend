@@ -37,7 +37,7 @@ def check_for_special_hours():
         times = special_hours['Teagle Hall']
       else:
         times = special_hours[gym.name]
-      
+
       start_index = None
       for i in range(len(times)):
         if times[i]['date'] == current_date:
@@ -59,7 +59,7 @@ def check_for_special_hours():
           if reg_hours.day not in days_covered:
             hours.append(reg_hours)
 
-      gym.times = hours
+      gym.times = sorted(hours, key=lambda hour: hour.day)
 
   return gyms
 

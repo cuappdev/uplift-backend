@@ -10,4 +10,4 @@ build/
 *.egg-info/
 *.DS_Store
 .env
-src/migrations
+migrations
