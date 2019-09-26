@@ -39,3 +39,15 @@ cp env.template .env
 ````bash
 flask run
 ````
+
+## Setting up linter
+**Flake 8**: Install [flake8](http://flake8.pycqa.org/en/latest/)
+
+**Black**: Either use [command line tool](https://black.readthedocs.io/en/stable/installation_and_usage.html) or use [editor extension](https://black.readthedocs.io/en/stable/editor_integration.html). 
+
+If using VS Code, install the 'Python' extension and include following snippet inside `settings.json`:
+```  json
+"python.linting.pylintEnabled": false,
+"python.linting.flake8Enabled": true,
+"python.formatting.provider": "black"
+ ```
