@@ -10,14 +10,14 @@ from src.app.controllers.initialize_session_controller import *
 from src.app.controllers.update_session_controller import *
 
 controllers = [
-  GetAllPostsController(),
-  GetAllRoutinesController(),
-  GetAllSocialMediaController(),
-  GetPostByIdController(),
-  GetRoutineByIdController(),
-  GetRoutineByPostIdController(),
-  GetSocialMediaByIdController(),
-  GetSocialMediaByPostIdController(),
-  InitializeSessionController(),
-  UpdateSessionController()
+    GetAllPostsController(),
+    GetAllRoutinesController(),
+    GetAllSocialMediaController(),
+    GetPostByIdController(),
+    GetRoutineByIdController(),
+    GetRoutineByPostIdController(),
+    GetSocialMediaByIdController(),
+    GetSocialMediaByPostIdController(),
+    InitializeSessionController(),
+    UpdateSessionController(),
 ]

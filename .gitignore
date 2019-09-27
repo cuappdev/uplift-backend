@@ -10,4 +10,5 @@ build/
 *.egg-info/
 *.DS_Store
 .env
+.envrc
 migrations

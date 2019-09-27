@@ -6,22 +6,27 @@ from src.app.models.routine import *
 from src.app.models.social_media import *
 from src.app.models.user import *
 
+
 class PostSchema(ModelSchema):
-  class Meta(ModelSchema.Meta):
-    model = Post
+    class Meta(ModelSchema.Meta):
+        model = Post
+
 
 class RoutineSchema(ModelSchema):
-  class Meta(ModelSchema.Meta):
-    model = Routine
+    class Meta(ModelSchema.Meta):
+        model = Routine
+
 
 class SocialMediaSchema(ModelSchema):
-  class Meta(ModelSchema.Meta):
-    model = SocialMedia
+    class Meta(ModelSchema.Meta):
+        model = SocialMedia
+
 
 class UserSchema(ModelSchema):
-  class Meta(ModelSchema.Meta):
-    model = User
-    exclude = ('created_at', 'updated_at')
+    class Meta(ModelSchema.Meta):
+        model = User
+        exclude = ("created_at", "updated_at")
+
 
 # Serializers
 post_schema = PostSchema()
