@@ -1,0 +1,26 @@
+name: test
+
+on:
+  push:
+    branches:
+    - master
+    - release/*
+  pull_request:
+    branches:
+    - master
+    - release/*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: install and test
+      run: |
+        sudo apt-get install libxml2-dev libxslt-dev
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        python tests.py
