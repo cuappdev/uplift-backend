@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 import src.constants as constants
 import src.scraper as scraper
@@ -53,7 +53,13 @@ def check_for_special_hours():
                 continue
 
             end_index = min(start_index + 7, len(times))
-            hours = [elt["hours"] for elt in times[start_index:end_index]]
+
+            hours = []
+            for i, time in enumerate(times[start_index:end_index]):
+                new_date = now + timedelta(days=i)
+                if time["date"] == "{0}/{1}".format(new_date.month, new_date.day):
+                    hours.append(time["hours"])
+
             # Indices of days given by special hours
             days_covered = [elt.day for elt in hours]
 
