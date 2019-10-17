@@ -30,16 +30,32 @@ class Data(object):
 class DayTimeRangeType(ObjectType):
     day = Int(required=True)
     end_time = Time(required=True)
+    restrictions = String()
     special_hours = Boolean(default_value=False, required=True)
     start_time = Time(required=True)
+
+
+class EquipmentType(ObjectType):
+    equipment_type = String()
+    name = String(required=True)
+    quantity = String(default_value="1")
+    workout_type = String()
+
+
+class FacilityType(ObjectType):
+    equipment = List(EquipmentType)
+    misc_information = List(String)
+    name = String(required=True)
+    phone_number = String()
+    times = List(DayTimeRangeType, required=True)
 
 
 class GymType(ObjectType):
     id = String(required=True)
     name = String(required=True)
     description = String(required=True)
+    facilities = List(FacilityType, required=True)
     popular = List(List(Int))
-    times = List(DayTimeRangeType, required=True)
     image_url = String()
 
     def is_open(self, day=None):

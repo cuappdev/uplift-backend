@@ -21,14 +21,21 @@ class TestQuery(TestCase):
     def test_gyms(self):
         query = """
         query GymsQuery {
-          gyms {
-            name
-            times{
-              day
-              startTime
-              endTime
+            gyms {
+                name
+                facilities {
+                    name
+                    equipment {
+                        name
+                    }
+                    times {
+                        day
+                        startTime
+                        endTime
+                        restrictions
+                    }
+                }
             }
-          }
         }
     """
         self.assert_match_snapshot(client.execute(query))

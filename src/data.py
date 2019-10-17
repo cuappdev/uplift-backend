@@ -36,6 +36,7 @@ def check_for_special_hours():
 
     if special_hours and any(special_hours):
         for gym in gyms:
+
             # Since we have both Teagle Up and Teagle Down
             if "Teagle" in gym.name:
                 times = special_hours["Teagle Hall"]
@@ -56,14 +57,14 @@ def check_for_special_hours():
             hours = [elt["hours"] for elt in times[start_index:end_index]]
             # Indices of days given by special hours
             days_covered = [elt.day for elt in hours]
-
+            facility = next((facility for facility in gym.facilities if facility.name == "Fitness Center"), None)
             # Gym has mix of special and regular hours
             if len(days_covered) < 7:
-                for reg_hours in gym.times:
+                for reg_hours in facility.times:
                     if reg_hours.day not in days_covered:
                         hours.append(reg_hours)
 
-            gym.times = sorted(hours, key=lambda hour: hour.day)
+            facility.times = sorted(hours, key=lambda hour: hour.day)
 
     return gyms
 

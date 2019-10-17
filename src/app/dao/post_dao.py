@@ -1,5 +1,5 @@
-import src.app.dao.routine_dao as rd
-import src.app.dao.social_media_dao as smd
+from . import routine_dao as rd
+from . import social_media_dao as smd
 
 from . import *
 
