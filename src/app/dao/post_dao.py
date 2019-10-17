@@ -1,6 +1,3 @@
-from . import routine_dao as rd
-from . import social_media_dao as smd
-
 from . import *
 
 
