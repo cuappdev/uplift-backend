@@ -2,7 +2,7 @@ import csv
 import datetime as dt
 import calendar
 
-from src.schema import DayTimeRangeType, GymType, TagType, EquipmentType, FacilityType
+from src.schema import DayTimeRangeType, EquipmentType, FacilityType, GymType, TagType
 from src.utils import generate_id
 
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
