@@ -2,6 +2,7 @@ alembic==1.0.9
 aniso8601==3.0.2
 -e git+https://github.com/cuappdev/appdev.py.git@fffe58a01ba5bc00493213e2baa00a6a9e393280#egg=appdev.py
 beautifulsoup4==4.6.3
+black==19.3b0
 bs4==0.0.1
 cachetools==3.1.0
 certifi==2018.8.24
@@ -26,6 +27,7 @@ Mako==1.0.9
 MarkupSafe==1.0
 marshmallow==3.0.0rc4
 marshmallow-sqlalchemy==0.16.2
+pre-commit==1.18.3
 promise==2.1
 psycopg2==2.7.6
 pyasn1==0.4.5
@@ -41,4 +43,4 @@ SQLAlchemy==1.3.0
 termcolor==1.1.0
 typing==3.6.6
 urllib3==1.24.2
-Werkzeug==0.14.1
+Werkzeug==0.15.3
