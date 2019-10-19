@@ -36,42 +36,48 @@ def check_for_special_hours():
 
     if special_hours and any(special_hours):
         for gym in gyms:
+            # Since we have both Teagle Up and Teagle Down
+            if "Teagle" in gym.name:
+                times = special_hours["Teagle Hall"]
+            else:
+                times = special_hours[gym.name]
+
+            start_index = None
+            for i in range(len(times)):
+                if times[i]["date"] == current_date:
+                    start_index = i
+                    break
+
+            if not start_index:
+                # No special hours for gym
+                continue
+
+            end_index = min(start_index + 7, len(times))
+
+            hours = []
+            for i, time in enumerate(times[start_index:end_index]):
+                new_date = now + timedelta(days=i)
+                if time["date"] == "{0}/{1}".format(new_date.month, new_date.day):
+                    hours.append(time["hours"])
+
+            # Indices of days given by special hours
+            days_covered = [elt.day for elt in hours]
+
             facility = next((facility for facility in gym.facilities if facility.name == "Fitness Center"), None)
-            if facility:
-                # Since we have both Teagle Up and Teagle Down
-                if "Teagle" in gym.name:
-                    times = special_hours["Teagle Hall"]
-                else:
-                    times = special_hours[gym.name]
 
-                start_index = None
-                for i in range(len(times)):
-                    if times[i]["date"] == current_date:
-                        start_index = i
-                        break
-
-                if not start_index:
-                    # No special hours for gym
-                    continue
-
-                end_index = min(start_index + 7, len(times))
-
-                hours = []
-                for i, time in enumerate(times[start_index:end_index]):
-                    new_date = now + timedelta(days=i)
-                    if time["date"] == "{0}/{1}".format(new_date.month, new_date.day):
-                        hours.append(time["hours"])
-
-                # Indices of days given by special hours
-                days_covered = [elt.day for elt in hours]
-
-                # Gym has mix of special and regular hours
-                if len(days_covered) < 7:
+            # Gym has mix of special and regular hours
+            if len(days_covered) < 7:
+                if facility:
                     for reg_hours in facility.times:
                         if reg_hours.day not in days_covered:
                             hours.append(reg_hours)
+                else:
+                    for reg_hours in gym.times:
+                        if reg_hours.day not in days_covered:
+                            hours.append(reg_hours)
 
-                facility.times = sorted(hours, key=lambda hour: hour.day)
+            facility.times = sorted(hours, key=lambda hour: hour.day)
+            gym.times = sorted(hours, key=lambda hour: hour.day)
 
     return gyms
 

@@ -42,6 +42,15 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 44, 42, 30, 29, 35, 42, 43, 38, 28, 17, 80, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 31, 32, 23, 26, 43, 59, 57, 51, 51, 47, 34, 17, 3, 0],
             ],
+            times=[
+                DayTimeRangeType(day=0, start_time=dt.time(9), end_time=dt.time(13)),
+                DayTimeRangeType(day=1, start_time=dt.time(15), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=2, start_time=dt.time(15), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=3, start_time=dt.time(15), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=4, start_time=dt.time(15), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=5, start_time=dt.time(15), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=6, start_time=dt.time(9), end_time=dt.time(13)),
+            ],
             image_url=ASSET_BASE_URL + "gyms/Appel.jpg",
         )
         helen_newman = GymType(
@@ -57,6 +66,15 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 19, 25, 21, 17, 19, 26, 34, 38, 38, 40, 46, 56, 64, 64, 54, 37, 20, 6],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 44, 42, 30, 29, 35, 42, 43, 38, 28, 17, 80, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 31, 32, 23, 26, 43, 59, 57, 51, 51, 47, 34, 17, 3],
+            ],
+            times=[
+                DayTimeRangeType(day=0, start_time=dt.time(10), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=1, start_time=dt.time(6), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=2, start_time=dt.time(6), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=3, start_time=dt.time(6), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=4, start_time=dt.time(6), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=5, start_time=dt.time(6), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=6, start_time=dt.time(10), end_time=dt.time(22)),
             ],
             image_url=ASSET_BASE_URL + "gyms/Helen_Newman.jpg",
         )
@@ -74,6 +92,15 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 36, 46, 56, 58, 50, 47, 53, 58, 50, 35, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 36, 44, 39, 33, 38, 45, 52, 63, 75, 70, 45, 18],
             ],
+            times=[
+                DayTimeRangeType(day=0, start_time=dt.time(11, 30), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(23, 30)),
+                DayTimeRangeType(day=6, start_time=dt.time(11, 30), end_time=dt.time(22)),
+            ],
             image_url=ASSET_BASE_URL + "gyms/Noyes.jpg",
         )
         teagle_up = GymType(
@@ -90,6 +117,15 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 17, 27, 36, 41, 36, 24, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 13, 21, 24, 34, 36, 14, 0, 0, 0, 0, 0],
             ],
+            times=[
+                DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(17, 45)),
+                DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(20)),
+                DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45)),
+            ],
             image_url=ASSET_BASE_URL + "gyms/Teagle.jpg",
         )
         teagle_down = GymType(
@@ -105,6 +141,15 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 12, 26, 32, 38, 48, 56, 54, 50, 52, 53, 44, 26, 11, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 17, 27, 36, 41, 36, 24, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 13, 21, 24, 34, 36, 14, 0, 0, 0, 0, 0],
+            ],
+            times=[
+                DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(17, 45)),
+                DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(20)),
+                DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45)),
             ],
             image_url=ASSET_BASE_URL + "gyms/Teagle.jpg",
         )

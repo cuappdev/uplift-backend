@@ -56,6 +56,7 @@ class GymType(ObjectType):
     description = String(required=True)
     facilities = List(FacilityType, required=True)
     popular = List(List(Int))
+    times = List(DayTimeRangeType, required=True)
     image_url = String()
 
     def is_open(self, day=None):
