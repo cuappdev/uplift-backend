@@ -30,7 +30,7 @@ class Data(object):
 class DayTimeRangeType(ObjectType):
     day = Int(required=True)
     end_time = Time(required=True)
-    restrictions = String()
+    restrictions = String(default_value="")
     special_hours = Boolean(default_value=False, required=True)
     start_time = Time(required=True)
 
