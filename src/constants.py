@@ -2,7 +2,16 @@ import csv
 import datetime as dt
 import calendar
 
-from src.schema import DayTimeRangeType, EquipmentType, FacilityType, GymType, TagType
+from src.schema import (
+    DayTimeRangeType,
+    DayTimeRangesType,
+    EquipmentType,
+    FacilityType,
+    FacilityDetailsType,
+    GymType,
+    TagType,
+    TimeRangeType,
+)
 from src.utils import generate_id
 
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
@@ -159,36 +168,100 @@ def parse_gym_metadata():
             for gym in gyms:
                 if gym.name == row[0]:
                     facility_name = row[1]
-                    category = row[2]
+                    category = row[3]
                     found = False
                     for facility in gym.facilities:
                         if facility.name == facility_name:
                             new_facility = facility
                             found = True
                     if not found:
-                        new_facility = FacilityType(
-                            equipment=[], misc_information=[], name=row[1], phone_number="", times=[]
-                        )
-                    if category == "Hours":
-                        try:
-                            end_time = dt.datetime.strptime(row[6], "%I:%M %p").time()
-                            start_time = dt.datetime.strptime(row[5], "%I:%M %p").time()
-                        except:
-                            end_time = dt.time(0)
-                            start_time = dt.time(0)
-                        time = DayTimeRangeType(
-                            day=(days[row[4]] + 1) % 7, end_time=end_time, restrictions=row[7], start_time=start_time
-                        )
-                        new_facility.times.append(time)
-                    elif category == "Equipment":
+                        new_facility = FacilityType(details=[], name=facility_name)
+
+                    new_facility_details = FacilityDetailsType(
+                        details_type="",
+                        equipment=[],
+                        image_urls=[],
+                        phone_numbers=[],
+                        items=[],
+                        prices=[],
+                        sub_facility_names=[],
+                        times=[],
+                    )
+
+                    details = next(
+                        (details for details in new_facility.details if details.details_type == category), None
+                    )
+
+                    if category == "Equipment":
                         equipment = EquipmentType(
-                            equipment_type=row[8], name=row[9], quantity=row[10], workout_type=row[11]
+                            equipment_type=row[9], name=row[10], quantity=row[11], workout_type=row[12]
                         )
-                        new_facility.equipment.append(equipment)
-                    elif category == "Phone Number":
-                        new_facility.phone_number = row[3]
-                    elif category == "Misc Information":
-                        new_facility.misc_information.append(row[12])
+                        if details:
+                            details.equipment.append(equipment)
+                        else:
+                            new_facility_details.details_type = "Equipment"
+                            new_facility_details.equipment.append(equipment)
+                            new_facility.details.append(new_facility_details)
+
+                    elif category == "Hours":
+                        try:
+                            time_range = TimeRangeType(
+                                end_time=dt.datetime.strptime(row[7], "%I:%M %p").time(),
+                                restrictions=row[8],
+                                start_time=dt.datetime.strptime(row[6], "%I:%M %p").time(),
+                            )
+                        except:
+                            time_range = TimeRangeType(end_time=dt.time(0), restrictions=row[8], start_time=dt.time(0))
+
+                        day = (days[row[5]] + 1) % 7
+
+                        if details:
+                            time = next((time for time in details.times if time.day == day), None)
+                            if time:
+                                time.time_ranges.append(time_range)
+                            else:
+                                details.times.append(DayTimeRangesType(day=day, time_ranges=[time_range]))
+                        else:
+                            new_facility_details.details_type = "Hours"
+                            new_facility_details.times.append(DayTimeRangesType(day=day, time_ranges=[time_range]))
+                            new_facility.details.append(new_facility_details)
+
+                    elif category == "Images":
+                        if details:
+                            details.image_urls.append(row[15])
+                        else:
+                            new_facility_details.details_type = "Images"
+                            new_facility_details.image_urls.append(row[15])
+                            new_facility.details.append(new_facility_details)
+
+                    elif category == "Phone Numbers":
+                        if details:
+                            details.phone_numbers.append(row[4])
+                            details.sub_facility_names.append(row[2])
+                        else:
+                            new_facility_details.details_type = "Phone Numbers"
+                            new_facility_details.phone_numbers.append(row[4])
+                            new_facility_details.sub_facility_names.append(row[2])
+                            new_facility.details.append(new_facility_details)
+
+                    elif category == "Prices":
+                        if details:
+                            details.items.append(row[13])
+                            details.prices.append(row[14])
+                        else:
+                            new_facility_details.details_type = "Prices"
+                            new_facility_details.items.append(row[13])
+                            new_facility_details.prices.append(row[14])
+                            new_facility.details.append(new_facility_details)
+
+                    elif category == "Sub-Facilities":
+                        if details:
+                            details.sub_facility_names.append(row[2])
+                        else:
+                            new_facility_details.details_type = "Sub-Facilities"
+                            new_facility_details.sub_facility_names.append(row[2])
+                            new_facility.details.append(new_facility_details)
+
                     if not found:
                         gym.facilities.append(new_facility)
     return gyms

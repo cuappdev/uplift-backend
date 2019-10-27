@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import threading
 import src.constants as constants
 import src.scraper as scraper
-from src.schema import Data
+from src.schema import Data, DayTimeRangesType, TimeRangeType
 
 
 def start_update():
@@ -65,18 +65,39 @@ def check_for_special_hours():
 
             facility = next((facility for facility in gym.facilities if facility.name == "Fitness Center"), None)
 
+            if facility:
+                details = next((details for details in facility.details if details.details_type == "Hours"), None)
+
+            new_times = []
+
+            for h in hours:
+                time = next((time for time in new_times if time.day == h.day), None)
+                if time:
+                    time.time_ranges.append(
+                        TimeRangeType(start_time=h.start_time, end_time=h.end_time, special_hours=True)
+                    )
+                else:
+                    new_times.append(
+                        DayTimeRangesType(
+                            day=h.day,
+                            time_ranges=[
+                                TimeRangeType(start_time=h.start_time, end_time=h.end_time, special_hours=True)
+                            ],
+                        )
+                    )
+
             # Gym has mix of special and regular hours
             if len(days_covered) < 7:
-                if facility:
-                    for reg_hours in facility.times:
-                        if reg_hours.day not in days_covered:
-                            hours.append(reg_hours)
-                else:
-                    for reg_hours in gym.times:
-                        if reg_hours.day not in days_covered:
-                            hours.append(reg_hours)
+                if details:
+                    for reg_times in details.times:
+                        if reg_times.day not in days_covered:
+                            new_times.extend(reg_times)
+                for reg_hours in gym.times:
+                    if reg_hours.day not in days_covered:
+                        hours.append(reg_hours)
 
-            facility.times = sorted(hours, key=lambda hour: hour.day)
+            if details:
+                details.times = sorted(new_times, key=lambda time: time.day)
             gym.times = sorted(hours, key=lambda hour: hour.day)
 
     return gyms
