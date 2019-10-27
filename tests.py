@@ -22,17 +22,25 @@ class TestQuery(TestCase):
         query = """
         query GymsQuery {
             gyms {
-                name
                 facilities {
                     name
-                    equipment {
-                        name
-                    }
-                    times {
-                        day
-                        startTime
-                        endTime
-                        restrictions
+                    details {
+                        detailsType
+                        subFacilityNames
+                        equipment {
+                            name
+                        }
+                        times {
+                            day
+                            timeRanges {
+                                startTime
+                                endTime
+                                restrictions
+                            }
+                        }
+                        items
+                        prices
+                        phoneNumbers
                     }
                 }
             }

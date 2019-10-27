@@ -218,7 +218,20 @@ def parse_gym_metadata():
                         if details:
                             time = next((time for time in details.times if time.day == day), None)
                             if time:
-                                time.time_ranges.append(time_range)
+                                t = next(
+                                    (
+                                        t
+                                        for t in time.time_ranges
+                                        if t.start_time == time_range.start_time and t.end_time == time_range.end_time
+                                    ),
+                                    None,
+                                )
+                                if t and not t.restrictions:
+                                    t.restrictions = time_range.restrictions
+                                elif t and time_range.restrictions:
+                                    time.time_ranges.append(time_range)
+                                elif not t:
+                                    time.time_ranges.append(time_range)
                             else:
                                 details.times.append(DayTimeRangesType(day=day, time_ranges=[time_range]))
                         else:
