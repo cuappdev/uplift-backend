@@ -35,6 +35,18 @@ class DayTimeRangeType(ObjectType):
     start_time = Time(required=True)
 
 
+class TimeRangeType(ObjectType):
+    end_time = Time(required=True)
+    restrictions = String(default_value="")
+    special_hours = Boolean(default_value=False, required=True)
+    start_time = Time(required=True)
+
+
+class DayTimeRangesType(ObjectType):
+    day = Int(required=True)
+    time_ranges = List(TimeRangeType)
+
+
 class EquipmentType(ObjectType):
     equipment_type = String()
     name = String(required=True)
@@ -42,12 +54,21 @@ class EquipmentType(ObjectType):
     workout_type = String()
 
 
-class FacilityType(ObjectType):
+# details types: Equipment, Hours, Images, Phone Numbers, Prices, Sub-Facilities
+class FacilityDetailsType(ObjectType):
+    details_type = String()
     equipment = List(EquipmentType)
-    misc_information = List(String)
+    image_urls = List(String)
+    phone_numbers = List(String)
+    items = List(String)
+    prices = List(String)
+    sub_facility_names = List(String)
+    times = List(DayTimeRangesType)
+
+
+class FacilityType(ObjectType):
+    details = List(FacilityDetailsType)
     name = String(required=True)
-    phone_number = String()
-    times = List(DayTimeRangeType, required=True)
 
 
 class GymType(ObjectType):
