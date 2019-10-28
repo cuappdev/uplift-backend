@@ -11,367 +11,1023 @@ snapshots["TestQuery::test_gyms 1"] = {
     "data": {
         "gyms": [
             {
-                "name": "Appel",
                 "facilities": [
                     {
                         "name": "Fitness Center",
-                        "equipment": [
-                            {"name": "Precor treadmills"},
-                            {"name": "Elliptical trainers"},
-                            {"name": "AMTs"},
-                            {"name": "Recumbent and upright bikes"},
-                            {"name": "C2 rowing machines"},
-                            {"name": "Dumbbells"},
-                            {"name": "Kettleweights"},
-                            {"name": "Flat benches"},
-                            {"name": "Bench Press"},
-                            {"name": "Squat Rack"},
-                            {"name": "VMX Rope Trainer"},
-                            {"name": "Paramount Cable Machine"},
-                            {"name": "Octogon Functional Trainer"},
-                            {"name": "Turf with Sled Push"},
-                            {"name": "Jump ropes"},
-                            {"name": "Jungle Gym Bars"},
-                            {"name": "TRX Strap"},
-                            {"name": "Pylo Boxes"},
-                            {"name": "Core Bags"},
-                            {"name": "Griprs"},
-                            {"name": "Medicine Ball"},
-                            {"name": "Exercise Ball"},
-                            {"name": "Elastic Bands"},
-                            {"name": "Sand Bags"},
-                            {"name": "Bulgarian Bags"},
-                            {"name": "Mat"},
-                            {"name": "Exercise Ball Platform"},
-                            {"name": "Tire"},
-                            {"name": "Powerlift Boxes"},
-                        ],
-                        "times": [
-                            {"day": 1, "startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 2, "startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 3, "startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 4, "startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 5, "startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 6, "startTime": "09:00:00", "endTime": "13:00:00", "restrictions": ""},
-                            {"day": 0, "startTime": "09:00:00", "endTime": "13:00:00", "restrictions": ""},
+                        "details": [
+                            {
+                                "detailsType": "Equipment",
+                                "subFacilityNames": [],
+                                "equipment": [
+                                    {"name": "Precor treadmills"},
+                                    {"name": "Elliptical trainers"},
+                                    {"name": "AMTs"},
+                                    {"name": "Recumbent and upright bikes"},
+                                    {"name": "C2 rowing machines"},
+                                    {"name": "Dumbbells"},
+                                    {"name": "Kettleweights"},
+                                    {"name": "Flat benches"},
+                                    {"name": "Bench Press"},
+                                    {"name": "Squat Rack"},
+                                    {"name": "VMX Rope Trainer"},
+                                    {"name": "Paramount Cable Machine"},
+                                    {"name": "Octogon Functional Trainer"},
+                                    {"name": "Turf with Sled Push"},
+                                    {"name": "Jump ropes"},
+                                    {"name": "Jungle Gym Bars"},
+                                    {"name": "TRX Strap"},
+                                    {"name": "Pylo Boxes"},
+                                    {"name": "Core Bags"},
+                                    {"name": "Griprs"},
+                                    {"name": "Medicine Ball"},
+                                    {"name": "Exercise Ball"},
+                                    {"name": "Elastic Bands"},
+                                    {"name": "Sand Bags"},
+                                    {"name": "Bulgarian Bags"},
+                                    {"name": "Mat"},
+                                    {"name": "Exercise Ball Platform"},
+                                    {"name": "Tire"},
+                                    {"name": "Powerlift Boxes"},
+                                ],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {"startTime": "09:00:00", "endTime": "13:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "09:00:00", "endTime": "13:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
                         ],
                     },
-                    {"name": "Service Desk", "equipment": [], "times": []},
-                ],
+                    {
+                        "name": "Miscellaneous",
+                        "details": [
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": ["Service Desk"],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072550204"],
+                            }
+                        ],
+                    },
+                ]
             },
             {
-                "name": "Helen Newman",
                 "facilities": [
                     {
                         "name": "Bowling Alley",
-                        "equipment": [{"name": "Bowling Lanes"}],
-                        "times": [
-                            {"day": 1, "startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""},
-                            {"day": 2, "startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""},
-                            {"day": 3, "startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""},
-                            {"day": 4, "startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""},
-                            {"day": 5, "startTime": "17:00:00", "endTime": "23:00:00", "restrictions": ""},
-                            {"day": 6, "startTime": "14:00:00", "endTime": "23:00:00", "restrictions": ""},
-                            {"day": 0, "startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 3, "startTime": "18:30:00", "endTime": "20:00:00", "restrictions": "Leagues"},
-                        ],
-                    },
-                    {
-                        "name": "Fitness Center",
-                        "equipment": [
-                            {"name": "Precor treadmills"},
-                            {"name": "Elliptical trainers"},
-                            {"name": "AMTs"},
-                            {"name": "Expresso bikes"},
-                            {"name": "Recumbent and upright bikes"},
-                            {"name": "C2 rowing machines"},
-                            {"name": "Upper Body Ergometer"},
-                            {"name": "Leg Press"},
-                            {"name": "Seated Calf Raise"},
-                            {"name": "Seated Leg Curl"},
-                            {"name": "Leg Extension"},
-                            {"name": "Inner/Outer Thigh"},
-                            {"name": "Glute Extension"},
-                            {"name": "Rotary Torso"},
-                            {"name": "Back Extension"},
-                            {"name": "Converging Shoulder Press"},
-                            {"name": "Converging Chest Press"},
-                            {"name": "Dip/Chin Assist"},
-                            {"name": "Rear Deltoid/Pectoral Fly"},
-                            {"name": "Flat benches"},
-                            {"name": "Dumbbells"},
-                            {"name": "Bench Press"},
-                            {"name": "Squat Rack"},
-                            {"name": "Jungle Gym Bars"},
-                            {"name": "Lat Pull"},
-                            {"name": "Seated Cable Row"},
-                            {"name": "Cable Pull"},
-                            {"name": "Core Bags"},
-                            {"name": "Griprs"},
-                            {"name": "TRX Strap"},
-                            {"name": "Ab Roller"},
-                            {"name": "Exercise Ball"},
-                            {"name": "Mat"},
-                        ],
-                        "times": [
-                            {"day": 1, "startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 2, "startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 3, "startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 4, "startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 5, "startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 6, "startTime": "10:00:00", "endTime": "22:00:00", "restrictions": ""},
-                            {"day": 0, "startTime": "10:00:00", "endTime": "23:30:00", "restrictions": ""},
-                        ],
-                    },
-                    {
-                        "name": "Court 1",
-                        "equipment": [],
-                        "times": [
-                            {"day": 1, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": "Basketball"},
-                            {"day": 2, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": "Basketball"},
-                            {"day": 3, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": "Basketball"},
-                            {"day": 4, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": "Basketball"},
-                            {"day": 5, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": "Basketball"},
-                            {"day": 6, "startTime": "10:00:00", "endTime": "00:00:00", "restrictions": "Basketball"},
-                            {"day": 0, "startTime": "10:00:00", "endTime": "00:00:00", "restrictions": "Basketball"},
-                        ],
-                    },
-                    {
-                        "name": "Court 2",
-                        "equipment": [],
-                        "times": [
-                            {"day": 1, "startTime": "18:00:00", "endTime": "00:00:00", "restrictions": "Badminton"},
-                            {"day": 2, "startTime": "18:00:00", "endTime": "00:00:00", "restrictions": "Badminton"},
-                            {"day": 3, "startTime": "18:00:00", "endTime": "00:00:00", "restrictions": "Volleyball"},
-                            {"day": 4, "startTime": "18:00:00", "endTime": "00:00:00", "restrictions": "Volleyball"},
+                        "details": [
                             {
-                                "day": 5,
-                                "startTime": "06:00:00",
-                                "endTime": "00:00:00",
-                                "restrictions": "Badminton (odd dates) or Volleyball (even dates)",
+                                "detailsType": "Equipment",
+                                "subFacilityNames": [],
+                                "equipment": [{"name": "Bowling Lanes"}],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
                             },
-                            {"day": 6, "startTime": "10:00:00", "endTime": "00:00:00", "restrictions": "Badminton"},
-                            {"day": 0, "startTime": "10:00:00", "endTime": "00:00:00", "restrictions": "Volleyball"},
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""},
+                                            {"startTime": "18:30:00", "endTime": "20:00:00", "restrictions": "Leagues"},
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "17:00:00", "endTime": "23:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {"startTime": "14:00:00", "endTime": "23:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Prices",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [],
+                                "items": ["Price per game", "Shoe rental"],
+                                "prices": ["$3.50 ", "$2.50 "],
+                                "phoneNumbers": [],
+                            },
                         ],
                     },
                     {
-                        "name": "Gym",
-                        "equipment": [],
-                        "times": [
-                            {"day": 1, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 2, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 3, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 4, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 5, "startTime": "06:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 6, "startTime": "10:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 0, "startTime": "10:00:00", "endTime": "00:00:00", "restrictions": ""},
+                        "name": "Fitness Center",
+                        "details": [
+                            {
+                                "detailsType": "Equipment",
+                                "subFacilityNames": [],
+                                "equipment": [
+                                    {"name": "Precor treadmills"},
+                                    {"name": "Elliptical trainers"},
+                                    {"name": "AMTs"},
+                                    {"name": "Expresso bikes"},
+                                    {"name": "Recumbent and upright bikes"},
+                                    {"name": "C2 rowing machines"},
+                                    {"name": "Upper Body Ergometer"},
+                                    {"name": "Leg Press"},
+                                    {"name": "Seated Calf Raise"},
+                                    {"name": "Seated Leg Curl"},
+                                    {"name": "Leg Extension"},
+                                    {"name": "Inner/Outer Thigh"},
+                                    {"name": "Glute Extension"},
+                                    {"name": "Rotary Torso"},
+                                    {"name": "Back Extension"},
+                                    {"name": "Converging Shoulder Press"},
+                                    {"name": "Converging Chest Press"},
+                                    {"name": "Dip/Chin Assist"},
+                                    {"name": "Rear Deltoid/Pectoral Fly"},
+                                    {"name": "Flat benches"},
+                                    {"name": "Dumbbells"},
+                                    {"name": "Bench Press"},
+                                    {"name": "Squat Rack"},
+                                    {"name": "Jungle Gym Bars"},
+                                    {"name": "Lat Pull"},
+                                    {"name": "Seated Cable Row"},
+                                    {"name": "Cable Pull"},
+                                    {"name": "Core Bags"},
+                                    {"name": "Griprs"},
+                                    {"name": "TRX Strap"},
+                                    {"name": "Ab Roller"},
+                                    {"name": "Exercise Ball"},
+                                    {"name": "Mat"},
+                                ],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {"startTime": "10:00:00", "endTime": "22:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "10:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": [""],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072546728"],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Gymnasium",
+                        "details": [
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "06:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 1: Basketball",
+                                            },
+                                            {
+                                                "startTime": "18:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 2: Badminton",
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "06:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 1: Basketball",
+                                            },
+                                            {
+                                                "startTime": "18:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 2: Badminton",
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "06:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 1: Basketball",
+                                            },
+                                            {
+                                                "startTime": "18:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 2: Volleyball",
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "06:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 1: Basketball",
+                                            },
+                                            {
+                                                "startTime": "18:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 2: Volleyball",
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "06:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 1: Basketball",
+                                            },
+                                            {
+                                                "startTime": "06:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 2: Badminton (odd dates) or Volleyball (even dates)",
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "10:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 1: Basketball",
+                                            },
+                                            {
+                                                "startTime": "10:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 2: Badminton",
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "10:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 1: Basketball",
+                                            },
+                                            {
+                                                "startTime": "10:00:00",
+                                                "endTime": "00:00:00",
+                                                "restrictions": "Court 2: Volleyball",
+                                            },
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            }
                         ],
                     },
                     {
                         "name": "Pool",
-                        "equipment": [],
-                        "times": [
-                            {"day": 1, "startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
-                            {"day": 1, "startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 2, "startTime": "06:00:00", "endTime": "08:45:00", "restrictions": ""},
-                            {"day": 2, "startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 2, "startTime": "22:00:00", "endTime": "23:15:00", "restrictions": ""},
-                            {"day": 3, "startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
-                            {"day": 3, "startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 3, "startTime": "20:30:00", "endTime": "22:00:00", "restrictions": ""},
-                            {"day": 4, "startTime": "06:00:00", "endTime": "08:45:00", "restrictions": ""},
-                            {"day": 4, "startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 4, "startTime": "22:00:00", "endTime": "23:15:00", "restrictions": ""},
-                            {"day": 5, "startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
-                            {"day": 5, "startTime": "09:00:00", "endTime": "09:50:00", "restrictions": "Hydro PT"},
-                            {"day": 5, "startTime": "10:00:00", "endTime": "10:45:00", "restrictions": "Women Only"},
-                            {"day": 5, "startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 5, "startTime": "14:00:00", "endTime": "15:15:00", "restrictions": ""},
-                            {"day": 5, "startTime": "17:30:00", "endTime": "19:00:00", "restrictions": ""},
-                            {"day": 6, "startTime": "12:30:00", "endTime": "13:45:00", "restrictions": "Women Only"},
-                            {"day": 6, "startTime": "14:00:00", "endTime": "16:00:00", "restrictions": ""},
-                            {"day": 0, "startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""},
+                        "details": [
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "08:45:00", "restrictions": ""},
+                                            {"startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "22:00:00", "endTime": "23:15:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "20:30:00", "endTime": "22:00:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "08:45:00", "restrictions": ""},
+                                            {"startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "22:00:00", "endTime": "23:15:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
+                                            {
+                                                "startTime": "09:00:00",
+                                                "endTime": "09:50:00",
+                                                "restrictions": "Hydro PT",
+                                            },
+                                            {
+                                                "startTime": "10:00:00",
+                                                "endTime": "10:45:00",
+                                                "restrictions": "Women Only",
+                                            },
+                                            {"startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "14:00:00", "endTime": "15:15:00", "restrictions": ""},
+                                            {"startTime": "17:30:00", "endTime": "19:00:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "12:30:00",
+                                                "endTime": "13:45:00",
+                                                "restrictions": "Women Only",
+                                            },
+                                            {"startTime": "14:00:00", "endTime": "16:00:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            }
                         ],
                     },
-                    {"name": "Service Desk", "equipment": [], "times": []},
-                    {"name": "Classroom/dance studio", "equipment": [], "times": []},
-                ],
+                    {
+                        "name": "Miscellaneous",
+                        "details": [
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": ["Service Desk"],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072558164"],
+                            },
+                            {
+                                "detailsType": "Sub-Facilities",
+                                "subFacilityNames": ["Classroom/Dance Studio"],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                        ],
+                    },
+                ]
             },
             {
-                "name": "Noyes",
                 "facilities": [
                     {
                         "name": "Fitness Center",
-                        "equipment": [
-                            {"name": "Ab Powerlift"},
-                            {"name": "Ab Rollers"},
-                            {"name": "AMTs"},
-                            {"name": "Bench Press"},
-                            {"name": "Bosu Ball"},
-                            {"name": "C2 rowing machines"},
-                            {"name": "Cable Pulls"},
-                            {"name": "Core Bags"},
-                            {"name": "Dip/Chin Assist"},
-                            {"name": "Dumbbells"},
-                            {"name": "Elliptical trainers"},
-                            {"name": "Exercise Ball"},
-                            {"name": "Expresso bikes"},
-                            {"name": "Flat benches"},
-                            {"name": "Griprs"},
-                            {"name": "Jungle Gym Bars"},
-                            {"name": "Lat Pull"},
-                            {"name": "Leg Extension"},
-                            {"name": "Leg Press"},
-                            {"name": "Mat"},
-                            {"name": "Medicine Ball"},
-                            {"name": "Powerlift Boxes"},
-                            {"name": "Precor treadmills"},
-                            {"name": "Recumbent and upright bikes"},
-                            {"name": "Seated Cable Row"},
-                            {"name": "Seated Leg Curl"},
-                            {"name": "Squat Racks"},
-                            {"name": "TRX Strap"},
-                            {"name": "Upper Body Ergometer"},
-                        ],
-                        "times": [
-                            {"day": 1, "startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 2, "startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 3, "startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 4, "startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 5, "startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""},
-                            {"day": 6, "startTime": "11:30:00", "endTime": "22:00:00", "restrictions": ""},
-                            {"day": 0, "startTime": "11:30:00", "endTime": "23:30:00", "restrictions": ""},
+                        "details": [
+                            {
+                                "detailsType": "Equipment",
+                                "subFacilityNames": [],
+                                "equipment": [
+                                    {"name": "Ab Powerlift"},
+                                    {"name": "Ab Rollers"},
+                                    {"name": "AMTs"},
+                                    {"name": "Bench Press"},
+                                    {"name": "Bosu Ball"},
+                                    {"name": "C2 rowing machines"},
+                                    {"name": "Cable Pulls"},
+                                    {"name": "Core Bags"},
+                                    {"name": "Dip/Chin Assist"},
+                                    {"name": "Dumbbells"},
+                                    {"name": "Elliptical trainers"},
+                                    {"name": "Exercise Ball"},
+                                    {"name": "Expresso bikes"},
+                                    {"name": "Flat benches"},
+                                    {"name": "Griprs"},
+                                    {"name": "Jungle Gym Bars"},
+                                    {"name": "Lat Pull"},
+                                    {"name": "Leg Extension"},
+                                    {"name": "Leg Press"},
+                                    {"name": "Mat"},
+                                    {"name": "Medicine Ball"},
+                                    {"name": "Powerlift Boxes"},
+                                    {"name": "Precor treadmills"},
+                                    {"name": "Recumbent and upright bikes"},
+                                    {"name": "Seated Cable Row"},
+                                    {"name": "Seated Leg Curl"},
+                                    {"name": "Squat Racks"},
+                                    {"name": "TRX Strap"},
+                                    {"name": "Upper Body Ergometer"},
+                                ],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {"startTime": "11:30:00", "endTime": "22:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "11:30:00", "endTime": "23:30:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": [""],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072551713"],
+                            },
                         ],
                     },
                     {
-                        "name": "Basketball Court",
-                        "equipment": [],
-                        "times": [
-                            {"day": 6, "startTime": "11:00:00", "endTime": "14:00:00", "restrictions": "Basketball"},
-                            {"day": 0, "startTime": "11:00:00", "endTime": "14:00:00", "restrictions": "Volleyball"},
-                            {"day": 1, "startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""},
-                            {"day": 2, "startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""},
-                            {"day": 3, "startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""},
-                            {"day": 4, "startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""},
-                            {"day": 5, "startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""},
-                            {"day": 6, "startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
-                            {"day": 0, "startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
+                        "name": "Gymnasium",
+                        "details": [
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "11:00:00",
+                                                "endTime": "14:00:00",
+                                                "restrictions": "Basketball",
+                                            },
+                                            {"startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {
+                                                "startTime": "11:00:00",
+                                                "endTime": "14:00:00",
+                                                "restrictions": "Volleyball",
+                                            },
+                                            {"startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            }
                         ],
                     },
-                    {"name": "Service Desk", "equipment": [], "times": []},
-                    {"name": "30-foot-long bouldering wall", "equipment": [], "times": []},
-                    {"name": "Convenience store", "equipment": [], "times": []},
-                    {"name": "Game Area", "equipment": [], "times": []},
-                    {"name": "Multi-purpose room for group fitness classes", "equipment": [], "times": []},
-                    {"name": "Outdoor basketball court with amphitheater seating", "equipment": [], "times": []},
-                ],
+                    {
+                        "name": "Miscellaneous",
+                        "details": [
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": ["Service Desk"],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072550421"],
+                            },
+                            {
+                                "detailsType": "Sub-Facilities",
+                                "subFacilityNames": [
+                                    "Bouldering Wall",
+                                    "Convenience Store",
+                                    "Game Area",
+                                    "Multi-Purpose Room",
+                                    "Outdoor Basketball Court",
+                                ],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                        ],
+                    },
+                ]
             },
             {
-                "name": "Teagle Up",
                 "facilities": [
                     {
                         "name": "Fitness Center",
-                        "equipment": [
-                            {"name": "Precor Treadmills"},
-                            {"name": "Elliptical Trainers"},
-                            {"name": "AMTs"},
-                            {"name": "Recumbent Bikes"},
-                            {"name": "Upright Bikes"},
-                            {"name": "C2 Rowing Machines"},
-                            {"name": "VMX Rope Trainer"},
-                            {"name": "Dumbbells"},
-                            {"name": "Flat Benches"},
-                            {"name": "Leg Extension"},
-                            {"name": "Seated Leg Curl"},
-                            {"name": "Leg Press"},
-                            {"name": "Inner / Outer Thigh"},
-                            {"name": "Converging Chest Press"},
-                            {"name": "Rear Deltoid/Pectoral Fly"},
-                            {"name": "Lat Pull"},
-                            {"name": "Tricep Dip"},
-                            {"name": "Seated Cable Row"},
-                            {"name": "Cable Pull"},
-                            {"name": "Paramount Functional Trainer"},
-                            {"name": "Core Bags"},
-                            {"name": "Griprs"},
-                            {"name": "Bulgarian Bags"},
-                            {"name": "Medicine Balls"},
-                            {"name": "Balance Discs"},
-                            {"name": "Bosu Ball"},
-                            {"name": "Mat"},
-                            {"name": "Exercise Balls"},
-                            {"name": "Ab Rollers"},
-                        ],
-                        "times": [
-                            {"day": 1, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 2, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 3, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 4, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 5, "startTime": "07:00:00", "endTime": "20:00:00", "restrictions": ""},
-                            {"day": 6, "startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""},
-                            {"day": 0, "startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""},
+                        "details": [
+                            {
+                                "detailsType": "Equipment",
+                                "subFacilityNames": [],
+                                "equipment": [
+                                    {"name": "Precor Treadmills"},
+                                    {"name": "Elliptical Trainers"},
+                                    {"name": "AMTs"},
+                                    {"name": "Recumbent Bikes"},
+                                    {"name": "Upright Bikes"},
+                                    {"name": "C2 Rowing Machines"},
+                                    {"name": "VMX Rope Trainer"},
+                                    {"name": "Dumbbells"},
+                                    {"name": "Flat Benches"},
+                                    {"name": "Leg Extension"},
+                                    {"name": "Seated Leg Curl"},
+                                    {"name": "Leg Press"},
+                                    {"name": "Inner / Outer Thigh"},
+                                    {"name": "Converging Chest Press"},
+                                    {"name": "Rear Deltoid/Pectoral Fly"},
+                                    {"name": "Lat Pull"},
+                                    {"name": "Tricep Dip"},
+                                    {"name": "Seated Cable Row"},
+                                    {"name": "Cable Pull"},
+                                    {"name": "Paramount Functional Trainer"},
+                                    {"name": "Core Bags"},
+                                    {"name": "Griprs"},
+                                    {"name": "Bulgarian Bags"},
+                                    {"name": "Medicine Balls"},
+                                    {"name": "Balance Discs"},
+                                    {"name": "Bosu Ball"},
+                                    {"name": "Mat"},
+                                    {"name": "Exercise Balls"},
+                                    {"name": "Ab Rollers"},
+                                ],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "20:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": [""],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072554713"],
+                            },
                         ],
                     },
-                    {"name": "Service Desk", "equipment": [], "times": []},
-                ],
+                    {
+                        "name": "Miscellaneous",
+                        "details": [
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": ["Service Desk"],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072551318"],
+                            }
+                        ],
+                    },
+                ]
             },
             {
-                "name": "Teagle Down",
                 "facilities": [
                     {
                         "name": "Fitness Center",
-                        "equipment": [
-                            {"name": "Powerlift Boxes"},
-                            {"name": "Flat Benches"},
-                            {"name": "Bench Press"},
-                            {"name": "Dumbbells"},
-                            {"name": "Bicep Curl"},
-                            {"name": "Squat Rack"},
-                            {"name": "Powerlift Boxes"},
-                            {"name": "Medicine Balls"},
-                            {"name": "Triceps Dip"},
-                            {"name": "Seated Cable Row"},
-                            {"name": "Cable Pull"},
-                            {"name": "Lat Pull"},
-                            {"name": "Prone Leg Curl"},
-                            {"name": "Leg Extension"},
-                            {"name": "Donkey Calf Station"},
-                            {"name": "Leg Press"},
-                            {"name": "Rear Deltoid / Pectoral Fly"},
-                            {"name": "Ab Extension"},
-                        ],
-                        "times": [
-                            {"day": 1, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 2, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 3, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 4, "startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""},
-                            {"day": 5, "startTime": "07:00:00", "endTime": "20:00:00", "restrictions": ""},
-                            {"day": 6, "startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""},
-                            {"day": 0, "startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""},
+                        "details": [
+                            {
+                                "detailsType": "Equipment",
+                                "subFacilityNames": [],
+                                "equipment": [
+                                    {"name": "Powerlift Boxes"},
+                                    {"name": "Flat Benches"},
+                                    {"name": "Bench Press"},
+                                    {"name": "Dumbbells"},
+                                    {"name": "Bicep Curl"},
+                                    {"name": "Squat Rack"},
+                                    {"name": "Powerlift Boxes"},
+                                    {"name": "Medicine Balls"},
+                                    {"name": "Triceps Dip"},
+                                    {"name": "Seated Cable Row"},
+                                    {"name": "Cable Pull"},
+                                    {"name": "Lat Pull"},
+                                    {"name": "Prone Leg Curl"},
+                                    {"name": "Leg Extension"},
+                                    {"name": "Donkey Calf Station"},
+                                    {"name": "Leg Press"},
+                                    {"name": "Rear Deltoid / Pectoral Fly"},
+                                    {"name": "Ab Extension"},
+                                ],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "07:00:00", "endTime": "20:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            },
+                            {
+                                "detailsType": "Phone Numbers",
+                                "subFacilityNames": [""],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": ["6072555532"],
+                            },
                         ],
                     },
                     {
                         "name": "Pool",
-                        "equipment": [],
-                        "times": [
-                            {"day": 1, "startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
-                            {"day": 1, "startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                            {"day": 1, "startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 2, "startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                            {"day": 2, "startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 3, "startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
-                            {"day": 3, "startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                            {"day": 3, "startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 4, "startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                            {"day": 4, "startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 5, "startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
-                            {"day": 5, "startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                            {"day": 5, "startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                            {"day": 6, "startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""},
-                            {"day": 0, "startTime": "12:00:00", "endTime": "14:00:00", "restrictions": ""},
+                        "details": [
+                            {
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {
+                                        "day": 1,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 2,
+                                        "timeRanges": [
+                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 3,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 4,
+                                        "timeRanges": [
+                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 5,
+                                        "timeRanges": [
+                                            {"startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                        ],
+                                    },
+                                    {
+                                        "day": 6,
+                                        "timeRanges": [
+                                            {"startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                    {
+                                        "day": 0,
+                                        "timeRanges": [
+                                            {"startTime": "12:00:00", "endTime": "14:00:00", "restrictions": ""}
+                                        ],
+                                    },
+                                ],
+                                "items": [],
+                                "prices": [],
+                                "phoneNumbers": [],
+                            }
                         ],
                     },
-                ],
+                ]
             },
         ]
     }
