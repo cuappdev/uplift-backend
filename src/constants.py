@@ -60,7 +60,7 @@ def parse_gym_metadata():
                 DayTimeRangeType(day=5, start_time=dt.time(15), end_time=dt.time(23, 30)),
                 DayTimeRangeType(day=6, start_time=dt.time(9), end_time=dt.time(13)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/Appel.jpg",
+            image_url=ASSET_BASE_URL + "gyms/appel.jpg",
         )
         helen_newman = GymType(
             id=generate_id("Helen Newman"),
@@ -85,7 +85,7 @@ def parse_gym_metadata():
                 DayTimeRangeType(day=5, start_time=dt.time(6), end_time=dt.time(23, 30)),
                 DayTimeRangeType(day=6, start_time=dt.time(10), end_time=dt.time(22)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/Helen_Newman.jpg",
+            image_url=ASSET_BASE_URL + "gyms/helen-newman.jpg",
         )
         noyes = GymType(
             id=generate_id("Noyes"),
@@ -110,7 +110,7 @@ def parse_gym_metadata():
                 DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(23, 30)),
                 DayTimeRangeType(day=6, start_time=dt.time(11, 30), end_time=dt.time(22)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/Noyes.jpg",
+            image_url=ASSET_BASE_URL + "gyms/noyes.jpg",
         )
         teagle_up = GymType(
             id=generate_id("Teagle Up"),
@@ -135,7 +135,7 @@ def parse_gym_metadata():
                 DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(20)),
                 DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/Teagle.jpg",
+            image_url=ASSET_BASE_URL + "gyms/teagle.jpg",
         )
         teagle_down = GymType(
             id=generate_id("Teagle Down"),
@@ -160,7 +160,7 @@ def parse_gym_metadata():
                 DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(20)),
                 DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/Teagle.jpg",
+            image_url=ASSET_BASE_URL + "gyms/teagle.jpg",
         )
         gyms = [appel, helen_newman, noyes, teagle_up, teagle_down]
         days = dict(zip(calendar.day_name, range(7)))
