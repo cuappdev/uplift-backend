@@ -300,6 +300,19 @@ snapshots["TestQuery::test_gyms 1"] = {
                         ],
                     },
                     {
+                        "name": "Miscellaneous",
+                        "details": [
+                            {
+                                "detailsType": "Sub-Facilities",
+                                "subFacilityNames": ["Classroom/Dance Studio"],
+                                "equipment": [],
+                                "times": [],
+                                "items": [],
+                                "prices": [],
+                            }
+                        ],
+                    },
+                    {
                         "name": "Pool",
                         "details": [
                             {
@@ -375,19 +388,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                         ],
                                     },
                                 ],
-                                "items": [],
-                                "prices": [],
-                            }
-                        ],
-                    },
-                    {
-                        "name": "Miscellaneous",
-                        "details": [
-                            {
-                                "detailsType": "Sub-Facilities",
-                                "subFacilityNames": ["Classroom/Dance Studio"],
-                                "equipment": [],
-                                "times": [],
                                 "items": [],
                                 "prices": [],
                             }
