@@ -30,44 +30,43 @@ class Data(object):
 class DayTimeRangeType(ObjectType):
     day = Int(required=True)
     end_time = Time(required=True)
-    restrictions = String(default_value="")
+    restrictions = String(default_value="", required=True)
     special_hours = Boolean(default_value=False, required=True)
     start_time = Time(required=True)
 
 
 class TimeRangeType(ObjectType):
     end_time = Time(required=True)
-    restrictions = String(default_value="")
+    restrictions = String(default_value="", required=True)
     special_hours = Boolean(default_value=False, required=True)
     start_time = Time(required=True)
 
 
 class DayTimeRangesType(ObjectType):
     day = Int(required=True)
-    time_ranges = List(TimeRangeType)
+    time_ranges = List(TimeRangeType, required=True)
 
 
 class EquipmentType(ObjectType):
-    equipment_type = String()
+    equipment_type = String(required=True)
     name = String(required=True)
-    quantity = String(default_value="1")
-    workout_type = String()
+    quantity = String(default_value="1", required=True)
+    workout_type = String(required=True)
 
 
 # details types: Equipment, Hours, Images, Phone Numbers, Prices, Sub-Facilities
 class FacilityDetailsType(ObjectType):
-    details_type = String()
-    equipment = List(EquipmentType)
-    image_urls = List(String)
-    phone_numbers = List(String)
-    items = List(String)
-    prices = List(String)
-    sub_facility_names = List(String)
-    times = List(DayTimeRangesType)
+    details_type = String(required=True)
+    equipment = List(EquipmentType, required=True)
+    image_urls = List(String, required=True)
+    items = List(String, required=True)
+    prices = List(String, required=True)
+    sub_facility_names = List(String, required=True)
+    times = List(DayTimeRangesType, required=True)
 
 
 class FacilityType(ObjectType):
-    details = List(FacilityDetailsType)
+    details = List(FacilityDetailsType, required=True)
     name = String(required=True)
 
 

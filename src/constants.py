@@ -181,7 +181,6 @@ def parse_gym_metadata():
                         details_type="",
                         equipment=[],
                         image_urls=[],
-                        phone_numbers=[],
                         items=[],
                         prices=[],
                         sub_facility_names=[],
@@ -245,16 +244,6 @@ def parse_gym_metadata():
                         else:
                             new_facility_details.details_type = "Images"
                             new_facility_details.image_urls.append(row[15])
-                            new_facility.details.append(new_facility_details)
-
-                    elif category == "Phone Numbers":
-                        if details:
-                            details.phone_numbers.append(row[4])
-                            details.sub_facility_names.append(row[2])
-                        else:
-                            new_facility_details.details_type = "Phone Numbers"
-                            new_facility_details.phone_numbers.append(row[4])
-                            new_facility_details.sub_facility_names.append(row[2])
                             new_facility.details.append(new_facility_details)
 
                     elif category == "Prices":

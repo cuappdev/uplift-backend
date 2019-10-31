@@ -52,76 +52,10 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Hours",
-                                "subFacilityNames": [],
-                                "equipment": [],
-                                "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "15:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "09:00:00", "endTime": "13:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "09:00:00", "endTime": "13:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                ],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": [],
-                            },
-                        ],
-                    },
-                    {
-                        "name": "Miscellaneous",
-                        "details": [
-                            {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": ["Service Desk"],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072550204"],
                             }
                         ],
                     },
+                    {"name": "Miscellaneous", "details": []},
                 ]
             },
             {
@@ -136,7 +70,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
                             },
                             {
                                 "detailsType": "Hours",
@@ -189,7 +122,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 ],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
                             },
                             {
                                 "detailsType": "Prices",
@@ -198,7 +130,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": ["Price per game", "Shoe rental"],
                                 "prices": ["$3.50 ", "$2.50 "],
-                                "phoneNumbers": [],
                             },
                         ],
                     },
@@ -246,69 +177,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Hours",
-                                "subFacilityNames": [],
-                                "equipment": [],
-                                "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "10:00:00", "endTime": "22:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "10:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                ],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": [""],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072546728"],
-                            },
+                            }
                         ],
                     },
                     {
@@ -427,7 +296,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 ],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
                             }
                         ],
                     },
@@ -509,7 +377,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 ],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
                             }
                         ],
                     },
@@ -517,23 +384,13 @@ snapshots["TestQuery::test_gyms 1"] = {
                         "name": "Miscellaneous",
                         "details": [
                             {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": ["Service Desk"],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072558164"],
-                            },
-                            {
                                 "detailsType": "Sub-Facilities",
                                 "subFacilityNames": ["Classroom/Dance Studio"],
                                 "equipment": [],
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
-                            },
+                            }
                         ],
                     },
                 ]
@@ -580,69 +437,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Hours",
-                                "subFacilityNames": [],
-                                "equipment": [],
-                                "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "11:30:00", "endTime": "22:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "11:30:00", "endTime": "23:30:00", "restrictions": ""}
-                                        ],
-                                    },
-                                ],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": [""],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072551713"],
-                            },
+                            }
                         ],
                     },
                     {
@@ -708,22 +503,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 ],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
                             }
                         ],
                     },
                     {
                         "name": "Miscellaneous",
                         "details": [
-                            {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": ["Service Desk"],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072550421"],
-                            },
                             {
                                 "detailsType": "Sub-Facilities",
                                 "subFacilityNames": [
@@ -737,8 +522,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
-                            },
+                            }
                         ],
                     },
                 ]
@@ -785,85 +569,10 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Hours",
-                                "subFacilityNames": [],
-                                "equipment": [],
-                                "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "20:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                ],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": [""],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072554713"],
-                            },
-                        ],
-                    },
-                    {
-                        "name": "Miscellaneous",
-                        "details": [
-                            {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": ["Service Desk"],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072551318"],
                             }
                         ],
                     },
+                    {"name": "Miscellaneous", "details": []},
                 ]
             },
             {
@@ -897,69 +606,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "times": [],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Hours",
-                                "subFacilityNames": [],
-                                "equipment": [],
-                                "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "22:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "20:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "12:00:00", "endTime": "17:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                ],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": [],
-                            },
-                            {
-                                "detailsType": "Phone Numbers",
-                                "subFacilityNames": [""],
-                                "equipment": [],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                                "phoneNumbers": ["6072555532"],
-                            },
+                            }
                         ],
                     },
                     {
@@ -1023,7 +670,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 ],
                                 "items": [],
                                 "prices": [],
-                                "phoneNumbers": [],
                             }
                         ],
                     },

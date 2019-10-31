@@ -40,7 +40,6 @@ class TestQuery(TestCase):
                         }
                         items
                         prices
-                        phoneNumbers
                     }
                 }
             }
