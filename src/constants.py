@@ -203,14 +203,22 @@ def parse_gym_metadata():
                             new_facility.details.append(new_facility_details)
 
                     elif category == "Hours":
+                        restrictions = row[8]
+                        if restrictions == "Court #2: Badminton (odd dates) or Volleyball (even dates)":
+                            if int(dt.datetime.now().strftime("%d")) % 2 == 1:
+                                restrictions = "Court #2: Badminton"
+                            else:
+                                restrictions = "Court #2: Volleyball"
                         try:
                             time_range = TimeRangeType(
                                 end_time=dt.datetime.strptime(row[7], "%I:%M %p").time(),
-                                restrictions=row[8],
+                                restrictions=restrictions,
                                 start_time=dt.datetime.strptime(row[6], "%I:%M %p").time(),
                             )
                         except:
-                            time_range = TimeRangeType(end_time=dt.time(0), restrictions=row[8], start_time=dt.time(0))
+                            time_range = TimeRangeType(
+                                end_time=dt.time(0), restrictions=restrictions, start_time=dt.time(0)
+                            )
 
                         day = (days[row[5]] + 1) % 7
 
