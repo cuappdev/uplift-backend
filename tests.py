@@ -35,7 +35,6 @@ class TestQuery(TestCase):
                             timeRanges {
                                 startTime
                                 endTime
-                                restrictions
                             }
                         }
                         items
