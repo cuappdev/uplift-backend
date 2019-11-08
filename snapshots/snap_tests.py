@@ -76,49 +76,19 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "subFacilityNames": [],
                                 "equipment": [],
                                 "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""}
-                                        ],
-                                    },
+                                    {"day": 1, "timeRanges": [{"startTime": "17:00:00", "endTime": "22:00:00"}]},
+                                    {"day": 2, "timeRanges": [{"startTime": "17:00:00", "endTime": "22:00:00"}]},
                                     {
                                         "day": 3,
                                         "timeRanges": [
-                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""},
-                                            {"startTime": "18:30:00", "endTime": "20:00:00", "restrictions": "Leagues"},
+                                            {"startTime": "17:00:00", "endTime": "22:00:00"},
+                                            {"startTime": "18:30:00", "endTime": "20:00:00"},
                                         ],
                                     },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "17:00:00", "endTime": "22:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "17:00:00", "endTime": "23:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "14:00:00", "endTime": "23:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""}
-                                        ],
-                                    },
+                                    {"day": 4, "timeRanges": [{"startTime": "17:00:00", "endTime": "22:00:00"}]},
+                                    {"day": 5, "timeRanges": [{"startTime": "17:00:00", "endTime": "23:00:00"}]},
+                                    {"day": 6, "timeRanges": [{"startTime": "14:00:00", "endTime": "23:00:00"}]},
+                                    {"day": 0, "timeRanges": [{"startTime": "00:00:00", "endTime": "00:00:00"}]},
                                 ],
                                 "items": [],
                                 "prices": [],
@@ -191,106 +161,50 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 1,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "06:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
-                                            },
-                                            {
-                                                "startTime": "18:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton",
-                                            },
+                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
+                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 2,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "06:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
-                                            },
-                                            {
-                                                "startTime": "18:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton",
-                                            },
+                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
+                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 3,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "06:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
-                                            },
-                                            {
-                                                "startTime": "18:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Volleyball",
-                                            },
+                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
+                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 4,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "06:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
-                                            },
-                                            {
-                                                "startTime": "18:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Volleyball",
-                                            },
+                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
+                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 5,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "06:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
-                                            },
-                                            {
-                                                "startTime": "06:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton (odd dates) or Volleyball (even dates)",
-                                            },
+                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
+                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 6,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "10:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
-                                            },
-                                            {
-                                                "startTime": "10:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton",
-                                            },
+                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
+                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 0,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "10:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
-                                            },
-                                            {
-                                                "startTime": "10:00:00",
-                                                "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Volleyball",
-                                            },
+                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
+                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
                                         ],
                                     },
                                 ],
@@ -323,70 +237,53 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 1,
                                         "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "07:00:00", "endTime": "08:45:00"},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
                                     },
                                     {
                                         "day": 2,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:45:00", "restrictions": ""},
-                                            {"startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
-                                            {"startTime": "22:00:00", "endTime": "23:15:00", "restrictions": ""},
+                                            {"startTime": "06:00:00", "endTime": "08:45:00"},
+                                            {"startTime": "11:00:00", "endTime": "13:30:00"},
+                                            {"startTime": "22:00:00", "endTime": "23:15:00"},
                                         ],
                                     },
                                     {
                                         "day": 3,
                                         "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
-                                            {"startTime": "20:30:00", "endTime": "22:00:00", "restrictions": ""},
+                                            {"startTime": "07:00:00", "endTime": "08:45:00"},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
+                                            {"startTime": "20:30:00", "endTime": "22:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 4,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:45:00", "restrictions": ""},
-                                            {"startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
-                                            {"startTime": "22:00:00", "endTime": "23:15:00", "restrictions": ""},
+                                            {"startTime": "06:00:00", "endTime": "08:45:00"},
+                                            {"startTime": "11:00:00", "endTime": "13:30:00"},
+                                            {"startTime": "22:00:00", "endTime": "23:15:00"},
                                         ],
                                     },
                                     {
                                         "day": 5,
                                         "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "08:45:00", "restrictions": ""},
-                                            {
-                                                "startTime": "09:00:00",
-                                                "endTime": "09:50:00",
-                                                "restrictions": "Hydro PT",
-                                            },
-                                            {
-                                                "startTime": "10:00:00",
-                                                "endTime": "10:45:00",
-                                                "restrictions": "Women Only",
-                                            },
-                                            {"startTime": "11:00:00", "endTime": "13:30:00", "restrictions": ""},
-                                            {"startTime": "14:00:00", "endTime": "15:15:00", "restrictions": ""},
-                                            {"startTime": "17:30:00", "endTime": "19:00:00", "restrictions": ""},
+                                            {"startTime": "07:00:00", "endTime": "08:45:00"},
+                                            {"startTime": "09:00:00", "endTime": "09:50:00"},
+                                            {"startTime": "10:00:00", "endTime": "10:45:00"},
+                                            {"startTime": "11:00:00", "endTime": "13:30:00"},
+                                            {"startTime": "14:00:00", "endTime": "15:15:00"},
+                                            {"startTime": "17:30:00", "endTime": "19:00:00"},
                                         ],
                                     },
                                     {
                                         "day": 6,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "12:30:00",
-                                                "endTime": "13:45:00",
-                                                "restrictions": "Women Only",
-                                            },
-                                            {"startTime": "14:00:00", "endTime": "16:00:00", "restrictions": ""},
+                                            {"startTime": "12:30:00", "endTime": "13:45:00"},
+                                            {"startTime": "14:00:00", "endTime": "16:00:00"},
                                         ],
                                     },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""}
-                                        ],
-                                    },
+                                    {"day": 0, "timeRanges": [{"startTime": "00:00:00", "endTime": "00:00:00"}]},
                                 ],
                                 "items": [],
                                 "prices": [],
@@ -451,55 +348,22 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 6,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "11:00:00",
-                                                "endTime": "14:00:00",
-                                                "restrictions": "Basketball",
-                                            },
-                                            {"startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
+                                            {"startTime": "11:00:00", "endTime": "14:00:00"},
+                                            {"startTime": "11:00:00", "endTime": "00:45:00"},
                                         ],
                                     },
                                     {
                                         "day": 0,
                                         "timeRanges": [
-                                            {
-                                                "startTime": "11:00:00",
-                                                "endTime": "14:00:00",
-                                                "restrictions": "Volleyball",
-                                            },
-                                            {"startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
+                                            {"startTime": "11:00:00", "endTime": "14:00:00"},
+                                            {"startTime": "11:00:00", "endTime": "00:45:00"},
                                         ],
                                     },
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "00:45:00", "restrictions": ""}
-                                        ],
-                                    },
+                                    {"day": 1, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
+                                    {"day": 2, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
+                                    {"day": 3, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
+                                    {"day": 4, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
+                                    {"day": 5, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
                                 ],
                                 "items": [],
                                 "prices": [],
@@ -620,53 +484,43 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 1,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
-                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "06:00:00", "endTime": "08:30:00"},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
                                     },
                                     {
                                         "day": 2,
                                         "timeRanges": [
-                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
                                     },
                                     {
                                         "day": 3,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
-                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "06:00:00", "endTime": "08:30:00"},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
                                     },
                                     {
                                         "day": 4,
                                         "timeRanges": [
-                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
                                     },
                                     {
                                         "day": 5,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:30:00", "restrictions": ""},
-                                            {"startTime": "09:45:00", "endTime": "11:15:00", "restrictions": ""},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00", "restrictions": ""},
+                                            {"startTime": "06:00:00", "endTime": "08:30:00"},
+                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
+                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
                                     },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "00:00:00", "endTime": "00:00:00", "restrictions": ""}
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "12:00:00", "endTime": "14:00:00", "restrictions": ""}
-                                        ],
-                                    },
+                                    {"day": 6, "timeRanges": [{"startTime": "00:00:00", "endTime": "00:00:00"}]},
+                                    {"day": 0, "timeRanges": [{"startTime": "12:00:00", "endTime": "14:00:00"}]},
                                 ],
                                 "items": [],
                                 "prices": [],
