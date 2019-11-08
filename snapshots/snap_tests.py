@@ -194,12 +194,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "06:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
+                                                "restrictions": "Court #1: Basketball",
                                             },
                                             {
                                                 "startTime": "18:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton",
+                                                "restrictions": "Court #2: Badminton",
                                             },
                                         ],
                                     },
@@ -209,12 +209,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "06:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
+                                                "restrictions": "Court #1: Basketball",
                                             },
                                             {
                                                 "startTime": "18:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton",
+                                                "restrictions": "Court #2: Badminton",
                                             },
                                         ],
                                     },
@@ -224,12 +224,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "06:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
+                                                "restrictions": "Court #1: Basketball",
                                             },
                                             {
                                                 "startTime": "18:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Volleyball",
+                                                "restrictions": "Court #2: Volleyball",
                                             },
                                         ],
                                     },
@@ -239,12 +239,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "06:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
+                                                "restrictions": "Court #1: Basketball",
                                             },
                                             {
                                                 "startTime": "18:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Volleyball",
+                                                "restrictions": "Court #2: Volleyball",
                                             },
                                         ],
                                     },
@@ -254,12 +254,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "06:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
+                                                "restrictions": "Court #1: Basketball",
                                             },
                                             {
                                                 "startTime": "06:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton (odd dates) or Volleyball (even dates)",
+                                                "restrictions": "Court #2: Badminton",
                                             },
                                         ],
                                     },
@@ -269,12 +269,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "10:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
+                                                "restrictions": "Court #1: Basketball",
                                             },
                                             {
                                                 "startTime": "10:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Badminton",
+                                                "restrictions": "Court #2: Badminton",
                                             },
                                         ],
                                     },
@@ -284,12 +284,12 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "10:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 1: Basketball",
+                                                "restrictions": "Court #1: Basketball",
                                             },
                                             {
                                                 "startTime": "10:00:00",
                                                 "endTime": "00:00:00",
-                                                "restrictions": "Court 2: Volleyball",
+                                                "restrictions": "Court #2: Volleyball",
                                             },
                                         ],
                                     },
@@ -454,7 +454,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "11:00:00",
                                                 "endTime": "14:00:00",
-                                                "restrictions": "Basketball",
+                                                "restrictions": "Court: Basketball",
                                             },
                                             {"startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
                                         ],
@@ -465,7 +465,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                             {
                                                 "startTime": "11:00:00",
                                                 "endTime": "14:00:00",
-                                                "restrictions": "Volleyball",
+                                                "restrictions": "Court: Volleyball",
                                             },
                                             {"startTime": "11:00:00", "endTime": "00:45:00", "restrictions": ""},
                                         ],
