@@ -17,9 +17,6 @@ from src.schema import (
     ClassDetailType,
     ClassType,
     DayTimeRangeType,
-    DayTimeRangesType,
-    FacilityType,
-    FacilityDetailsType,
     TimeRangeType,
 )
 from src.utils import generate_id
