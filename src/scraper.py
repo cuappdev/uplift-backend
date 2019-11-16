@@ -5,13 +5,29 @@ import random
 from bs4 import BeautifulSoup
 import requests
 
-import src.constants as constants
-from src.schema import ClassDetailType, ClassType, DayTimeRangeType
+from src.constants import (
+    ASSET_BASE_URL,
+    CATEGORIES_BY_CLASS_NAME,
+    CLASS_IMAGE_KEYWORDS,
+    GYMS_BY_ID,
+    IMAGE_CHOICES,
+    TAGS_BY_CLASS_NAME,
+)
+from src.schema import (
+    ClassDetailType,
+    ClassType,
+    DayTimeRangeType,
+    DayTimeRangesType,
+    FacilityType,
+    FacilityDetailsType,
+    TimeRangeType,
+)
 from src.utils import generate_id
 
 BASE_URL = "https://recreation.athletics.cornell.edu"
 CLASSES_PATH = "/fitness-centers/group-fitness-classes?&page="
 SPECIAL_HOURS_PATH = "/hours-facilities/cornell-fitness-center-special-hours"
+POOL_HOURS_PATH = "/hours-facilities/pool-hours"
 
 DAY_INDICES = {"Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6}
 
@@ -39,8 +55,8 @@ def scrape_class_detail(class_href):
 
     class_detail.description = description
     class_detail.name = name
-    class_detail.tags = constants.TAGS_BY_CLASS_NAME.get(name, [])
-    class_detail.categories = constants.CATEGORIES_BY_CLASS_NAME.get(name, [])
+    class_detail.tags = TAGS_BY_CLASS_NAME.get(name, [])
+    class_detail.categories = CATEGORIES_BY_CLASS_NAME.get(name, [])
     class_detail.id = generate_id(name)
     return class_detail
 
@@ -98,7 +114,7 @@ def scrape_classes(num_pages):
             try:
                 location = row_elems[5].a.string
                 gym_class.location = location
-                for gym_id, gym in constants.GYMS_BY_ID.items():
+                for gym_id, gym in GYMS_BY_ID.items():
                     if gym.name in location:
                         gym_class.gym_id = gym_id
                         break
@@ -124,14 +140,14 @@ Returns:
 
 def get_image_url(name):
     image_keyword = "General"
-    for keyword in constants.CLASS_IMAGE_KEYWORDS:
+    for keyword in CLASS_IMAGE_KEYWORDS:
         if keyword in name:
             image_keyword = keyword
             break
-    if image_keyword in constants.IMAGE_CHOICES:
-        image_number = random.choice(range(1, constants.IMAGE_CHOICES[image_keyword] + 1))
+    if image_keyword in IMAGE_CHOICES:
+        image_number = random.choice(range(1, IMAGE_CHOICES[image_keyword] + 1))
         image_keyword = image_keyword + str(image_number)
-    return constants.ASSET_BASE_URL + "classes/" + image_keyword + ".jpg"
+    return ASSET_BASE_URL + "classes/" + image_keyword + ".jpg"
 
 
 """
@@ -217,3 +233,82 @@ def scrape_special_hours():
                             }
                         )
     return gym_hours
+
+
+def scrape_pool_hours(gyms):
+    page = requests.get(BASE_URL + POOL_HOURS_PATH).text
+    soup = BeautifulSoup(page, "lxml")
+    schedules = soup.find_all("table")
+    pool_hours = {}
+
+    for table in schedules:
+        rows = table.find_all("tr")
+        if len(rows) <= 1:
+            continue
+
+        for schedule in rows[1:]:
+            gym_name = schedule.find_all("p")[0].text.strip()
+            all_times = schedule.find_all("p")[1:]
+            times = []
+
+            for day in all_times:
+                lines = day.text.strip().splitlines(False)
+                hours = []
+                for line in lines:
+                    hours.append(line.replace("\t", "").strip())
+                times.append(hours)
+
+            # Sunday time for Helen Newman is currently in a td tag
+            if gym_name == "Helen Newman":
+                times[-2].extend(times[-1])
+                times[-1] = ["Closed"]
+
+            # Sunday time for Teagle is currently in the last td tag
+            if gym_name == "Teagle":
+                misc_time = schedule.find_all("td")[-1].text.strip().replace("pm", " PM")
+                times.append([misc_time])
+                gym_name = "Teagle Down"
+
+            if gym_name not in pool_hours:
+                pool_hours[gym_name] = [[], [], [], [], [], [], []]
+
+            for i in range(len(times)):
+                day = times[i]
+                for time in day:
+                    time_text = time.strip()
+
+                    if time_text == "Closed":
+                        pool_hours[gym_name][i].append(TimeRangeType(end_time=dt.time(0), start_time=dt.time(0)))
+                    else:
+                        if "-" in time_text and "M" in time_text[time_text.index("-") + 1 :]:
+                            dash_index = time_text.index("-")
+                            start_time_string = time_text[0:dash_index].strip()
+                            end_period_index = time_text[dash_index + 1 :].index("M")
+                            end_time_string = time_text[dash_index + 1 :][: end_period_index + 1].strip()
+                            restrictions = time_text[dash_index + 1 :][end_period_index + 1 :].strip()
+
+                            if ":" not in start_time_string:
+                                if " AM" in start_time_string:
+                                    start_time_string = start_time_string.replace(" AM", "") + ":00 AM"
+                                else:
+                                    start_time_string += ":00"
+
+                            if "AM" not in start_time_string and "PM" not in start_time_string:
+                                if "AM" in end_time_string:
+                                    start_time_string += " AM"
+                                elif "PM" in end_time_string:
+                                    start_time_string += " PM"
+
+                            if ":" not in end_time_string:
+                                if " AM" in end_time_string:
+                                    end_time_string = end_time_string.replace(" AM", "") + ":00 AM"
+                                elif " PM" in end_time_string:
+                                    end_time_string = end_time_string.replace(" PM", "") + ":00 PM"
+
+                            start_time = datetime.strptime(start_time_string, "%I:%M %p").time()
+                            end_time = datetime.strptime(end_time_string, "%I:%M %p").time()
+
+                            pool_hours[gym_name][i].append(
+                                TimeRangeType(end_time=end_time, restrictions=restrictions, start_time=start_time)
+                            )
+    return pool_hours
