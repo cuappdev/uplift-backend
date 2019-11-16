@@ -2,8 +2,8 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 import threading
 import src.constants as constants
-from src.schema import Data, DayTimeRangesType, TimeRangeType
 import src.scraper as scraper
+from src.schema import Data, DayTimeRangesType, TimeRangeType
 
 
 def start_update():
