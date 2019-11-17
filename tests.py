@@ -1,5 +1,6 @@
 import unittest
 
+from copy import deepcopy
 from graphene import Schema
 from graphene.test import Client
 from snapshottest import TestCase
@@ -14,9 +15,10 @@ client = Client(schema)
 
 class TestQuery(TestCase):
     def setUp(self):
-        gyms = GYMS_BY_ID
+        gyms = deepcopy(GYMS_BY_ID)
         class_details, classes = scraper.scrape_classes(PAGE_LIMIT)
         Data.update_data(gyms=gyms, classes=classes, class_details=class_details, limit=CLASS_HISTORY_LIMIT)
+        Data.update_pool_hours(gyms, scraper.scrape_pool_hours(gyms))
 
     def test_gyms(self):
         query = """

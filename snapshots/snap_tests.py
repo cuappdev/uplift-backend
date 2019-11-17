@@ -237,7 +237,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 1,
                                         "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "08:45:00"},
+                                            {"startTime": "06:00:00", "endTime": "08:45:00"},
                                             {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
                                     },
@@ -484,7 +484,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 1,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:30:00"},
                                             {"startTime": "09:45:00", "endTime": "11:15:00"},
                                             {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
@@ -499,7 +498,8 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 3,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:30:00"},
+                                            {"startTime": "06:00:00", "endTime": "07:00:00"},
+                                            {"startTime": "07:00:00", "endTime": "08:30:00"},
                                             {"startTime": "09:45:00", "endTime": "11:15:00"},
                                             {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
@@ -514,7 +514,7 @@ snapshots["TestQuery::test_gyms 1"] = {
                                     {
                                         "day": 5,
                                         "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:30:00"},
+                                            {"startTime": "06:00:00", "endTime": "07:00:00"},
                                             {"startTime": "09:45:00", "endTime": "11:15:00"},
                                             {"startTime": "12:15:00", "endTime": "13:30:00"},
                                         ],
