@@ -13,12 +13,7 @@ from src.constants import (
     IMAGE_CHOICES,
     TAGS_BY_CLASS_NAME,
 )
-from src.schema import (
-    ClassDetailType,
-    ClassType,
-    DayTimeRangeType,
-    TimeRangeType,
-)
+from src.schema import ClassDetailType, ClassType, DayTimeRangeType, TimeRangeType
 from src.utils import generate_id
 
 BASE_URL = "https://recreation.athletics.cornell.edu"
