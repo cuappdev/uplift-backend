@@ -11,6 +11,7 @@ snapshots["TestQuery::test_gyms 1"] = {
     "data": {
         "gyms": [
             {
+                "name": "Appel",
                 "facilities": [
                     {
                         "name": "Fitness Center",
@@ -56,9 +57,10 @@ snapshots["TestQuery::test_gyms 1"] = {
                         ],
                     },
                     {"name": "Miscellaneous", "details": []},
-                ]
+                ],
             },
             {
+                "name": "Helen Newman",
                 "facilities": [
                     {
                         "name": "Bowling Alley",
@@ -76,19 +78,13 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "subFacilityNames": [],
                                 "equipment": [],
                                 "times": [
-                                    {"day": 1, "timeRanges": [{"startTime": "17:00:00", "endTime": "22:00:00"}]},
-                                    {"day": 2, "timeRanges": [{"startTime": "17:00:00", "endTime": "22:00:00"}]},
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "17:00:00", "endTime": "22:00:00"},
-                                            {"startTime": "18:30:00", "endTime": "20:00:00"},
-                                        ],
-                                    },
-                                    {"day": 4, "timeRanges": [{"startTime": "17:00:00", "endTime": "22:00:00"}]},
-                                    {"day": 5, "timeRanges": [{"startTime": "17:00:00", "endTime": "23:00:00"}]},
-                                    {"day": 6, "timeRanges": [{"startTime": "14:00:00", "endTime": "23:00:00"}]},
-                                    {"day": 0, "timeRanges": [{"startTime": "00:00:00", "endTime": "00:00:00"}]},
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
                                 "items": [],
                                 "prices": [],
@@ -158,55 +154,13 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "subFacilityNames": [],
                                 "equipment": [],
                                 "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
-                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
-                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
-                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
-                                            {"startTime": "18:00:00", "endTime": "00:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
-                                            {"startTime": "06:00:00", "endTime": "00:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
-                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
-                                            {"startTime": "10:00:00", "endTime": "00:00:00"},
-                                        ],
-                                    },
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
                                 "items": [],
                                 "prices": [],
@@ -234,65 +188,23 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "subFacilityNames": [],
                                 "equipment": [],
                                 "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:45:00"},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:45:00"},
-                                            {"startTime": "11:00:00", "endTime": "13:30:00"},
-                                            {"startTime": "22:00:00", "endTime": "23:15:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "08:45:00"},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
-                                            {"startTime": "20:30:00", "endTime": "22:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "08:45:00"},
-                                            {"startTime": "11:00:00", "endTime": "13:30:00"},
-                                            {"startTime": "22:00:00", "endTime": "23:15:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "07:00:00", "endTime": "08:45:00"},
-                                            {"startTime": "09:00:00", "endTime": "09:50:00"},
-                                            {"startTime": "10:00:00", "endTime": "10:45:00"},
-                                            {"startTime": "11:00:00", "endTime": "13:30:00"},
-                                            {"startTime": "14:00:00", "endTime": "15:15:00"},
-                                            {"startTime": "17:30:00", "endTime": "19:00:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "12:30:00", "endTime": "13:45:00"},
-                                            {"startTime": "14:00:00", "endTime": "16:00:00"},
-                                        ],
-                                    },
-                                    {"day": 0, "timeRanges": [{"startTime": "00:00:00", "endTime": "00:00:00"}]},
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
                                 "items": [],
                                 "prices": [],
                             }
                         ],
                     },
-                ]
+                ],
             },
             {
+                "name": "Noyes",
                 "facilities": [
                     {
                         "name": "Fitness Center",
@@ -345,25 +257,13 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "subFacilityNames": [],
                                 "equipment": [],
                                 "times": [
-                                    {
-                                        "day": 6,
-                                        "timeRanges": [
-                                            {"startTime": "11:00:00", "endTime": "14:00:00"},
-                                            {"startTime": "11:00:00", "endTime": "00:45:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 0,
-                                        "timeRanges": [
-                                            {"startTime": "11:00:00", "endTime": "14:00:00"},
-                                            {"startTime": "11:00:00", "endTime": "00:45:00"},
-                                        ],
-                                    },
-                                    {"day": 1, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
-                                    {"day": 2, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
-                                    {"day": 3, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
-                                    {"day": 4, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
-                                    {"day": 5, "timeRanges": [{"startTime": "07:00:00", "endTime": "00:45:00"}]},
+                                    {"day": 6},
+                                    {"day": 0},
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
                                 ],
                                 "items": [],
                                 "prices": [],
@@ -389,9 +289,10 @@ snapshots["TestQuery::test_gyms 1"] = {
                             }
                         ],
                     },
-                ]
+                ],
             },
             {
+                "name": "Teagle Up",
                 "facilities": [
                     {
                         "name": "Fitness Center",
@@ -437,9 +338,10 @@ snapshots["TestQuery::test_gyms 1"] = {
                         ],
                     },
                     {"name": "Miscellaneous", "details": []},
-                ]
+                ],
             },
             {
+                "name": "Teagle Down",
                 "facilities": [
                     {
                         "name": "Fitness Center",
@@ -481,53 +383,20 @@ snapshots["TestQuery::test_gyms 1"] = {
                                 "subFacilityNames": [],
                                 "equipment": [],
                                 "times": [
-                                    {
-                                        "day": 1,
-                                        "timeRanges": [
-                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 2,
-                                        "timeRanges": [
-                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 3,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "07:00:00"},
-                                            {"startTime": "07:00:00", "endTime": "08:30:00"},
-                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 4,
-                                        "timeRanges": [
-                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
-                                        ],
-                                    },
-                                    {
-                                        "day": 5,
-                                        "timeRanges": [
-                                            {"startTime": "06:00:00", "endTime": "07:00:00"},
-                                            {"startTime": "09:45:00", "endTime": "11:15:00"},
-                                            {"startTime": "12:15:00", "endTime": "13:30:00"},
-                                        ],
-                                    },
-                                    {"day": 6, "timeRanges": [{"startTime": "00:00:00", "endTime": "00:00:00"}]},
-                                    {"day": 0, "timeRanges": [{"startTime": "12:00:00", "endTime": "14:00:00"}]},
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
                                 "items": [],
                                 "prices": [],
                             }
                         ],
                     },
-                ]
+                ],
             },
         ]
     }
