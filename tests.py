@@ -24,6 +24,7 @@ class TestQuery(TestCase):
         query = """
         query GymsQuery {
             gyms {
+                name
                 facilities {
                     name
                     details {
@@ -34,10 +35,6 @@ class TestQuery(TestCase):
                         }
                         times {
                             day
-                            timeRanges {
-                                startTime
-                                endTime
-                            }
                         }
                         items
                         prices
