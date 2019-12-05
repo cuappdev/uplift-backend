@@ -256,7 +256,7 @@ def scrape_pool_hours(gyms):
                 )
                 non_empty_hours = []
                 for hours in day:
-                    if len(hours) > 0:
+                    if hours:
                         non_empty_hours.append(hours)
                 times.append(non_empty_hours)
 

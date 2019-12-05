@@ -35,17 +35,16 @@ class Data(object):
             if gym.name in pool_hours:
                 days = pool_hours[gym.name]
                 created = False
-                for day in range(len(days)):
-                    for hours in range(len(days[day])):
-                        hour = days[day][hours]
-                        d = (day + 1) % 7
+                for idx, day in enumerate(days, 1):
+                    for hours in day:
+                        d = idx % 7
                         if created:
                             details = facility.details[0]
                             time = next((time for time in details.times if time.day == d), None)
                             if time:
-                                time.time_ranges.append(hour)
+                                time.time_ranges.append(hours)
                             else:
-                                details.times.append(DayTimeRangesType(day=d, time_ranges=[hour]))
+                                details.times.append(DayTimeRangesType(day=d, time_ranges=[hours]))
                         else:
                             created = True
                             facility.details.append(
@@ -56,7 +55,7 @@ class Data(object):
                                     items=[],
                                     prices=[],
                                     sub_facility_names=[],
-                                    times=[DayTimeRangesType(day=d, time_ranges=[hour])],
+                                    times=[DayTimeRangesType(day=d, time_ranges=[hours])],
                                 )
                             )
                             gym.facilities.append(facility)
