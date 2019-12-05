@@ -1,5 +1,6 @@
 from datetime import datetime
 import datetime as dt
+import lxml.html as lh
 import random
 
 from bs4 import BeautifulSoup
@@ -239,26 +240,31 @@ def scrape_pool_hours(gyms):
             continue
 
         for schedule in rows[1:]:
-            gym_name = schedule.find_all("p")[0].text.strip()
-            all_times = schedule.find_all("p")[1:]
+            gym_name = schedule.find_all("td")[0].text.strip()
             times = []
+            for td in schedule.find_all(
+                lambda tag: tag.name == "td" and (len(tag.findChildren()) > 0 or len(tag.text) > 0)
+            )[1:]:
+                day = (
+                    td.text.replace("\t", "")
+                    .replace("\xa0", " ")
+                    .replace("am", "AM")
+                    .replace("pm", "PM")
+                    .replace("[", "")
+                    .replace("]", "\n")
+                    .replace("2PM", "2 PM")
+                    .split("\n")
+                )
+                non_empty_hours = []
+                for hours in day:
+                    if len(hours) > 0:
+                        non_empty_hours.append(hours)
+                times.append(non_empty_hours)
 
-            for day in all_times:
-                lines = day.text.strip().splitlines(False)
-                hours = []
-                for line in lines:
-                    hours.append(line.replace("\t", "").strip())
-                times.append(hours)
+            if gym_name.count("Helen Newman") > 0:
+                gym_name = "Helen Newman"
 
-            # Sunday time for Helen Newman is currently in a td tag
-            if gym_name == "Helen Newman":
-                times[-2].extend(times[-1])
-                times[-1] = ["Closed"]
-
-            # Sunday time for Teagle is currently in the last td tag
-            if gym_name == "Teagle":
-                misc_time = schedule.find_all("td")[-1].text.strip().replace("pm", " PM")
-                times.append([misc_time])
+            if gym_name.count("Teagle") > 0:
                 gym_name = "Teagle Down"
 
             if gym_name not in pool_hours:
@@ -268,39 +274,41 @@ def scrape_pool_hours(gyms):
                 day = times[i]
                 for time in day:
                     time_text = time.strip()
+                    try:
+                        if time_text == "Closed":
+                            pool_hours[gym_name][i].append(TimeRangeType(end_time=dt.time(0), start_time=dt.time(0)))
+                        else:
+                            if "-" in time_text and "M" in time_text[time_text.index("-") + 1 :]:
+                                dash_index = time_text.index("-")
+                                start_time_string = time_text[0:dash_index].strip()
+                                end_period_index = time_text[dash_index + 1 :].index("M")
+                                end_time_string = time_text[dash_index + 1 :][: end_period_index + 1].strip()
+                                restrictions = time_text[dash_index + 1 :][end_period_index + 1 :].strip()
 
-                    if time_text == "Closed":
-                        pool_hours[gym_name][i].append(TimeRangeType(end_time=dt.time(0), start_time=dt.time(0)))
-                    else:
-                        if "-" in time_text and "M" in time_text[time_text.index("-") + 1 :]:
-                            dash_index = time_text.index("-")
-                            start_time_string = time_text[0:dash_index].strip()
-                            end_period_index = time_text[dash_index + 1 :].index("M")
-                            end_time_string = time_text[dash_index + 1 :][: end_period_index + 1].strip()
-                            restrictions = time_text[dash_index + 1 :][end_period_index + 1 :].strip()
+                                if ":" not in start_time_string:
+                                    if " AM" in start_time_string:
+                                        start_time_string = start_time_string.replace(" AM", "") + ":00 AM"
+                                    else:
+                                        start_time_string += ":00"
 
-                            if ":" not in start_time_string:
-                                if " AM" in start_time_string:
-                                    start_time_string = start_time_string.replace(" AM", "") + ":00 AM"
-                                else:
-                                    start_time_string += ":00"
+                                if "AM" not in start_time_string and "PM" not in start_time_string:
+                                    if "AM" in end_time_string:
+                                        start_time_string += " AM"
+                                    elif "PM" in end_time_string:
+                                        start_time_string += " PM"
 
-                            if "AM" not in start_time_string and "PM" not in start_time_string:
-                                if "AM" in end_time_string:
-                                    start_time_string += " AM"
-                                elif "PM" in end_time_string:
-                                    start_time_string += " PM"
+                                if ":" not in end_time_string:
+                                    if " AM" in end_time_string:
+                                        end_time_string = end_time_string.replace(" AM", "") + ":00 AM"
+                                    elif " PM" in end_time_string:
+                                        end_time_string = end_time_string.replace(" PM", "") + ":00 PM"
 
-                            if ":" not in end_time_string:
-                                if " AM" in end_time_string:
-                                    end_time_string = end_time_string.replace(" AM", "") + ":00 AM"
-                                elif " PM" in end_time_string:
-                                    end_time_string = end_time_string.replace(" PM", "") + ":00 PM"
+                                start_time = datetime.strptime(start_time_string, "%I:%M %p").time()
+                                end_time = datetime.strptime(end_time_string, "%I:%M %p").time()
 
-                            start_time = datetime.strptime(start_time_string, "%I:%M %p").time()
-                            end_time = datetime.strptime(end_time_string, "%I:%M %p").time()
-
-                            pool_hours[gym_name][i].append(
-                                TimeRangeType(end_time=end_time, restrictions=restrictions, start_time=start_time)
-                            )
+                                pool_hours[gym_name][i].append(
+                                    TimeRangeType(end_time=end_time, restrictions=restrictions, start_time=start_time)
+                                )
+                    except:
+                        pass
     return pool_hours
