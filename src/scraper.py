@@ -1,6 +1,5 @@
 from datetime import datetime
 import datetime as dt
-import lxml.html as lh
 import random
 
 from bs4 import BeautifulSoup
