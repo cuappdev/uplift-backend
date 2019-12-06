@@ -12,7 +12,10 @@ def start_update():
         gyms = {gym.id: gym for gym in check_for_special_hours()}
         class_details, classes = scraper.scrape_classes(constants.PAGE_LIMIT)
         Data.update_data(gyms=gyms, classes=classes, class_details=class_details, limit=constants.CLASS_HISTORY_LIMIT)
-        Data.update_pool_hours(gyms, scraper.scrape_pool_hours(gyms))
+        try:
+            Data.update_pool_hours(gyms, scraper.scrape_pool_hours(gyms))
+        except:
+            pass
     finally:
         threading.Timer(constants.UPDATE_DELAY, start_update).start()
 

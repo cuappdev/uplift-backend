@@ -32,33 +32,33 @@ class Data(object):
     def update_pool_hours(gyms, pool_hours):
         for gym in [gyms[generate_id("Helen Newman")], gyms[generate_id("Teagle Down")]]:
             facility = FacilityType(details=[], name="Pool")
-            days = pool_hours[gym.name]
-            created = False
-            for day in range(len(days)):
-                for hours in range(len(days[day])):
-                    hour = days[day][hours]
-                    d = (day + 1) % 7
-                    if created:
-                        details = facility.details[0]
-                        time = next((time for time in details.times if time.day == d), None)
-                        if time:
-                            time.time_ranges.append(hour)
+            if gym.name in pool_hours:
+                days = pool_hours[gym.name]
+                created = False
+                for idx, day in enumerate(days, 1):
+                    for hours in day:
+                        d = idx % 7
+                        if created:
+                            details = facility.details[0]
+                            time = next((time for time in details.times if time.day == d), None)
+                            if time:
+                                time.time_ranges.append(hours)
+                            else:
+                                details.times.append(DayTimeRangesType(day=d, time_ranges=[hours]))
                         else:
-                            details.times.append(DayTimeRangesType(day=d, time_ranges=[hour]))
-                    else:
-                        created = True
-                        facility.details.append(
-                            FacilityDetailsType(
-                                details_type="Hours",
-                                equipment=[],
-                                image_urls=[],
-                                items=[],
-                                prices=[],
-                                sub_facility_names=[],
-                                times=[DayTimeRangesType(day=d, time_ranges=[hour])],
+                            created = True
+                            facility.details.append(
+                                FacilityDetailsType(
+                                    details_type="Hours",
+                                    equipment=[],
+                                    image_urls=[],
+                                    items=[],
+                                    prices=[],
+                                    sub_facility_names=[],
+                                    times=[DayTimeRangesType(day=d, time_ranges=[hours])],
+                                )
                             )
-                        )
-                        gym.facilities.append(facility)
+                            gym.facilities.append(facility)
 
 
 class DayTimeRangeType(ObjectType):
