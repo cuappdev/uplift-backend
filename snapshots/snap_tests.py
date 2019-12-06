@@ -66,14 +66,6 @@ snapshots["TestQuery::test_gyms 1"] = {
                         "name": "Bowling Alley",
                         "details": [
                             {
-                                "detailsType": "Equipment",
-                                "subFacilityNames": [],
-                                "equipment": [{"name": "Bowling Lanes"}],
-                                "times": [],
-                                "items": [],
-                                "prices": [],
-                            },
-                            {
                                 "detailsType": "Hours",
                                 "subFacilityNames": [],
                                 "equipment": [],
