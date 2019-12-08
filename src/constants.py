@@ -244,9 +244,11 @@ def parse_gym_metadata():
                             else:
                                 details.times.append(DayTimeRangesType(day=day, time_ranges=[time_range]))
                         else:
-                            new_facility_details.details_type = "Hours"
+                            new_facility_details.details_type = category
                             new_facility_details.times.append(DayTimeRangesType(day=day, time_ranges=[time_range]))
                             new_facility.details.append(new_facility_details)
+                            if category == "Court":
+                                new_facility_details.sub_facility_names.append(row[2])
 
                     elif category == "Images":
                         if details:
