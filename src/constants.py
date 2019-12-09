@@ -166,7 +166,7 @@ def parse_gym_metadata():
         days = dict(zip(calendar.day_name, range(7)))
         for row in reader:
             for gym in gyms:
-                if gym.name == row[0]:
+                if gym.name == row[0] and row[3] != "Phone Numbers":
                     facility_name = row[1]
                     category = row[3]
                     found = False
