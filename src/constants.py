@@ -202,13 +202,15 @@ def parse_gym_metadata():
                             new_facility_details.equipment.append(equipment)
                             new_facility.details.append(new_facility_details)
 
-                    elif category == "Hours":
+                    elif category == "Hours" or category == "Court":
+                        if category == "Court" and details:
+                            details.sub_facility_names.append(row[2])
                         restrictions = row[8]
                         if restrictions == "Court #2: Badminton (odd dates) or Volleyball (even dates)":
                             if int(dt.datetime.now().strftime("%d")) % 2 == 1:
-                                restrictions = "Court #2: Badminton"
+                                restrictions = "Badminton"
                             else:
-                                restrictions = "Court #2: Volleyball"
+                                restrictions = "Volleyball"
                         try:
                             time_range = TimeRangeType(
                                 end_time=dt.datetime.strptime(row[7], "%I:%M %p").time(),
@@ -242,9 +244,11 @@ def parse_gym_metadata():
                             else:
                                 details.times.append(DayTimeRangesType(day=day, time_ranges=[time_range]))
                         else:
-                            new_facility_details.details_type = "Hours"
+                            new_facility_details.details_type = category
                             new_facility_details.times.append(DayTimeRangesType(day=day, time_ranges=[time_range]))
                             new_facility.details.append(new_facility_details)
+                            if category == "Court":
+                                new_facility_details.sub_facility_names.append(row[2])
 
                     elif category == "Images":
                         if details:
@@ -271,7 +275,6 @@ def parse_gym_metadata():
                             new_facility_details.details_type = "Sub-Facilities"
                             new_facility_details.sub_facility_names.append(row[2])
                             new_facility.details.append(new_facility_details)
-
                     if not found:
                         gym.facilities.append(new_facility)
     return gyms

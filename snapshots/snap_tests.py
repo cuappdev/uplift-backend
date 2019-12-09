@@ -298,39 +298,52 @@ snapshots['TestQuery::test_gyms 1'] = {
                     {
                         'details': [
                             {
-                                'detailsType': 'Hours',
-                                'equipment': [
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
-                                'items': [
+                                "items": [],
+                                "prices": [],
+                            },
+                            {
+                                "detailsType": "Court",
+                                "subFacilityNames": [
+                                    "Court #1",
+                                    "Court #1",
+                                    "Court #1",
+                                    "Court #1",
+                                    "Court #1",
+                                    "Court #1",
+                                    "Court #1",
+                                    "Court #2",
+                                    "Court #2",
+                                    "Court #2",
+                                    "Court #2",
+                                    "Court #2",
+                                    "Court #2",
+                                    "Court #2",
                                 ],
-                                'prices': [
+                                "equipment": [],
+                                "times": [
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
-                                'subFacilityNames': [
-                                ],
-                                'times': [
-                                    {
-                                        'day': 1
-                                    },
-                                    {
-                                        'day': 2
-                                    },
-                                    {
-                                        'day': 3
-                                    },
-                                    {
-                                        'day': 4
-                                    },
-                                    {
-                                        'day': 5
-                                    },
-                                    {
-                                        'day': 6
-                                    },
-                                    {
-                                        'day': 0
-                                    }
-                                ]
-                            }
+                                "items": [],
+                                "prices": [],
+                            },
                         ],
                         'name': 'Gymnasium'
                     },
@@ -505,39 +518,45 @@ snapshots['TestQuery::test_gyms 1'] = {
                     {
                         'details': [
                             {
-                                'detailsType': 'Hours',
-                                'equipment': [
+                                "detailsType": "Hours",
+                                "subFacilityNames": [],
+                                "equipment": [],
+                                "times": [
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
-                                'items': [
+                                "items": [],
+                                "prices": [],
+                            },
+                            {
+                                "detailsType": "Court",
+                                "subFacilityNames": [
+                                    "Basketball Court",
+                                    "Basketball Court",
+                                    "Basketball Court",
+                                    "Basketball Court",
+                                    "Basketball Court",
+                                    "Basketball Court",
+                                    "Basketball Court",
                                 ],
-                                'prices': [
+                                "equipment": [],
+                                "times": [
+                                    {"day": 1},
+                                    {"day": 2},
+                                    {"day": 3},
+                                    {"day": 4},
+                                    {"day": 5},
+                                    {"day": 6},
+                                    {"day": 0},
                                 ],
-                                'subFacilityNames': [
-                                ],
-                                'times': [
-                                    {
-                                        'day': 6
-                                    },
-                                    {
-                                        'day': 0
-                                    },
-                                    {
-                                        'day': 1
-                                    },
-                                    {
-                                        'day': 2
-                                    },
-                                    {
-                                        'day': 3
-                                    },
-                                    {
-                                        'day': 4
-                                    },
-                                    {
-                                        'day': 5
-                                    }
-                                ]
-                            }
+                                "items": [],
+                                "prices": [],
+                            },
                         ],
                         'name': 'Gymnasium'
                     },
