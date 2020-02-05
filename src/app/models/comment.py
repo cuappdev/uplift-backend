@@ -1,5 +1,5 @@
 import datetime
-from . import * 
+from . import *
 
 
 class Comment(Base):
