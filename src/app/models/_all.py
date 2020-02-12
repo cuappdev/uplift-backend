@@ -1,7 +1,7 @@
 from marshmallow_sqlalchemy import ModelSchema
 from marshmallow import fields
 
-from src.app.models.comment import *
+from src.app.models.game import *
 from src.app.models.post import *
 from src.app.models.reply import *
 from src.app.models.routine import *
@@ -9,9 +9,9 @@ from src.app.models.social_media import *
 from src.app.models.user import *
 
 
-class CommentSchema(ModelSchema):
+class GameSchema(ModelSchema):
     class Meta(ModelSchema.Meta):
-        model = Comment
+        model = Game
 
 
 class PostSchema(ModelSchema):
@@ -41,7 +41,9 @@ class UserSchema(ModelSchema):
 
 
 # Serializers
+game_schema = GameSchema()
 post_schema = PostSchema()
+reply_schema = ReplySchema()
 routine_schema = RoutineSchema()
 social_media_schema = SocialMediaSchema()
 user_schema = UserSchema()
