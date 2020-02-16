@@ -17,7 +17,7 @@ class User(Base):
     session_expiration = db.Column(db.DateTime, nullable=False)
     update_token = db.Column(db.String(255), nullable=False, unique=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
-    comments = db.relationship("Comment", backref="users")
+    games = db.relationship("Game", backref="users")
 
     def __init__(self, **kwargs):
         self.google_id = kwargs.get("google_id")
