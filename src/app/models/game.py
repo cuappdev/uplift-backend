@@ -13,6 +13,8 @@ class Game(Base):
     title = db.Column(db.String(100), nullable=False)
     time = db.Column(db.DateTime)
     location = db.Column(db.String(100), nullable=False)
+    max_players = db.Column(db.Integer)
+    players = db.relationship("User", backref="players")
 
     def __init__(self, **kwargs):
         self.user_id = kwargs.get("user_id")
@@ -20,3 +22,4 @@ class Game(Base):
         self.title = kwargs.get("title", "")
         self.time = kwargs.get("time")
         self.location = kwargs.get("location")
+        self.max_players = kwargs.get("max_players")
