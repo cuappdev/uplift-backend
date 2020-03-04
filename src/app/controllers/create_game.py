@@ -13,19 +13,17 @@ class CreateGameController(AppDevController):
         user_id = request.form["user_id"]
         title = request.form["title"]
         text = request.form["text"]
-        time = dt.strptime(request.form["time"], '%Y-%m-%d, %H:%M')
+        time = dt.strptime(request.form["time"], "%Y-%m-%d, %H:%M")
         location = request.form["location"]
         max_players = request.form["max_players"]
 
-        game_dao.create_game(
-            user_id=user_id,
-            text=text,
-            time=time,
-            title=title,
-            location=location,
-            max_players=max_players,
+        _, game = game_dao.create_game(
+            user_id=user_id, text=text, time=time, title=title, location=location, max_players=max_players
         )
 
-        return {
-            "result": "success"
-        }
+        user = users_dao.get_user_by_id(user_id)
+        game.players.append(user)
+        user.games.append(game)
+
+        db.session.commit()
+        return {"result": "success"}

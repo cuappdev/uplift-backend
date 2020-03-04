@@ -4,8 +4,10 @@ from . import *
 def get_all_games():
     return Game.query.all()
 
+
 def get_game_by_id(game_id):
     return Game.query.filter(Game.id == game_id).first()
+
 
 def serialize_game(game):
     return game_schema.dump(game)

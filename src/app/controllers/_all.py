@@ -3,6 +3,7 @@ from src.app.controllers.get_all_games import *
 from src.app.controllers.get_all_posts import *
 from src.app.controllers.get_all_routines import *
 from src.app.controllers.get_all_social_media import *
+from src.app.controllers.get_games_by_user import *
 from src.app.controllers.get_post_by_id import *
 from src.app.controllers.get_routine_by_id import *
 from src.app.controllers.get_routine_by_post_id import *
@@ -18,6 +19,7 @@ controllers = [
     GetAllPostsController(),
     GetAllRoutinesController(),
     GetAllSocialMediaController(),
+    GetGamesByUserController(),
     GetPostByIdController(),
     GetRoutineByIdController(),
     GetRoutineByPostIdController(),

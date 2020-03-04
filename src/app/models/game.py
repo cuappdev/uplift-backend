@@ -1,6 +1,13 @@
 import datetime
 from . import *
 
+users_to_games = db.Table(
+    "users_to_games",
+    db.Model.metadata,
+    db.Column("users_id", db.Integer, db.ForeignKey("users.id")),
+    db.Column("games_id", db.Integer, db.ForeignKey("games.id")),
+)
+
 
 class Game(Base):
     __tablename__ = "games"
@@ -14,7 +21,7 @@ class Game(Base):
     time = db.Column(db.DateTime)
     location = db.Column(db.String(100), nullable=False)
     max_players = db.Column(db.Integer)
-    players = db.relationship("User", backref="players")
+    players = db.relationship("User", secondary=users_to_games, back_populates="games")
 
     def __init__(self, **kwargs):
         self.user_id = kwargs.get("user_id")
