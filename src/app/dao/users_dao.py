@@ -43,3 +43,6 @@ def renew_session(update_token):
     user.renew_session()
     db_utils.db_session_commit()
     return user
+
+def serialize_user(user):
+    return user_schema.dump(user)

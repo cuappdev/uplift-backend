@@ -16,7 +16,7 @@ class JoinGameController(AppDevController):
         user = users_dao.get_user_by_id(user_id)
 
         # Game is full
-        if len(game.players >= game.max_players):
+        if len(game.players) >= game.max_players:
             return {"result": "fail"}
 
         # User already joined
