@@ -22,7 +22,5 @@ class ModifyReplyController(AppDevController):
         if text:
             reply.text = text
 
-        db_utils.commit_model(reply)
         db.session.commit()
         return {"result": "succes"}
-        

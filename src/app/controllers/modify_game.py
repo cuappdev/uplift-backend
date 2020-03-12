@@ -11,11 +11,11 @@ class ModifyGameController(AppDevController):
 
     def content(self, **kwargs):
         game_id = request.form["game_id"]
-        title = request.form["title"]
-        text = request.form["text"]
-        time = dt.strptime(request.form["time"], "%Y-%m-%d, %H:%M")
-        location = request.form["location"]
-        max_players = request.form["max_players"]
+        title = request.form.get("title")
+        text = request.form.get("text")
+        time = request.form.get("time")
+        location = request.form.get("location")
+        max_players = request.form.get("max_players")
 
         game = game_dao.get_game_by_id(game_id)
         if title:
@@ -23,12 +23,12 @@ class ModifyGameController(AppDevController):
         if text:
             game.text = text
         if time:
+            time = dt.strptime(time, "%Y-%m-%d, %H:%M")
             game.time = time
         if location:
             game.location = location
         if max_players:
             game.max_players = max_players
 
-        db_utils.commit_model(game)
         db.session.commit()
         return {"result": "success"}

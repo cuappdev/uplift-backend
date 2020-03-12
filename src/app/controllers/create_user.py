@@ -1,6 +1,8 @@
 from . import *
 
-
+"""
+Controller used for testing, will delete later
+"""
 class CreateUserController(AppDevController):
     def get_path(self):
         return "/create_user/"
