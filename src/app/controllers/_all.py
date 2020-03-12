@@ -23,8 +23,8 @@ from src.app.controllers.update_session_controller import *
 
 controllers = [
     CreateGameController(),
-    CreateReplyController(), 
-    CreateUserController(), 
+    CreateReplyController(),
+    CreateUserController(),
     DeleteGameController(),
     DeleteReplyController(),
     GetAllGamesController(),
@@ -42,6 +42,6 @@ controllers = [
     InitializeSessionController(),
     JoinGameController(),
     ModifyGameController(),
-    ModifyReplyController(), 
+    ModifyReplyController(),
     UpdateSessionController(),
 ]

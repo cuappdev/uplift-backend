@@ -12,22 +12,13 @@ class CreateReplyController(AppDevController):
         game_id = request.form["game_id"]
         game = game_dao.get_game_by_id(game_id)
         if not game:
-            return {
-                "result": "fail",
-                "error": "game not found"
-            }
+            return {"result": "fail", "error": "game not found"}
         user_id = request.form["user_id"]
         text = request.form["text"]
 
-        _, reply = reply_dao.create_reply(
-            user_id=user_id,
-            game_id=game_id,
-            text=text
-        )
+        _, reply = reply_dao.create_reply(user_id=user_id, game_id=game_id, text=text)
 
         game.replies.append(reply)
         db.session.add(reply)
         db.session.commit()
-        return {
-            "result": "success"
-        }
+        return {"result": "success"}

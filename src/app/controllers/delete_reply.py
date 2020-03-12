@@ -14,5 +14,5 @@ class DeleteReplyController(AppDevController):
 
         db.session.delete(reply)
         db.session.commit()
-        
+
         return {"result": "success"}

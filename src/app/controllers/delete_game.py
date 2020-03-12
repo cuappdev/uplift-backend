@@ -14,5 +14,5 @@ class DeleteGameController(AppDevController):
 
         db.session.delete(game)
         db.session.commit()
-        
+
         return {"result": "success"}

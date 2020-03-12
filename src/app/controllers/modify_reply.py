@@ -12,10 +12,7 @@ class ModifyReplyController(AppDevController):
         reply_id = request.form["reply_id"]
         reply = reply_dao.get_reply_by_id(reply_id)
         if not reply:
-            return {
-                "result": "fail",
-                "error": "reply not found"
-            }
+            return {"result": "fail", "error": "reply not found"}
 
         text = request.form["text"]
 

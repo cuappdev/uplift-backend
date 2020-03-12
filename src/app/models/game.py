@@ -16,7 +16,7 @@ class Game(Base):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
     text = db.Column(db.String(100000), nullable=False)
-    replies = db.relationship("Reply", cascade='delete')
+    replies = db.relationship("Reply", cascade="delete")
     title = db.Column(db.String(100), nullable=False)
     time = db.Column(db.DateTime)
     location = db.Column(db.String(100), nullable=False)
