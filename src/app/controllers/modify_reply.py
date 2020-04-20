@@ -9,15 +9,15 @@ class ModifyReplyController(AppDevController):
         return ["POST"]
 
     def content(self, **kwargs):
-        reply_id = request.form["reply_id"]
+        reply_id = request.form.get("reply_id")
         reply = reply_dao.get_reply_by_id(reply_id)
         if not reply:
-            return {"result": "fail", "error": "reply not found"}
+            return utils.failure_response("Reply not found")
 
-        text = request.form["text"]
+        text = request.form.get("text")
 
         if text:
             reply.text = text
 
         db.session.commit()
-        return {"result": "succes"}
+        return utils.success_response(reply_dao.serialize_reply(reply))

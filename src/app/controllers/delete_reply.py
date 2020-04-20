@@ -9,10 +9,10 @@ class DeleteReplyController(AppDevController):
         return ["POST"]
 
     def content(self, **kwargs):
-        reply_id = request.form["reply_id"]
+        reply_id = request.form.get("reply_id")
         reply = reply_dao.get_reply_by_id(reply_id)
 
         db.session.delete(reply)
         db.session.commit()
 
-        return {"result": "success"}
+        return utils.success_response("deleted")

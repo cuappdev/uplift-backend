@@ -10,7 +10,7 @@ class ModifyGameController(AppDevController):
         return ["POST"]
 
     def content(self, **kwargs):
-        game_id = request.form["game_id"]
+        game_id = request.form.get("game_id")
         title = request.form.get("title")
         text = request.form.get("text")
         time = request.form.get("time")
@@ -23,7 +23,7 @@ class ModifyGameController(AppDevController):
         if text:
             game.text = text
         if time:
-            time = dt.strptime(time, "%Y-%m-%d, %H:%M")
+            time = utils.parse_time(time)
             game.time = time
         if location:
             game.location = location
@@ -31,4 +31,4 @@ class ModifyGameController(AppDevController):
             game.max_players = max_players
 
         db.session.commit()
-        return {"result": "success"}
+        return utils.success_response(game_dao.serialize_game(game))

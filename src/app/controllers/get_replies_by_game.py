@@ -15,4 +15,4 @@ class GetRepliesByGame(AppDevController):
             return {"result": "fail", "error": "game not found"}
 
         result = [reply_dao.serialize_reply(reply) for reply in game.replies]
-        return result
+        return utils.success_response(result)

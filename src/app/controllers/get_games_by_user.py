@@ -13,4 +13,4 @@ class GetGamesByUserController(AppDevController):
         user = users_dao.get_user_by_id(user_id)
 
         serialized_games = [game_dao.serialize_game(game) for game in user.games]
-        return serialized_games
+        return utils.success_response(serialized_games)

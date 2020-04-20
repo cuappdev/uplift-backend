@@ -10,12 +10,12 @@ class CreateGameController(AppDevController):
         return ["POST"]
 
     def content(self, **kwargs):
-        user_id = request.form["user_id"]
-        title = request.form["title"]
-        text = request.form["text"]
-        time = dt.strptime(request.form["time"], "%Y-%m-%d, %H:%M")
-        location = request.form["location"]
-        max_players = request.form["max_players"]
+        user_id = request.form.get("user_id")
+        title = request.form.get("title")
+        text = request.form.get("text")
+        time = dt.strptime(request.form.get("time"), "%Y-%m-%d, %H:%M")
+        location = request.form.get("location")
+        max_players = request.form.get("max_players")
 
         _, game = game_dao.create_game(
             user_id=user_id, text=text, time=time, title=title, location=location, max_players=max_players
@@ -26,4 +26,4 @@ class CreateGameController(AppDevController):
         user.games.append(game)
 
         db.session.commit()
-        return {"result": "success"}
+        return utils.success_response(game_dao.serialize_game(game))

@@ -11,4 +11,5 @@ class GetUserByIDController(AppDevController):
     def content(self, **kwargs):
         user_id = request.view_args["user_id"]
         user = users_dao.get_user_by_id(user_id)
-        return users_dao.serialize_user(user)
+        data = users_dao.serialize_user(user)
+        return utils.success_response(data)

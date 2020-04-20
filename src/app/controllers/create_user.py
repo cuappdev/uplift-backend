@@ -13,9 +13,9 @@ class CreateUserController(AppDevController):
         return ["POST"]
 
     def content(self, **kwargs):
-        sub = request.form["sub"]
-        email = request.form["email"]
+        sub = request.form.get("sub")
+        email = request.form.get("email")
         _, user = users_dao.create_user(
             {"sub": sub, "email": email, "given_name": "test", "name": "test", "picture": "test"}
         )
-        return {"result": "success"}
+        return utils.success_response(users_dao.serialize_user(user))
