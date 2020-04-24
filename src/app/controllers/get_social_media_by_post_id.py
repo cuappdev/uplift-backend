@@ -11,4 +11,5 @@ class GetSocialMediaByPostIdController(AppDevController):
     def content(self, **kwargs):
         social_media_id = request.view_args["post_id"]
         social_media = social_media_dao.get_social_media_by_id(social_media_id)
-        return social_media_dao.serialize_social_media(social_media)
+        data = social_media_dao.serialize_social_media(social_media)
+        return utils.success_response(data)

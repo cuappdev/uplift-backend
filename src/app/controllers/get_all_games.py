@@ -1,6 +1,5 @@
 from . import *
 
-
 class GetAllGamesController(AppDevController):
     def get_path(self):
         return "/games/"
@@ -10,4 +9,5 @@ class GetAllGamesController(AppDevController):
 
     def content(self, **kwargs):
         games = game_dao.get_all_games()
-        return [game_dao.serialize_game(g) for g in games]
+        data = [game_dao.serialize_game(g) for g in games]
+        return utils.success_response(data)

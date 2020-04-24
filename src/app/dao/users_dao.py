@@ -1,6 +1,10 @@
 from . import *
 
 
+def get_user_by_id(id):
+    return User.query.filter(User.id == id).first()
+
+
 def get_user_by_google_id(google_id):
     return User.query.filter(User.google_id == google_id).first()
 
@@ -39,3 +43,7 @@ def renew_session(update_token):
     user.renew_session()
     db_utils.db_session_commit()
     return user
+
+
+def serialize_user(user):
+    return user_schema.dump(user)
