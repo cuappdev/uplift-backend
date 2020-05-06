@@ -18,7 +18,7 @@ class GetGamesByUserController(AppDevController):
         for game in serialized_games:
             game_time = utils.parse_datetime(game["time"])
             tz_info = game_time.tzinfo
-            if game_time < dt.now(tz=tz_info):
+            if game_time <= dt.now(tz=tz_info):
                 result["past_games"].append(game)
             else:
                 creator_id = game["players"][0]
