@@ -1,5 +1,6 @@
 from . import *
 
+
 class GetAllGamesController(AppDevController):
     def get_path(self):
         return "/games/"

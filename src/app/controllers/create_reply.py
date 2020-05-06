@@ -21,6 +21,5 @@ class CreateReplyController(AppDevController):
         game.replies.append(reply)
         db.session.add(reply)
         db.session.commit()
-        
 
         return utils.success_response(game_dao.serialize_game(game))
