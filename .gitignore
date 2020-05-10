@@ -12,3 +12,4 @@ build/
 .env
 .envrc
 migrations
+.vscode

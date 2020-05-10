@@ -12,3 +12,4 @@ class GetSocialMediaByIdController(AppDevController):
         social_media_id = request.view_args["social_media_id"]
         social_media = social_media_dao.get_social_media_by_id(social_media_id)
         return social_media_dao.serialize_social_media(social_media)
+      

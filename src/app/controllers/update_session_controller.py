@@ -13,11 +13,12 @@ class UpdateSessionController(AppDevController):
         update_token = kwargs.get("bearer_token")
 
         if update_token is None:
-            raise Exception("Invalid update token.")
+            return utils.failure_response("Invalid update token")
 
         user = users_dao.renew_session(update_token)
-        return {
+        data = {
             "session_token": user.session_token,
             "session_expiration": user.session_expiration,
             "update_token": user.update_token,
         }
+        return utils.success_response(data)

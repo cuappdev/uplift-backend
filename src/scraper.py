@@ -32,7 +32,10 @@ def scrape_class_detail(class_href):
     class_detail = ClassDetailType()
     page = requests.get(BASE_URL + class_href).text
     soup = BeautifulSoup(page, "lxml")
-    contents = soup.find("div", {"class": "taxonomy-term-description"}).p.contents
+    try:
+        contents = soup.find("div", {"class": "taxonomy-term-description"}).p.contents
+    except AttributeError:
+        contents = [""]
 
     name = soup.find("div", {"id": "main-body"}).h1.contents[0]
     description = ""

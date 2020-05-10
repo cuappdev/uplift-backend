@@ -34,6 +34,11 @@ To use `autoenv` with this repository, run the following and set the variables a
 cp env.template .env
 ````
 
+## Setting Up the Database with Data
+````bash
+python setup_db.py
+````
+
 ## Running the App
 
 ````bash
