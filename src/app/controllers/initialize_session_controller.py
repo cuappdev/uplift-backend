@@ -32,3 +32,4 @@ class InitializeSessionController(AppDevController):
 
         except ValueError:
             return utils.failure_response("Invalid token")
+    

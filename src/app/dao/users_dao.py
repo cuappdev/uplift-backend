@@ -4,7 +4,7 @@ from . import *
 def get_user_by_id(id):
     return User.query.filter(User.id == id).first()
 
-
+  
 def get_user_by_google_id(google_id):
     return User.query.filter(User.google_id == google_id).first()
 

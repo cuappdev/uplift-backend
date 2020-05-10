@@ -3,6 +3,7 @@ import json
 from datetime import datetime as dt
 
 
+
 def generate_id(data):
     return hashlib.sha1(data.encode("utf-8")).hexdigest()
 
