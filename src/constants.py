@@ -37,9 +37,9 @@ def parse_class_metadata():
 def parse_gym_metadata():
     with open("src/data/gym_metadata.csv", "r") as metadata_file:
         reader = csv.reader(metadata_file)
-        appel = GymType(
-            id=generate_id("Appel"),
-            name="Appel",
+        morrison = GymType(
+            id=generate_id("Morrison"),
+            name="Morrison",
             description="description",
             facilities=[],
             popular=[
@@ -48,19 +48,19 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 17, 23, 23, 17, 14, 23, 40, 50, 45, 35, 33, 42, 52, 55, 47, 33, 17, 5],
                 [0, 0, 0, 0, 0, 0, 12, 20, 28, 34, 37, 37, 37, 39, 47, 57, 67, 70, 62, 47, 34, 32, 26, 5],
                 [0, 0, 0, 0, 0, 0, 19, 25, 21, 17, 19, 26, 34, 38, 38, 40, 46, 56, 64, 64, 54, 37, 20, 6],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 44, 42, 30, 29, 35, 42, 43, 38, 28, 17, 80, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 31, 32, 23, 26, 43, 59, 57, 51, 51, 47, 34, 17, 3, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 44, 42, 30, 29, 35, 42, 43, 38, 28, 17, 80, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 31, 32, 23, 26, 43, 59, 57, 51, 51, 47, 34, 17, 3],
             ],
             times=[
-                DayTimeRangeType(day=0, start_time=dt.time(9), end_time=dt.time(13)),
-                DayTimeRangeType(day=1, start_time=dt.time(15), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=2, start_time=dt.time(15), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=3, start_time=dt.time(15), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=4, start_time=dt.time(15), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=5, start_time=dt.time(15), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=6, start_time=dt.time(9), end_time=dt.time(13)),
+                DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(22)),
+                DayTimeRangeType(day=1, start_time=dt.time(14), end_time=dt.time(23)),
+                DayTimeRangeType(day=2, start_time=dt.time(14), end_time=dt.time(23)),
+                DayTimeRangeType(day=3, start_time=dt.time(14), end_time=dt.time(23)),
+                DayTimeRangeType(day=4, start_time=dt.time(14), end_time=dt.time(23)),
+                DayTimeRangeType(day=5, start_time=dt.time(14), end_time=dt.time(23)),
+                DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(22)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/appel.jpg",
+            image_url=ASSET_BASE_URL + "gyms/helen-newman.jpg",
         )
         helen_newman = GymType(
             id=generate_id("Helen Newman"),
@@ -77,13 +77,13 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 31, 32, 23, 26, 43, 59, 57, 51, 51, 47, 34, 17, 3],
             ],
             times=[
-                DayTimeRangeType(day=0, start_time=dt.time(10), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=1, start_time=dt.time(6), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=2, start_time=dt.time(6), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=3, start_time=dt.time(6), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=4, start_time=dt.time(6), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=5, start_time=dt.time(6), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=6, start_time=dt.time(10), end_time=dt.time(22)),
+                DayTimeRangeType(day=0, start_time=dt.time(10), end_time=dt.time(20)),
+                DayTimeRangeType(day=1, start_time=dt.time(6), end_time=dt.time(21)),
+                DayTimeRangeType(day=2, start_time=dt.time(6), end_time=dt.time(21)),
+                DayTimeRangeType(day=3, start_time=dt.time(6), end_time=dt.time(21)),
+                DayTimeRangeType(day=4, start_time=dt.time(6), end_time=dt.time(21)),
+                DayTimeRangeType(day=5, start_time=dt.time(6), end_time=dt.time(21)),
+                DayTimeRangeType(day=6, start_time=dt.time(10), end_time=dt.time(20)),
             ],
             image_url=ASSET_BASE_URL + "gyms/helen-newman.jpg",
         )
@@ -102,13 +102,13 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 36, 44, 39, 33, 38, 45, 52, 63, 75, 70, 45, 18],
             ],
             times=[
-                DayTimeRangeType(day=0, start_time=dt.time(11, 30), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(23, 30)),
-                DayTimeRangeType(day=6, start_time=dt.time(11, 30), end_time=dt.time(22)),
+                DayTimeRangeType(day=0, start_time=dt.time(14), end_time=dt.time(22)),
+                DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(23)),
+                DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(23)),
+                DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(23)),
+                DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(23)),
+                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(23)),
+                DayTimeRangeType(day=6, start_time=dt.time(14), end_time=dt.time(22)),
             ],
             image_url=ASSET_BASE_URL + "gyms/noyes.jpg",
         )
@@ -127,13 +127,13 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 13, 21, 24, 34, 36, 14, 0, 0, 0, 0, 0],
             ],
             times=[
-                DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(17, 45)),
+                DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(17, 30)),
                 DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(22, 45)),
                 DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(22, 45)),
                 DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(22, 45)),
                 DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(22, 45)),
-                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(20)),
-                DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45)),
+                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 30)),
             ],
             image_url=ASSET_BASE_URL + "gyms/teagle.jpg",
         )
@@ -152,17 +152,17 @@ def parse_gym_metadata():
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 13, 21, 24, 34, 36, 14, 0, 0, 0, 0, 0],
             ],
             times=[
-                DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(17, 45)),
+                DayTimeRangeType(day=0, start_time=dt.time(12), end_time=dt.time(17, 30)),
                 DayTimeRangeType(day=1, start_time=dt.time(7), end_time=dt.time(22, 45)),
                 DayTimeRangeType(day=2, start_time=dt.time(7), end_time=dt.time(22, 45)),
                 DayTimeRangeType(day=3, start_time=dt.time(7), end_time=dt.time(22, 45)),
                 DayTimeRangeType(day=4, start_time=dt.time(7), end_time=dt.time(22, 45)),
-                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(20)),
-                DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 45)),
+                DayTimeRangeType(day=5, start_time=dt.time(7), end_time=dt.time(22, 45)),
+                DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(17, 30)),
             ],
             image_url=ASSET_BASE_URL + "gyms/teagle.jpg",
         )
-        gyms = [appel, helen_newman, noyes, teagle_up, teagle_down]
+        gyms = [morrison, helen_newman, noyes, teagle_up, teagle_down]
         days = dict(zip(calendar.day_name, range(7)))
         for row in reader:
             for gym in gyms:
