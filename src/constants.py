@@ -17,7 +17,7 @@ from src.utils import generate_id
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
 
 """
-Weekday indexing: 0 is Sunday, 1 is Monday, ... etc.
+Weekday indexing: 0 is Sunday, 1 is Monday, ... etc. 
 """
 
 
