@@ -17,11 +17,13 @@ jobs:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
     - name: install and test
       run: |
         sudo apt-get update
         sudo apt-get install libxml2-dev libxslt-dev
-        python -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip==20.0.2
+        sudo apt-get remove --purge setuptools
+        sudo pip install --upgrade setuptools==44.0.0
         pip install -r requirements.txt
         python tests.py
