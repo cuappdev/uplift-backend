@@ -23,7 +23,7 @@ idna==2.6
 itsdangerous==0.24
 jedi==0.18.2
 Jinja2==2.10.1
-lxml
+lxml==4.9.2
 Mako==1.0.9
 MarkupSafe==1.0
 marshmallow==3.0.0rc4
