@@ -60,7 +60,7 @@ def parse_gym_metadata():
                 DayTimeRangeType(day=5, start_time=dt.time(14), end_time=dt.time(23)),
                 DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(22)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/helen-newman.jpg",
+            image_url=ASSET_BASE_URL + "gyms/toni_morrison_wholeview-min.jpeg",
         )
         helen_newman = GymType(
             id=generate_id("Helen Newman"),
