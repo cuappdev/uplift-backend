@@ -22,8 +22,8 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install libxml2-dev libxslt-dev
-        python3 -m pip install --upgrade pip==20.0.2
-        sudo apt-get remove --purge setuptools
-        sudo pip install --upgrade setuptools==44.0.0
+        pip install --force-reinstall pip==20.0.2
+        pip install --force-reinstall setuptools==44.0.0
+        pip freeze
         pip install -r requirements.txt
         python tests.py
