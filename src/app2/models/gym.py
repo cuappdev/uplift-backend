@@ -17,7 +17,6 @@ class Gym(Base):
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
         self.description = kwargs.get("description")
-        self.times = kwargs.get("times")
         self.image_url = kwargs.get("image_url")
 
     def serialize(self):
