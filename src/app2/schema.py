@@ -12,7 +12,12 @@ class Query(graphene.ObjectType):
     node = relay.Node.Field()
     # allowing single column sorting
 
-    all_gyms = SQLAlchemyConnectionField(Gym.connection, sort=Gym.sort_argument())
-    # Allows sorting over mutliple columns, by default over primary key
+    gyms = graphene.List(lambda: Gym, name=graphene.String(), description=graphene.String(), image_url=graphene.String())
+
+    def resolve_gyms(self, info, name=None):
+      query = Gym.get_query(info)
+      if name:
+        query=query.filter(GymModel.name == name)
+      return query.all()
 
 schema = graphene.Schema(query=Query)
