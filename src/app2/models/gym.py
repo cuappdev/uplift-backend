@@ -10,8 +10,8 @@ class Gym(Base):
     name = Column(String(100), nullable=False)
     description = Column(String(1000), nullable=False)
     # activities = so fun
-    # popular ????
-    times = relationship('DayTime', cascade='delete, all')
+    # popular
+    times = relationship('GymTime', cascade='delete, all')
     image_url = Column(String(1000), nullable=True)
 
     def __init__(self, **kwargs):
@@ -28,31 +28,23 @@ class Gym(Base):
         }
 
 
-class DayTime(Base):
-    __tablename__ = "daytime"
+class GymTime(Base):
+    __tablename__ = 'gymtime'
 
     id = Column(Integer, primary_key=True)
-    day = Column(Integer, nullable=False)
-    start_time = Column(DateTime, nullable=False)
-    end_time = Column(DateTime, nullable=False)
-    restrictions = Column(String(1000))
-    special_hours = Column(Boolean, nullable=False)
+    daytime_id = Column(Integer, ForeignKey('daytime.id'), nullable=False)
     gym_id = Column(Integer, ForeignKey('gym.id'), nullable=False)
 
     def __init__(self, **kwargs):
-        self.day = kwargs.get("day")
-        self.start_time = kwargs.get("start_time")
-        self.end_time = kwargs.get("end_time")
-        self.restrictions = kwargs.get("restrictions")
-        self.special_hours = kwargs.get("special_hours")
+        self.daytime_id = kwargs.get("daytime_id")
         self.gym_id = kwargs.get("gym_id")
 
     def serialize(self):
         return {
-            "day": self.day,
-            "start_time": self.start_time,
-            "end_time": self.end_time,
-            "restrictions": self.restrictions,
-            "special_hours": self.special_hours,
+            "daytime_id": self.daytime_id,
             "gym_id": self.gym_id
         }
+
+
+
+
