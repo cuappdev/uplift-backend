@@ -9,14 +9,17 @@ class Gym(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(String(1000), nullable=False)
-    # activities = so fun
-    # popular
+    # activities = relation
+    #facilties = relation
     times = relationship('GymTime', cascade='delete, all')
+    #capacity = relation
+    location=Column(String(1000), nullable=False)
     image_url = Column(String(1000), nullable=True)
 
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
         self.description = kwargs.get("description")
+        self.location=kwargs.get("location")
         self.image_url = kwargs.get("image_url")
 
     def serialize(self):
@@ -24,6 +27,7 @@ class Gym(Base):
             "name": self.name,
             "description": self.description,
             "times": self.times,
+            "location": self.location,
             "image_url": self.image_url
         }
 
