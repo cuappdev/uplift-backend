@@ -17,7 +17,7 @@ from src.utils import generate_id
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
 
 """
-Weekday indexing: 0 is Sunday, 1 is Monday, ... etc.
+Weekday indexing: 0 is Sunday, 1 is Monday, ... etc. 
 """
 
 
@@ -60,7 +60,7 @@ def parse_gym_metadata():
                 DayTimeRangeType(day=5, start_time=dt.time(14), end_time=dt.time(23)),
                 DayTimeRangeType(day=6, start_time=dt.time(12), end_time=dt.time(22)),
             ],
-            image_url=ASSET_BASE_URL + "gyms/helen-newman.jpg",
+            image_url=ASSET_BASE_URL + "gyms/toni_morrison_outside-min.jpeg",
         )
         helen_newman = GymType(
             id=generate_id("Helen Newman"),
