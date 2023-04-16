@@ -83,9 +83,14 @@ def create_gym_table():
     image_url=ASSET_BASE_URL + 'gyms/teagle.jpg'
   )
 
-  db_session.merge(helen_newman)
-  db_session.merge(noyes)
-  db_session.merge(toni_morrison)
-  db_session.merge(teagle_down)
-  db_session.merge(teagle_up)
+  gyms = [
+    helen_newman, 
+    noyes, 
+    morrison,
+    teagle_up,
+    teagle_down
+  ]
+
+  for gym in gyms:
+    db_session.merge(gym)
 

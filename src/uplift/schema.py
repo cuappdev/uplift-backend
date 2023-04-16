@@ -42,9 +42,9 @@ class Gym(SQLAlchemyObjectType):
 
     @staticmethod
     def resolve_capacities(self, info, gym_id = None):
-      query = Capacity.get_query(info=info) # ???? 
-      query = query.filter(CapacityModel.gym_id == self.id)
-      query = query.order_by(desc(CapacityModel.updated))
+      query = Capacity.get_query(info=info) \
+        .filter(CapacityModel.gym_id == self.id) \
+        .order_by(desc(CapacityModel.updated))
 
       return [query.first()]
         

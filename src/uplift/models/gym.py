@@ -9,8 +9,6 @@ class Gym(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(String(1000), nullable=False)
-    # activities = relation
-    #facilties = relation
     times = relationship('GymTime', cascade='delete, all')
     capacity = relationship('Capacity', cascade='delete, all')
     location=Column(String(1000), nullable=False)
@@ -32,7 +30,6 @@ class Gym(Base):
             "id":self.id,
             "name": self.name,
             "description": self.description,
-            #"times": self.times,
             "location": self.location,
             "latitude": self.latitude,
             "longitude":self.longitude,
