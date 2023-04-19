@@ -12,9 +12,7 @@ class Gym(Base):
     description = Column(String(1000), nullable=False)
     activities = relationship(
         'Activity', secondary=activities_to_gyms, back_populates="gyms")
-    #facilties = relation
     times = relationship('GymTime', cascade='delete, all')
-    #capacity = relation
     location=Column(String(1000), nullable=False)
     image_url = Column(String(1000), nullable=True)
 
