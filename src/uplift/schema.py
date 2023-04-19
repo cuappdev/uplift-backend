@@ -1,8 +1,16 @@
+import datetime as dt 
+
+from graphene import Field, ObjectType, String, List, Int, Boolean
+from graphene.types.datetime import Date, Time
+
 from models.gym import Gym as GymModel, GymTime as GymTimeModel
 from models.daytime import DayTime as DayTimeModel
+from models.capacity import Capacity as CapacityModel
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
+from sqlalchemy import desc
+
 
 class Gym(SQLAlchemyObjectType):
     class Meta:
@@ -10,7 +18,9 @@ class Gym(SQLAlchemyObjectType):
         interfaces = (relay.Node,)
 
     times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
+    capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
 
+    @staticmethod
     def resolve_times(self, info, day=None, start_time=None, end_time=None):
         query = GymTime.get_query(info=info)
         query = query.filter(GymTimeModel.gym_id == self.id)
@@ -29,6 +39,14 @@ class Gym(SQLAlchemyObjectType):
             daytime_queries.append(daytime[0])
 
         return daytime_queries
+
+    @staticmethod
+    def resolve_capacities(self, info, gym_id = None):
+      query = Capacity.get_query(info=info) \
+        .filter(CapacityModel.gym_id == self.id) \
+        .order_by(desc(CapacityModel.updated))
+
+      return [query.first()]
         
 class DayTime(SQLAlchemyObjectType):
   class Meta:
@@ -40,13 +58,23 @@ class GymTime(SQLAlchemyObjectType):
     model = GymTimeModel
     interfaces = (relay.Node,)
 
+class Capacity(SQLAlchemyObjectType):
+  class Meta:
+    model = CapacityModel
   
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
     # allowing single column sorting
 
-    gyms = graphene.List(lambda: Gym, name=graphene.String(), description=graphene.String(), location=graphene.String(),image_url=graphene.String())
+    gyms = graphene.List(lambda: Gym, 
+      id=graphene.Int(),
+      name=graphene.String(), 
+      description=graphene.String(), 
+      location=graphene.String(),
+      latitude=graphene.Float(),
+      longitude=graphene.Float(),
+      image_url=graphene.String())
 
     def resolve_gyms(self, info, name=None):
       query = Gym.get_query(info)
