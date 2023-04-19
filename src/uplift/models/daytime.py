@@ -9,7 +9,6 @@ class DayTime(Base):
 
     id = Column(Integer, primary_key=True)
     day = Column(Integer, nullable=False)
-    date = Column(Integer, nullable=True)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     restrictions = Column(String(1000))
@@ -24,7 +23,6 @@ class DayTime(Base):
 
     def serialize(self):
         return {
-            "id": self.id,
             "day": self.day,
             "start_time": self.start_time,
             "end_time": self.end_time,

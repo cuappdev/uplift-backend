@@ -18,7 +18,7 @@ class Gym(SQLAlchemyObjectType):
         interfaces = (relay.Node,)
 
     times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
-    capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int(), count=graphene.Int(), updated=graphene.DateTime())
+    capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
 
     @staticmethod
     def resolve_times(self, info, day=None, start_time=None, end_time=None):
@@ -31,7 +31,7 @@ class Gym(SQLAlchemyObjectType):
           query_daytime = query_daytime.filter(DayTimeModel.start_time == start_time)
         if end_time:
           query_daytime = query_daytime.filter(DayTimeModel.end_time == end_time)
-
+        
         daytime_queries = []
         for row in query:
           daytime = query_daytime.filter(DayTimeModel.id == row.daytime_id)
@@ -39,16 +39,15 @@ class Gym(SQLAlchemyObjectType):
             daytime_queries.append(daytime[0])
 
         return daytime_queries
-    
+
     @staticmethod
-    def resolve_capacities(self, info, gym_id = None, count=None, updated=None):
-      query = Capacity.get_query(info=info) # ???? 
-      query = query.filter(CapacityModel.gym_id == self.id)
-      query = query.order_by(desc(CapacityModel.updated))
+    def resolve_capacities(self, info, gym_id = None):
+      query = Capacity.get_query(info=info) \
+        .filter(CapacityModel.gym_id == self.id) \
+        .order_by(desc(CapacityModel.updated))
 
       return [query.first()]
-
-
+        
 class DayTime(SQLAlchemyObjectType):
   class Meta:
     model = DayTimeModel
@@ -62,9 +61,7 @@ class GymTime(SQLAlchemyObjectType):
 class Capacity(SQLAlchemyObjectType):
   class Meta:
     model = CapacityModel
-    interfaces = (relay.Node,)
-
-
+  
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
@@ -86,23 +83,3 @@ class Query(graphene.ObjectType):
       return query.all()
 
 schema = graphene.Schema(query=Query)
-
-
-class Facility(graphene.ObjectType):
-    """
-    Facilities inside the Gyms.
-    Basketball Court #1, #2 ... Bouldering Wall 
-    """
-
-
-class Activity(graphene.ObjectType):
-    """
-    Bowling, swimming, rock climbing, gymnasiums...
-    """
-
-class Asset(graphene.ObjectType):
-    """
-    This is the image url but may or may not change
-    """
-
-    

@@ -16,6 +16,8 @@ def init_db():
   """
   Initialize database for uplift.
   """
+  # import all modules that might define models so they will be registered properly
+  # on metadata - otherwise import them first before calling init_db()
   Base.metadata.create_all(bind=engine)
   create_gym_table()
 
@@ -81,9 +83,14 @@ def create_gym_table():
     image_url=ASSET_BASE_URL + 'gyms/teagle.jpg'
   )
 
-  db_session.merge(helen_newman)
-  db_session.merge(noyes)
-  db_session.merge(toni_morrison)
-  db_session.merge(teagle_down)
-  db_session.merge(teagle_up)
+  gyms = [
+    helen_newman, 
+    noyes, 
+    morrison,
+    teagle_up,
+    teagle_down
+  ]
+
+  for gym in gyms:
+    db_session.merge(gym)
 
