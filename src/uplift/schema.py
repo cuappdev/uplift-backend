@@ -1,9 +1,20 @@
+import datetime as dt 
+
+from graphene import Field, ObjectType, String, List, Int, Boolean
+from graphene.types.datetime import Date, Time
+
 from models.gym import Gym as GymModel, GymTime as GymTimeModel
 from models.daytime import DayTime as DayTimeModel
+<<<<<<< HEAD:src/app2/schema.py
 from models.activity import Activity as ActivityModel, Price as PriceModel
+=======
+from models.capacity import Capacity as CapacityModel
+>>>>>>> master:src/uplift/schema.py
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
+from sqlalchemy import desc
+
 
 class Gym(SQLAlchemyObjectType):
     class Meta:
@@ -12,8 +23,9 @@ class Gym(SQLAlchemyObjectType):
 
     times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
     activities = graphene.List(lambda: Activity, name=graphene.String())
-    #capacity = graphene.List(lambda: Capacity)
+    capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
 
+    @staticmethod
     def resolve_times(self, info, day=None, start_time=None, end_time=None):
         query = GymTime.get_query(info=info)
         query = query.filter(GymTimeModel.gym_id == self.id)
@@ -33,6 +45,7 @@ class Gym(SQLAlchemyObjectType):
 
         return daytime_queries
 
+<<<<<<< HEAD:src/app2/schema.py
     def resolve_activities(self, info, name=None):
         query = Activity.get_query(info=info)
         activity_queries = []
@@ -44,6 +57,15 @@ class Gym(SQLAlchemyObjectType):
                 elif not name:
                     activity_queries.append(activity[0])
         return activity_queries
+=======
+    @staticmethod
+    def resolve_capacities(self, info, gym_id = None):
+      query = Capacity.get_query(info=info) \
+        .filter(CapacityModel.gym_id == self.id) \
+        .order_by(desc(CapacityModel.updated))
+
+      return [query.first()]
+>>>>>>> master:src/uplift/schema.py
         
 class DayTime(SQLAlchemyObjectType):
   class Meta:
@@ -53,6 +75,7 @@ class GymTime(SQLAlchemyObjectType):
   class Meta:
     model = GymTimeModel
 
+<<<<<<< HEAD:src/app2/schema.py
 class Activity(SQLAlchemyObjectType):
     class Meta:
         model = ActivityModel
@@ -71,12 +94,25 @@ class Activity(SQLAlchemyObjectType):
                     gym_queries.append(gym[0])
         return gym_queries
 
+=======
+class Capacity(SQLAlchemyObjectType):
+  class Meta:
+    model = CapacityModel
+  
+>>>>>>> master:src/uplift/schema.py
 
 class Query(graphene.ObjectType):
     # node = relay.Node.Field()
     # allowing single column sorting
 
-    gyms = graphene.List(lambda: Gym, name=graphene.String(), description=graphene.String(), location=graphene.String(),image_url=graphene.String())
+    gyms = graphene.List(lambda: Gym, 
+      id=graphene.Int(),
+      name=graphene.String(), 
+      description=graphene.String(), 
+      location=graphene.String(),
+      latitude=graphene.Float(),
+      longitude=graphene.Float(),
+      image_url=graphene.String())
 
     def resolve_gyms(self, info, name=None):
       query = Gym.get_query(info)
