@@ -10,12 +10,8 @@ class Gym(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(String(1000), nullable=False)
-<<<<<<< HEAD:src/app2/models/gym.py
     activities = relationship(
         'Activity', secondary=activities_to_gyms, back_populates="gyms")
-    #facilties = relation
-=======
->>>>>>> master:src/uplift/models/gym.py
     times = relationship('GymTime', cascade='delete, all')
     capacity = relationship('Capacity', cascade='delete, all')
     location=Column(String(1000), nullable=False)
