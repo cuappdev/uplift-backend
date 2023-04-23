@@ -2,6 +2,7 @@ import datetime
 from database import Base
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, Float, String, Boolean, func
 from sqlalchemy.orm import backref, relationship
+from models.activity import activities_to_gyms
 
 class Gym(Base):
     __tablename__ = "gym"
@@ -9,6 +10,8 @@ class Gym(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(String(1000), nullable=False)
+    activities = relationship(
+        'Activity', secondary=activities_to_gyms, back_populates="gyms")
     times = relationship('GymTime', cascade='delete, all')
     capacity = relationship('Capacity', cascade='delete, all')
     location=Column(String(1000), nullable=False)
