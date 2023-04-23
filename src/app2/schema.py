@@ -71,7 +71,7 @@ class Activity(SQLAlchemyObjectType):
       query = query.filter(PriceModel.activity_id == self.id)
       if cost:
         query = query.filter(PriceModel.cost == cost)
-      if one_time != None:
+      if one_time is not None:
         query = query.filter(PriceModel.one_time == one_time)
       return query
 
