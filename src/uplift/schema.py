@@ -19,6 +19,15 @@ class Class(SQLAlchemyObjectType):
     model = ClassModel 
 
   times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
+  gym = graphene.List(lambda: Gym, name=graphene.Int(), id=graphene.Int())
+
+  @staticmethod 
+  def resolve_gym(self, info, name=None, id=None):
+    query = Gym.get_query(info=info)
+    gym = query.filter(GymModel.id == self.gym_id)
+
+    if gym.first():
+      return [gym[0]]
 
   @staticmethod
   def resolve_times(self, info, day=None, start_time=None, end_time=None):
@@ -147,10 +156,12 @@ class Query(graphene.ObjectType):
     is_cancelled=graphene.Boolean(),
     gym_id=graphene.Int())
 
-  def resolve_classes(self, info, name=None):
+  def resolve_classes(self, info, name=None, gym_id=None, day=None):
     query = Class.get_query(info)
     if name:
       query=query.filter(ClassModel.name == name)
+    elif gym_id: 
+      query=query.filter(ClassModel.gym_id == gym_id)
     return query.all()
 
   gyms = graphene.List(lambda: Gym, 

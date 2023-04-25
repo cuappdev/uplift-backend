@@ -21,9 +21,8 @@ def init_db():
   Base.metadata.create_all(bind=engine)
   create_gym_table()
   create_activities()
-
   from classes_scraper import scrape_classes
-  scrape_classes(10)
+  #scrape_classes(10)
 
 
 """
