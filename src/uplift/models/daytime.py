@@ -23,6 +23,7 @@ class DayTime(Base):
 
     def serialize(self):
         return {
+            "id": self.id,
             "day": self.day,
             "start_time": self.start_time,
             "end_time": self.end_time,

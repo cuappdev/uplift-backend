@@ -20,6 +20,10 @@ def init_db():
   # on metadata - otherwise import them first before calling init_db()
   Base.metadata.create_all(bind=engine)
   create_gym_table()
+  create_activities()
+
+  from classes_scraper import scrape_classes
+  scrape_classes(10)
 
 
 """
@@ -86,7 +90,7 @@ def create_gym_table():
   gyms = [
     helen_newman, 
     noyes, 
-    morrison,
+    toni_morrison,
     teagle_up,
     teagle_down
   ]
@@ -94,3 +98,68 @@ def create_gym_table():
   for gym in gyms:
     db_session.merge(gym)
 
+def create_activities():
+  from models.gym import Gym, GymTime
+  from models.daytime import DayTime
+  from models.capacity import Capacity
+  from models.activity import Activity, Amenity, Price
+  
+  gym_1 = Gym.query.filter(Gym.id==1).first()
+  daytime_1 = DayTime(day=1, start_time=datetime.datetime.utcnow(
+  ), end_time=datetime.datetime.utcnow(), restrictions='None', special_hours=True)
+  db_session.add(daytime_1)
+  db_session.commit()
+
+  gymtime_1 = GymTime(daytime_id=daytime_1.id, gym_id=gym_1.id)
+  db_session.add(gymtime_1)
+  db_session.commit()
+
+  activity_1 = Activity(
+      name='Volleyball', details='It fun', image_url='None')
+  db_session.add(activity_1)
+  db_session.commit()
+
+  # adding the gym Helen Newman to the activity Volleyball
+  activity_1.gyms.append(gym_1)
+  db_session.add(activity_1)
+  db_session.commit()
+
+  price_1 = Price(name="price1", cost=20, one_time=False, image_url="none", activity_id=activity_1.id)
+  db_session.add(price_1)
+  db_session.commit()
+  activity_1.prices.append(price_1)
+  db_session.add(activity_1)
+  db_session.commit()
+
+  price_2 = Price(name="price2", cost=40, one_time=True, image_url="n/a", activity_id = activity_1.id)
+  db_session.add(price_2)
+  db_session.commit()
+  activity_1.prices.append(price_2)
+  db_session.add(activity_1)
+  db_session.commit()
+
+  amenity_1 = Amenity(name="locker", image_url="none", activity_id=activity_1.id)
+  db_session.add(amenity_1)
+  db_session.commit()
+  activity_1.amenities.append(amenity_1)
+  db_session.add(activity_1)
+  db_session.commit()
+
+  gym_2 = Gym.query.filter(Gym.id == 2).first()
+  daytime_2 = DayTime(day=2, start_time=datetime.datetime.utcnow(
+  ), end_time=datetime.datetime.utcnow(), restrictions="A few", special_hours=False)
+  db_session.add(daytime_2)
+  db_session.commit()
+
+  gymtime_2 = GymTime(daytime_id=daytime_2.id, gym_id=gym_2.id)
+  db_session.add(gymtime_2)
+  db_session.commit()
+
+  activity_2 = Activity(name="Dancing", details="more fun", image_url="No")
+  db_session.add(activity_2)
+  db_session.commit()
+
+  activity_2.gyms.append(gym_1)
+  activity_2.gyms.append(gym_2)
+  db_session.add(activity_2)
+  db_session.commit()

@@ -1,20 +1,20 @@
-
-from database import Base 
-from sqlalchemy import Column
+import datetime
+from database import Base
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Float, String, Boolean, func
+from sqlalchemy.orm import backref, relationship
 
 class Class(Base):
     __tablename__ = "class"
 
     id = Column(Integer, primary_key=True, auto_increment=True)
     name = Column(String(100), nullable=False)
-    description = Column(String{100}, nullable=False)
+    description = Column(String(100), nullable=False)
     gym_id = Column(Integer, ForeignKey('gym.id'), nullable=False)
-    location = Column(String{100}, nullable=False)
+    location = Column(String(100), nullable=False)
     image_url = Column(String(1000), nullable=True)
     preparation = Column(String(1000), nullable=True)
     instructor = Column(String(100), nullable=False)
     is_cancelled = Column(Boolean, nullable=True, default_value=False)
-    # category = Column() for the categories of classes - like Yoga classes, HIIT classes ... 
 
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
@@ -30,10 +30,7 @@ class Class(Base):
         return {}
 
     def serialize(self):
-        # THERE IS A PYTHONIC WAY TO DO THIS IN ONE LINE but im on a plane and too tired to think of efficient ways to do this
-        preparation = "" 
-        if self.preparation:
-            preparation = self.preparation 
+        preparation = self.preparation if self.preparation else ""
         
         return {
             "id":self.id,
