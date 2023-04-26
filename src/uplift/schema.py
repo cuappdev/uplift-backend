@@ -78,7 +78,6 @@ class Gym(SQLAlchemyObjectType):
 
         return daytime_queries
 
-    @staticmethod
     def resolve_activities(self, info, name=None):
         query = Activity.get_query(info=info)
         activity_queries = []
@@ -124,6 +123,23 @@ class Activity(SQLAlchemyObjectType):
             gym_queries.append(gym[0])
           
     return gym_queries
+
+class Activity(SQLAlchemyObjectType):
+    class Meta:
+        model = ActivityModel
+
+    gyms = graphene.List(lambda: Gym, name=graphene.String())
+    prices = graphene.List(lambda: Price, cost=graphene.Int(), one_time=graphene.Boolean())
+
+    def resolve_gyms(self, info, name=None):
+        query = Gym.get_query(info=info)
+        gym_queries = []
+        for g in self.gyms:
+            gym = query.filter(GymModel.id == g.id)
+            if gym.first() and (name == g.name or name == None):
+                gym_queries.append(gym[0])
+              
+        return gym_queries
 
 class Capacity(SQLAlchemyObjectType):
   class Meta:
