@@ -1,6 +1,6 @@
 import datetime as dt 
 
-from graphene import Field, ObjectType, String, List, Int, Boolean
+from graphene import Field, ObjectType, String, List, Int, Boolean, DateTime
 from graphene.types.datetime import Date, Time
 
 from models.gym import Gym as GymModel, GymTime as GymTimeModel
@@ -18,7 +18,7 @@ class Class(SQLAlchemyObjectType):
   class Meta: 
     model = ClassModel 
 
-  times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
+  times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime())
   gym = graphene.List(lambda: Gym, name=graphene.Int(), id=graphene.Int())
 
   @staticmethod 
@@ -31,30 +31,30 @@ class Class(SQLAlchemyObjectType):
 
   @staticmethod
   def resolve_times(self, info, day=None, start_time=None, end_time=None):
-      query = GymTime.get_query(info=info)
-      query = query.filter(ClassTimeModel.class_id == self.id)
-      query_daytime = DayTime.get_query(info=info) #could be wrong
-      if day:
-        query_daytime = query_daytime.filter(DayTimeModel.day == day)
-      if start_time:
-        query_daytime = query_daytime.filter(DayTimeModel.start_time == start_time)
-      if end_time:
-        query_daytime = query_daytime.filter(DayTimeModel.end_time == end_time)
-      
-      daytime_queries = []
-      for row in query:
-        daytime = query_daytime.filter(DayTimeModel.id == row.daytime_id)
-        if daytime.first():
-          daytime_queries.append(daytime[0])
+    query = ClassTime.get_query(info=info)
+    query = query.filter(ClassTimeModel.class_id == self.id)
+    query_daytime = DayTime.get_query(info=info) 
+    if day:
+      query_daytime = query_daytime.filter(DayTimeModel.day == day)
+    if start_time:
+      query_daytime = query_daytime.filter(DayTimeModel.start_time == start_time)
+    if end_time:
+      query_daytime = query_daytime.filter(DayTimeModel.end_time == end_time)
+    
+    daytime_queries = []
+    for row in query:
+      daytime = query_daytime.filter(DayTimeModel.id == row.daytime_id)
+      if daytime.first():
+        daytime_queries.append(daytime[0])
 
-      return daytime_queries
+    return daytime_queries
 
 
 class Gym(SQLAlchemyObjectType):
     class Meta:
         model = GymModel
 
-    times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
+    times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime())
     activities = graphene.List(lambda: Activity, name=graphene.String())
     capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
 
@@ -104,6 +104,10 @@ class GymTime(SQLAlchemyObjectType):
   class Meta:
     model = GymTimeModel
 
+class ClassTime(SQLAlchemyObjectType):
+  class Meta:
+    model = ClassTimeModel
+
 class Activity(SQLAlchemyObjectType):
   class Meta:
       model = ActivityModel
@@ -145,7 +149,7 @@ class Amenity(SQLAlchemyObjectType):
 
 class Query(graphene.ObjectType):
 
-  classes = graphene.List(lambda: Class,
+  """classes = graphene.List(lambda: Class,
     id = graphene.Int(),
     name = graphene.Int(),
     description=graphene.String(), 
@@ -154,12 +158,21 @@ class Query(graphene.ObjectType):
     instructor=graphene.String(),
     image_url=graphene.String(), 
     is_cancelled=graphene.Boolean(),
-    gym_id=graphene.Int())
+    gym_id=graphene.Int()) """
 
-  def resolve_classes(self, info, name=None, gym_id=None, day=None):
+  classes = graphene.List(lambda: Class, 
+    name =graphene.String(), 
+    gym_id=graphene.Int(), 
+    date = graphene.DateTime())
+
+  def resolve_classes(self, info, name=None, gym_id=None, date=None):
     query = Class.get_query(info)
+
     if name:
       query=query.filter(ClassModel.name == name)
+    elif date: 
+      date.day 
+      query.filter(DayTimeModel.start_time)
     elif gym_id: 
       query=query.filter(ClassModel.gym_id == gym_id)
     return query.all()

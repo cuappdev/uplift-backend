@@ -29,7 +29,8 @@ CLASS_IMAGE_KEYWORDS = [
     "Yoga",
     "ZUMBA",
 ]
-DAY_INDICES = {"Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6}
+# Monday is 0 and Sunday is 6. from python datetime.datetime
+DAY_INDICES = {"Sunday": 6, "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5}
 PAGE_LIMIT = 10
 CLASS_HISTORY_LIMIT = 4
 
@@ -92,14 +93,17 @@ def scrape_classes(num_pages):
                 start_time_string = row_elems[3].span.span.find_all("span")[0].string
                 end_time_string = row_elems[3].span.span.find_all("span")[1].string
 
-                start_time = datetime.strptime(start_time_string, "%I:%M%p")
-                end_time = datetime.strptime(end_time_string, "%I:%M%p")
+                start_time = datetime.strptime(start_time_string, "%I:%M%p").time()
+                end_time = datetime.strptime(end_time_string, "%I:%M%p").time()
+
+                class_start = datetime.combine(class_date, start_time)
+                class_end = datetime.combine(class_date, end_time)
 
                 # Create new DayTime object 
                 class_daytime = DayTime(
-                    day = class_date, 
-                    start_time = start_time, 
-                    end_time = end_time,
+                    day = class_date.weekday(), 
+                    start_time = class_start, 
+                    end_time = class_end,
                     special_hours = False 
                 )
                 db_session.add(class_daytime)

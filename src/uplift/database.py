@@ -18,11 +18,12 @@ def init_db():
   """
   # import all modules that might define models so they will be registered properly
   # on metadata - otherwise import them first before calling init_db()
+  Base.metadata.drop_all(bind=engine)
   Base.metadata.create_all(bind=engine)
   create_gym_table()
   create_activities()
   from classes_scraper import scrape_classes
-  #scrape_classes(10)
+  scrape_classes(10)
 
 
 """
@@ -95,7 +96,15 @@ def create_gym_table():
   ]
 
   for gym in gyms:
-    db_session.merge(gym)
+    if Gym.query.filter_by(id = gym.id):
+      db_session.merge(gym)
+    else: 
+      db_session.add(gym)
+  
+  db_session.commit()
+
+def create_gym_hours():
+  pass 
 
 def create_activities():
   from models.gym import Gym, GymTime
@@ -103,6 +112,7 @@ def create_activities():
   from models.capacity import Capacity
   from models.activity import Activity, Amenity, Price
   
+  # THESE DATETIMES ARE PURELY FOR TESTING PURPOSES AND ARE NOT ACCURATE
   gym_1 = Gym.query.filter(Gym.id==1).first()
   daytime_1 = DayTime(day=1, start_time=datetime.datetime.utcnow(
   ), end_time=datetime.datetime.utcnow(), restrictions='None', special_hours=True)
