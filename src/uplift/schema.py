@@ -20,10 +20,7 @@ class Gym(SQLAlchemyObjectType):
 
     times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
     activities = graphene.List(lambda: Activity, name=graphene.String())
-<<<<<<< HEAD:src/uplift/schema.py
     capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
-=======
->>>>>>> c57727e41f59b589dd6e571aedf3c9fd33217700:src/app2/schema.py
 
     @staticmethod
     def resolve_times(self, info, day=None, start_time=None, end_time=None):
@@ -45,7 +42,6 @@ class Gym(SQLAlchemyObjectType):
 
         return daytime_queries
 
-<<<<<<< HEAD:src/app2/schema.py
     def resolve_activities(self, info, name=None):
         query = Activity.get_query(info=info)
         activity_queries = []
@@ -54,7 +50,6 @@ class Gym(SQLAlchemyObjectType):
             if activity.first() and (name == act.name or name == None):
                     activity_queries.append(activity[0])
         return activity_queries
-=======
     @staticmethod
     def resolve_capacities(self, info, gym_id = None):
       query = Capacity.get_query(info=info) \
@@ -62,7 +57,6 @@ class Gym(SQLAlchemyObjectType):
         .order_by(desc(CapacityModel.updated))
 
       return [query.first()]
->>>>>>> master:src/uplift/schema.py
         
 class DayTime(SQLAlchemyObjectType):
   class Meta:
@@ -72,7 +66,6 @@ class GymTime(SQLAlchemyObjectType):
   class Meta:
     model = GymTimeModel
 
-<<<<<<< HEAD:src/app2/schema.py
 class Activity(SQLAlchemyObjectType):
     class Meta:
         model = ActivityModel
@@ -90,14 +83,11 @@ class Activity(SQLAlchemyObjectType):
               
         return gym_queries
 
-<<<<<<< HEAD:src/uplift/schema.py
-=======
 class Capacity(SQLAlchemyObjectType):
   class Meta:
     model = CapacityModel
   
->>>>>>> master:src/uplift/schema.py
-=======
+
     def resolve_prices(self, info, cost=None, one_time=None):
       query = Price.get_query(info=info)
       query = query.filter(PriceModel.activity_id == self.id)
@@ -114,8 +104,6 @@ class Price(SQLAlchemyObjectType):
 class Amenity(SQLAlchemyObjectType):
   class Meta:
     model = AmenityModel
-
->>>>>>> c57727e41f59b589dd6e571aedf3c9fd33217700:src/app2/schema.py
 
 class Query(graphene.ObjectType):
 
