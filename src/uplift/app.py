@@ -20,10 +20,5 @@ def shutdown_session(exception=None):
 init_db()
 db_session.commit()
 
-# scrape C2C website for latest capacity
-from c2c_scraper import scrape_capacity
-#scrape_capacity()
-db_session.commit()
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

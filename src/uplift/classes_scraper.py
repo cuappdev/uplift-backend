@@ -9,36 +9,14 @@ from sqlalchemy import and_
 from bs4 import BeautifulSoup
 from utils import parse_c2c_datetime
 import requests
+from constants import DAY_INDICES, BASE_URL, ASSET_BASE_URL, CLASS_IMAGE_KEYWORDS, CLASSES_PATH, PAGE_LIMIT, CLASS_HISTORY_LIMIT
 
-BASE_URL = "https://recreation.athletics.cornell.edu"
-CLASSES_PATH = "/fitness-centers/group-fitness-classes?&page="
-ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
-CLASS_IMAGE_KEYWORDS = [
-    "Abs",
-    "Barre",
-    "Chi",
-    "Dance",
-    "H.I.I.T",
-    "OULA",
-    "Pilates",
-    "Pump",
-    "ShockWave",
-    "Spinning",
-    "Strength",
-    "TRX",
-    "Yoga",
-    "ZUMBA",
-]
-# Monday is 0 and Sunday is 6. from python datetime.datetime
-DAY_INDICES = {"Sunday": 6, "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5}
-PAGE_LIMIT = 10
-CLASS_HISTORY_LIMIT = 4
+
 
 def scrape_class_detail(class_href):
     """
     Scrape the name and class from a given class detail href page. 
     """
-
     page = requests.get(BASE_URL + class_href).text
     soup = BeautifulSoup(page, "lxml")
     try:
@@ -154,15 +132,15 @@ def scrape_classes(num_pages):
             db_session.add(new_classtime)
             db_session.commit()
 
-"""
-Return an image URL that contains keywords in the name of the class
-Params:
-  name: name of the class
-Returns:
-  a string of image URL
-"""
 
 def get_image_url(name):
+    """
+    Return an image URL that contains keywords in the name of the class
+    Params:
+    name: name of the class
+    Returns:
+    a string of image URL
+    """
     image_keyword = "General"
     for keyword in CLASS_IMAGE_KEYWORDS:
         if keyword in name:
@@ -172,10 +150,10 @@ def get_image_url(name):
     return ASSET_BASE_URL + "classes/" + image_keyword + ".jpg"
 
 
-"""
-From class_metadata.csv
-"""
 def parse_class_metadata():
+    """
+    From class_metadata.csv
+    """
     tags = {}
     categories = {}
     with open("src/data/class_metadata.csv", "r") as metadata_file:

@@ -130,8 +130,8 @@ class Capacity(SQLAlchemyObjectType):
     model = CapacityModel
   
   def resolve_prices(self, info, cost=None, one_time=None):
-    query = Price.get_query(info=info)
-    query = query.filter(PriceModel.activity_id == self.id)
+    query = Price.get_query(info=info) \
+      .query.filter(PriceModel.activity_id == self.id)
     if cost:
       query = query.filter(PriceModel.cost == cost)
     if one_time is not None:
@@ -149,16 +149,16 @@ class Amenity(SQLAlchemyObjectType):
 
 class Query(graphene.ObjectType):
 
-  """classes = graphene.List(lambda: Class,
+  classes = graphene.List(lambda: Class,
     id = graphene.Int(),
     name = graphene.Int(),
-    description=graphene.String(), 
-    location=graphene.String(),
-    preparation=graphene.String(),
-    instructor=graphene.String(),
-    image_url=graphene.String(), 
-    is_cancelled=graphene.Boolean(),
-    gym_id=graphene.Int()) """
+    description = graphene.String(), 
+    location = graphene.String(),
+    preparation = graphene.String(),
+    instructor = graphene.String(),
+    image_url = graphene.String(), 
+    is_cancelled = graphene.Boolean(),
+    gym_id = graphene.Int()) 
 
   classes = graphene.List(lambda: Class, 
     name =graphene.String(), 
@@ -170,21 +170,18 @@ class Query(graphene.ObjectType):
 
     if name:
       query=query.filter(ClassModel.name == name)
-    elif date: 
-      date.day 
-      query.filter(DayTimeModel.start_time)
     elif gym_id: 
       query=query.filter(ClassModel.gym_id == gym_id)
     return query.all()
 
   gyms = graphene.List(lambda: Gym, 
-    id=graphene.Int(),
-    name=graphene.String(), 
-    description=graphene.String(), 
-    location=graphene.String(),
-    latitude=graphene.Float(),
-    longitude=graphene.Float(),
-    image_url=graphene.String())
+    id = graphene.Int(),
+    name = graphene.String(), 
+    description = graphene.String(), 
+    location = graphene.String(),
+    latitude = graphene.Float(),
+    longitude = graphene.Float(),
+    image_url = graphene.String())
 
   def resolve_gyms(self, info, name=None):
     query = Gym.get_query(info)
