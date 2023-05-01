@@ -8,16 +8,16 @@ class Gym(Base):
     __tablename__ = "gym"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False)
-    description = Column(String(1000), nullable=False)
+    name = Column(String(), nullable=False)
+    description = Column(String(), nullable=False)
     activities = relationship(
         'Activity', secondary=activities_to_gyms, back_populates="gyms")
     times = relationship('GymTime', cascade='delete, all')
     capacity = relationship('Capacity', cascade='delete, all')
-    location=Column(String(1000), nullable=False)
+    location=Column(String(), nullable=False)
     latitude=Column(Integer, nullable=False)
     longitude=Column(Float, nullable=False)
-    image_url = Column(String(1000), nullable=True)
+    image_url = Column(String(), nullable=True)
 
     def __init__(self, **kwargs):
         self.id=kwargs.get("id")
