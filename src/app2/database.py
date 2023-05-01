@@ -84,4 +84,8 @@ def init_db():
     db_session.add(activity_2)
     db_session.commit()
 
+def merge():
+  pass
+
+
     

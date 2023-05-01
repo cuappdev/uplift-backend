@@ -1,6 +1,6 @@
 import datetime
 from database import Base
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Boolean, func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Float, String, Boolean, func
 from sqlalchemy.orm import backref, relationship
 from models.activity import activities_to_gyms
 
@@ -13,21 +13,29 @@ class Gym(Base):
     activities = relationship(
         'Activity', secondary=activities_to_gyms, back_populates="gyms")
     times = relationship('GymTime', cascade='delete, all')
+    capacity = relationship('Capacity', cascade='delete, all')
     location=Column(String(1000), nullable=False)
+    latitude=Column(Integer, nullable=False)
+    longitude=Column(Float, nullable=False)
     image_url = Column(String(1000), nullable=True)
 
     def __init__(self, **kwargs):
+        self.id=kwargs.get("id")
         self.name = kwargs.get("name")
         self.description = kwargs.get("description")
         self.location=kwargs.get("location")
+        self.latitude = kwargs.get('latitude')
+        self.longitude = kwargs.get('longitude')
         self.image_url = kwargs.get("image_url")
 
     def serialize(self):
         return {
+            "id":self.id,
             "name": self.name,
             "description": self.description,
-            "times": self.times,
             "location": self.location,
+            "latitude": self.latitude,
+            "longitude":self.longitude,
             "image_url": self.image_url
         }
 
