@@ -1,8 +1,8 @@
 import datetime
-from typing import Counter
-from database import Base
 from sqlalchemy import Table, Column, Integer, DateTime, ForeignKey, String, Boolean, null
 from sqlalchemy.orm import relationship
+from src.database import Base
+from typing import Counter
 
 activities_to_gyms = Table(
     "activities_to_gyms",

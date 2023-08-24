@@ -22,3 +22,7 @@ def parse_time(time):
 
 def parse_datetime(datetime):
     return dt.strptime(datetime, "%Y-%m-%dT%H:%M:%S%z")
+
+
+def parse_c2c_datetime(datetime):
+    return dt.strptime(datetime, "%m/%d/%Y %I:%M %p")

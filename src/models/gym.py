@@ -1,8 +1,8 @@
 import datetime
-from database import Base
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, Float, String, Boolean, func
 from sqlalchemy.orm import backref, relationship
-from models.activity import activities_to_gyms
+from src.database import Base
+from src.models.activity import activities_to_gyms
 
 class Gym(Base):
     __tablename__ = "gym"

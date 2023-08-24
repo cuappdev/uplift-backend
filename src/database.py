@@ -29,9 +29,9 @@ Initialize basic information for all five fitness centers
 def create_gym_table():
   # import all modules that might define models so they will be registered properly
   # on metadata - otherwise import them first before calling init_db()
-  from models.gym import Gym, GymTime
-  from models.daytime import DayTime
-  from models.capacity import Capacity
+  from src.models.gym import Gym, GymTime
+  from src.models.daytime import DayTime
+  from src.models.capacity import Capacity
 
   helen_newman = Gym(
     id=1,
@@ -86,7 +86,7 @@ def create_gym_table():
   gyms = [
     helen_newman, 
     noyes, 
-    morrison,
+    toni_morrison,
     teagle_up,
     teagle_down
   ]
