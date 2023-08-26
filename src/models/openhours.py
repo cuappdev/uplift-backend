@@ -5,7 +5,7 @@ class OpenHours(Base):
     __tablename__ = "openhours"
 
     id = Column(String(), primary_key=True)
-    activity_id = Column(String(40), ForeignKey("activity.id"), nullable=False)
+    facility_id = Column(String(40), ForeignKey("facility.id"), nullable=False)
     day = Column(Integer, nullable=False)
     start_time = Column(Float, nullable=False) # TODO: - Convert to DateTime
     end_time = Column(Float, nullable=False)
@@ -15,7 +15,7 @@ class OpenHours(Base):
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
-        self.activity_id = kwargs.get("activity_id")
+        self.facility_id = kwargs.get("facility_id")
         self.day = kwargs.get("day")
         self.start_time = kwargs.get("start_time")
         self.end_time = kwargs.get("end_time")
@@ -26,7 +26,7 @@ class OpenHours(Base):
     def serialize(self):
         return {
             "id": self.id,
-            "activity_id": self.activity_id,
+            "facility_id": self.activity_id,
             "day": self.day,
             "start_time": self.start_time,
             "end_time": self.end_time,

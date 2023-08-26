@@ -4,17 +4,17 @@ schema {
 
 type OpenHours {
   id: String!
-  activityId: String!
+  facilityId: String!
   day: Int!
   startTime: Float!
   endTime: Float!
 }
 
-type Activities {
+type Facility {
   id: ID!
   gymId: String!
   name: String!
-  activityType: String!
+  facilityType: String!
   openHours: [OpenHours]
 }
 
@@ -26,7 +26,7 @@ type Gym {
   latitude: Float!
   longitude: Float!
   imageUrl: String
-  activities: [Activities]
+  facilities: [Facility]
 }
 
 type Query {

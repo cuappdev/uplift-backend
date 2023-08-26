@@ -2,7 +2,7 @@ import graphene
 from graphene import ObjectType
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from src.models.gym import Gym as GymModel
-from src.models.activity import Activity as ActivityModel
+from src.models.facility import Facility as FacilityModel
 from src.models.openhours import OpenHours as OpenHoursModel
 
 
@@ -12,23 +12,23 @@ class Gym(SQLAlchemyObjectType):
   class Meta:
     model = GymModel
 
-  activities = graphene.List(lambda: Activity, name=graphene.String())
+  facilities = graphene.List(lambda: Facility, name=graphene.String())
 
-  def resolve_activities(self, info, name=None):
-    query = Activity.get_query(info=info).filter(ActivityModel.gym_id == self.id)
+  def resolve_facilities(self, info, name=None):
+    query = Facility.get_query(info=info).filter(FacilityModel.gym_id == self.id)
     return query
 
 
-# MARK: - Activity
+# MARK: - Facility
 
-class Activity(SQLAlchemyObjectType):
+class Facility(SQLAlchemyObjectType):
   class Meta:
-      model = ActivityModel
+      model = FacilityModel
 
   open_hours = graphene.List(lambda: OpenHours, name=graphene.String())
 
   def resolve_open_hours(self, info, name=None):
-    query = OpenHours.get_query(info=info).filter(OpenHoursModel.activity_id == self.id)
+    query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
     return query
 
 

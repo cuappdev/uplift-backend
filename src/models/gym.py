@@ -8,7 +8,7 @@ class Gym(Base):
     id = Column(String(40), primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(String(1000), nullable=False)
-    activities = relationship("Activity")
+    facilities = relationship("Facility")
 
     # TODO: - Complete capacity table
     # capacity = relationship('Capacity', cascade='delete, all')

@@ -4,16 +4,16 @@ from sqlalchemy.orm import relationship
 from src.database import Base
 
 
-class ActivityType(enum.Enum):
+class FacilityType(enum.Enum):
     fitness = 0
     basketball = 1
 
-class Activity(Base):
-    __tablename__ = "activity"
+class Facility(Base):
+    __tablename__ = "facility"
 
     id = Column(String(40), primary_key=True)
     name = Column(String(), nullable=False)
-    activity_type = Column(Enum(ActivityType), nullable=False)
+    facility_type = Column(Enum(FacilityType), nullable=False)
     gym_id = Column(String(40), ForeignKey('gym.id'), nullable=False)
     open_hours = relationship("OpenHours")
 
@@ -26,7 +26,7 @@ class Activity(Base):
         self.id = kwargs.get("id")
         self.name = kwargs.get("name")
         self.gym_id = kwargs.get("gym_id")
-        self.activity_type = kwargs.get("activity_type")
+        self.facility_type = kwargs.get("facility_type")
 
         # TODO: - Implement the following
         # self.image_url = kwargs.get("image_url")
@@ -36,7 +36,7 @@ class Activity(Base):
             "id":self.id,
             "name": self.name,
             "gym_id": self.gym_id,
-            "activity_type": self.activity_type,
+            "facility_type": self.facility_type,
         }
 
 
