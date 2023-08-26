@@ -3,6 +3,9 @@ from sqlalchemy import Column, ForeignKey, String, Enum, Integer
 from sqlalchemy.orm import relationship
 from src.database import Base
 
+class ActivityType(enum.Enum):
+    fitness = 0
+    basketball = 1
 
 class FacilityType(enum.Enum):
     fitness = 0
