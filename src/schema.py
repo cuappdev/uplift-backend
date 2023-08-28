@@ -27,14 +27,14 @@ class Facility(SQLAlchemyObjectType):
       model = FacilityModel
 
   open_hours = graphene.List(lambda: OpenHours, name=graphene.String())
-  capacities = graphene.List(lambda: Capacity)
+  capacity = graphene.Field(lambda: Capacity)
 
   def resolve_open_hours(self, info, name=None):
     query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
     return query
 
-  def resolve_capacities(self, info):
-    query = Capacity.get_query(info=info).filter(CapacityModel.facility_id == self.id)
+  def resolve_capacity(self, info):
+    query = Capacity.get_query(info=info).filter(CapacityModel.facility_id == self.id).order_by(CapacityModel.updated.desc()).first()
     return query
 
 
