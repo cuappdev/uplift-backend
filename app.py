@@ -16,15 +16,15 @@ app.add_url_rule("/graphql", view_func=GraphQLView.as_view("graphql", schema=sch
 def shutdown_session(exception=None):
     db_session.remove()
 
-# Init gym tables and populate them with basic gym information
+# Create database and fill it with constants
 init_db()
 create_gym_table()
 
-# TODO: - Reconfigure Scraper
-# scrape C2C website for latest capacity
-# from src.c2c_scraper import scrape_capacity
-# scrape_capacity()
-# db_session.commit()
 
+# Should only be used for dev
 if __name__ == "__main__":
+<<<<<<< HEAD
     app.run(host="127.0.0.1", port=5000) # For Dev Purposes only (use start_server.sh for release)
+=======
+    app.run(host="127.0.0.1", port=5000)
+>>>>>>> 1c9216f (Update capacity scraper)

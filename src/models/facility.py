@@ -2,6 +2,8 @@ import enum
 from sqlalchemy import Column, ForeignKey, String, Enum, Integer
 from sqlalchemy.orm import relationship
 from src.database import Base
+from src.models.openhours import OpenHours
+from src.models.capacity import Capacity
 
 class ActivityType(enum.Enum):
     fitness = 0
@@ -19,6 +21,7 @@ class Facility(Base):
     name = Column(String(), nullable=False)
     facility_type = Column(Enum(FacilityType), nullable=False)
     open_hours = relationship("OpenHours")
+    capacities = relationship("Capacity")
 
     # TODO: - Implement the following
     # prices = relationship('Price', cascade='delete, all')
@@ -40,6 +43,7 @@ class Facility(Base):
             "name": self.name,
             "gym_id": self.gym_id,
             "facility_type": self.facility_type,
+            "capacities": self.capacities
         }
 
 
