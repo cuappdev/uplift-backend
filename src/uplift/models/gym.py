@@ -30,12 +30,12 @@ class Gym(Base):
 
     def serialize(self):
         return {
-            "id":self.id,
+            "id": self.id,
             "name": self.name,
             "description": self.description,
             "location": self.location,
             "latitude": self.latitude,
-            "longitude":self.longitude,
+            "longitude": self.longitude,
             "image_url": self.image_url
         }
 

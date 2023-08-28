@@ -76,10 +76,11 @@ def scrape_classes(num_pages):
             continue
         schedule = soup.find_all("table")[1]  # first table is irrelevant
         data = schedule.find_all("tr")[1:]  # first row is header
-
         for row in data:
             gym_class = ClassType()
             row_elems = row.find_all("td")
+            #print(row_elems)
+            #print('\n')
             date_string = row_elems[0].span.string
             gym_class.date = datetime.strptime(date_string, "%m/%d/%Y").date()
 

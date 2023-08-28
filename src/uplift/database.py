@@ -86,7 +86,7 @@ def create_gym_table():
   gyms = [
     helen_newman, 
     noyes, 
-    morrison,
+    toni_morrison,
     teagle_up,
     teagle_down
   ]
