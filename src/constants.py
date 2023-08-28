@@ -2,6 +2,7 @@ import json
 from src.utils import generate_id, create_times
 from src.models.gym import Gym
 from src.models.facility import Facility, FacilityType
+from src.models.capacity import Capacity
 from src.models.openhours import OpenHours
 from src.database import db_session
 

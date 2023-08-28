@@ -10,12 +10,23 @@ type OpenHours {
   endTime: Float!
 }
 
+scalar DateTime
+
+type Capacity {
+  id: ID!
+  facilityId: String!
+  count: Int!
+  percent: Float!
+  updated: DateTime!
+}
+
 type Facility {
   id: ID!
   gymId: String!
   name: String!
   facilityType: String!
   openHours: [OpenHours]
+  capacities: [Capacity]
 }
 
 type Gym {
@@ -30,5 +41,5 @@ type Gym {
 }
 
 type Query {
-  gyms(): [Gym]
+  gyms: [Gym]
 }
