@@ -4,6 +4,7 @@ from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Boolean, f
 from sqlalchemy.orm import backref, relationship
 from models.gym import Gym, GymTime
 
+
 class DayTime(Base):
     __tablename__ = "daytime"
 
@@ -27,5 +28,5 @@ class DayTime(Base):
             "start_time": self.start_time,
             "end_time": self.end_time,
             "restrictions": self.restrictions,
-            "special_hours": self.special_hours
+            "special_hours": self.special_hours,
         }

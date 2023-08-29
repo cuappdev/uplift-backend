@@ -9,7 +9,12 @@ from models.activity import Activity as ActivityModel, ActivityPrice as Activity
 from models.capacity import Capacity as CapacityModel
 from models.activity import Amenity as AmenityModel
 from models.price import Price as PriceModel
-from models.facility import Facility as FacilityModel, FacilityPrice as FacilityPriceModel, Equipment as EquipmentModel, FacilityTime as FacilityTimeModel
+from models.facility import (
+    Facility as FacilityModel,
+    FacilityPrice as FacilityPriceModel,
+    Equipment as EquipmentModel,
+    FacilityTime as FacilityTimeModel,
+)
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
@@ -20,9 +25,16 @@ class Gym(SQLAlchemyObjectType):
     class Meta:
         model = GymModel
 
-    times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(
-    ), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
+    times = graphene.List(
+        lambda: DayTime,
+        day=graphene.Int(),
+        start_time=graphene.DateTime(),
+        end_time=graphene.DateTime(),
+        restrictions=graphene.String(),
+        special_hours=graphene.Boolean(),
+    )
     activities = graphene.List(lambda: Activity, name=graphene.String())
+    facilities = graphene.List(lambda: Facility, gym_id=graphene.Int())
     capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
 
     @staticmethod
@@ -50,25 +62,28 @@ class Gym(SQLAlchemyObjectType):
         activity_queries = []
         for act in self.activities:
             activity = query.filter(ActivityModel.id == act.id)
-            if activity.first() and (name == act.name or name == None):
+            if activity.first() and (name == act.name or name is None):
                 activity_queries.append(activity[0])
         return activity_queries
 
     @staticmethod
     def resolve_capacities(self, info, gym_id=None):
-        query = Capacity.get_query(info=info) \
-          .filter(CapacityModel.gym_id == self.id) \
-          .order_by(desc(CapacityModel.updated))
+        query = (
+            Capacity.get_query(info=info).filter(CapacityModel.gym_id == self.id).order_by(desc(CapacityModel.updated))
+        )
 
         return [query.first()]
+
 
 class DayTime(SQLAlchemyObjectType):
     class Meta:
         model = DayTimeModel
 
+
 class GymTime(SQLAlchemyObjectType):
     class Meta:
         model = GymTimeModel
+
 
 class Activity(SQLAlchemyObjectType):
     class Meta:
@@ -109,8 +124,9 @@ class Activity(SQLAlchemyObjectType):
 
 
 class Capacity(SQLAlchemyObjectType):
-  class Meta:
-    model = CapacityModel
+    class Meta:
+        model = CapacityModel
+
 
 class Price(SQLAlchemyObjectType):
     class Meta:
@@ -167,32 +183,43 @@ class Facility(SQLAlchemyObjectType):
 
         return price_queries
 
+
+class TagType(ObjectType):
+    label = String(required=True)
+    image_url = String(required=True)
+
+
 class FacilityTime(SQLAlchemyObjectType):
     class Meta:
         model = FacilityTimeModel
+
 
 class FacilityPrice(SQLAlchemyObjectType):
     class Meta:
         model = FacilityPriceModel
 
+
 class Equipment(SQLAlchemyObjectType):
     class Meta:
         model = EquipmentModel
+
 
 class Amenity(SQLAlchemyObjectType):
     class Meta:
         model = AmenityModel
 
-class Query(graphene.ObjectType):
 
-    gyms = graphene.List(lambda: Gym,
-                         id=graphene.Int(),
-                         name=graphene.String(),
-                         description=graphene.String(),
-                         location=graphene.String(),
-                         latitude=graphene.Float(),
-                         longitude=graphene.Float(),
-                         image_url=graphene.String())
+class Query(graphene.ObjectType):
+    gyms = graphene.List(
+        lambda: Gym,
+        id=graphene.Int(),
+        name=graphene.String(),
+        description=graphene.String(),
+        location=graphene.String(),
+        latitude=graphene.Float(),
+        longitude=graphene.Float(),
+        image_url=graphene.String(),
+    )
 
     def resolve_gyms(self, info, name=None):
         query = Gym.get_query(info)
@@ -200,13 +227,15 @@ class Query(graphene.ObjectType):
             query = query.filter(GymModel.name == name)
         return query.all()
 
-    activities = graphene.List(lambda: Activity, name=graphene.String(
-      ), details=graphene.String(), image_url=graphene.String())
+    activities = graphene.List(
+        lambda: Activity, name=graphene.String(), details=graphene.String(), image_url=graphene.String()
+    )
 
     def resolve_activities(self, info, name=None):
         query = Activity.get_query(info)
         if name:
             query = query.filter(ActivityModel.name == name)
         return query.all()
+
 
 schema = graphene.Schema(query=Query)

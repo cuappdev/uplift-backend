@@ -19,10 +19,9 @@ class Activity(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(), nullable=False)
     details = Column(String(), nullable=False)
-    gyms = relationship('Gym', secondary=activities_to_gyms,
-                        back_populates="activities")
-    prices = relationship('ActivityPrice', cascade='delete, all')
-    amenities = relationship('Amenity', cascade='delete, all')
+    gyms = relationship("Gym", secondary=activities_to_gyms, back_populates="activities")
+    prices = relationship("ActivityPrice", cascade="delete, all")
+    amenities = relationship("Amenity", cascade="delete, all")
     image_url = Column(String(), nullable=True)
 
     def __init__(self, **kwargs):
@@ -30,24 +29,26 @@ class Activity(Base):
         self.details = kwargs.get("details")
         self.image_url = kwargs.get("image_url")
 
+
 class ActivityPrice(Base):
     __tablename__ = "activityprice"
 
     id = Column(Integer, primary_key=True)
-    activity_id = Column(Integer, ForeignKey('activity.id'), nullable=False)
-    price_id = Column(Integer, ForeignKey('price.id'), nullable=False)
+    activity_id = Column(Integer, ForeignKey("activity.id"), nullable=False)
+    price_id = Column(Integer, ForeignKey("price.id"), nullable=False)
 
     def __init__(self, **kwargs):
         self.activity_id = kwargs.get("activity_id")
         self.price = kwargs.get("price_id")
 
+
 class Amenity(Base):
-    __tablename__ = 'amenity'
+    __tablename__ = "amenity"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(), nullable=False)
     image_url = Column(String(), nullable=True)
-    activity_id = Column(Integer, ForeignKey('activity.id'), nullable=False)
+    activity_id = Column(Integer, ForeignKey("activity.id"), nullable=False)
 
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
