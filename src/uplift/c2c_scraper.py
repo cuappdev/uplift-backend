@@ -5,8 +5,8 @@ Used by cron job.
 
 it is very possible there is a more succinct, efficient way to write this!
 """
-from models.gym import Gym 
-from models.capacity import Capacity 
+from models.gym import Gym
+from models.capacity import Capacity
 from database import db_session
 from sqlalchemy import and_
 
@@ -22,45 +22,42 @@ def scrape_capacity():
     """
     scrape capacity and timestamp and add to capacity model for corresponding gym
     """
-    # Get data from C2C module    
-    headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0'}
+    # Get data from C2C module
+    headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"}
     page = requests.get(CONNECT2CONCEPTS_PATH, headers=headers).text
     soup = BeautifulSoup(page, "lxml")
-    data = soup.findAll('div', attrs = {"class":"col-md-3 col-sm-6"})
+    data = soup.findAll("div", attrs={"class": "col-md-3 col-sm-6"})
 
     # For each section,
     # fitness center / open status / last count / updated (date time)
     for gymData in data:
         # separate gym data into lines divided by \n
-        text = gymData.find('div', attrs = {"style":"text-align:center;"})
+        text = gymData.find("div", attrs={"style": "text-align:center;"})
         lines = text.get_text("\n").split("\n")
-        
+
         # Fitness Center
         index = lines[0].find("Fitness Center")
         name = lines[0][0:index].strip()
 
-        # Count 
+        # Count
         index = lines[2].find(":")
-        count = lines[2][index+1:].strip()
+        count = lines[2][index + 1 :].strip()
 
         # Last Updated
         index = lines[3].find(":")
-        last_updated = lines[3][index+1:].strip()
-        
+        last_updated = lines[3][index + 1 :].strip()
+
         gym = Gym.query.filter_by(name=name).first()
-        
-        if gym: 
+
+        if gym:
             gym_id = gym.serialize().get("id")
             last_updated = parse_c2c_datetime(last_updated)
 
             # If it doesn't exist yet, add to table.
-            if not (Capacity.query.filter(and_(Capacity.gym_id==gym_id, Capacity.updated==last_updated)).first()): 
-                new_count = Capacity(
-                    gym_id = gym_id,
-                    count=int(count),
-                    updated=last_updated
-                )
+            if not (Capacity.query.filter(and_(Capacity.gym_id == gym_id, Capacity.updated == last_updated)).first()):
+                new_count = Capacity(gym_id=gym_id, count=int(count), updated=last_updated)
                 db_session.add(new_count)
                 db_session.commit()
+
 
 scrape_capacity()

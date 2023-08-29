@@ -6,7 +6,7 @@ import random
 from bs4 import BeautifulSoup
 import requests
 
-from src.constants import (
+from constants import (
     ASSET_BASE_URL,
     CATEGORIES_BY_CLASS_NAME,
     CLASS_IMAGE_KEYWORDS,
@@ -14,8 +14,8 @@ from src.constants import (
     IMAGE_CHOICES,
     TAGS_BY_CLASS_NAME,
 )
-from src.schema import ClassDetailType, ClassType, DayTimeRangeType, TimeRangeType
-from src.utils import generate_id
+from schema import ClassDetailType, ClassType, DayTimeRangeType, TimeRangeType
+from utils import generate_id
 
 BASE_URL = "https://recreation.athletics.cornell.edu"
 CLASSES_PATH = "/fitness-centers/group-fitness-classes?&page="
@@ -194,11 +194,11 @@ def scrape_special_hours():
 
             current_date_index = 0
 
-            for time in times:
-                time_text = time.text.strip().replace("Noon", "12:00p")
+            for time_entry in times:
+                time_text = time_entry.text.strip().replace("Noon", "12:00p")
 
                 # Number of consecutive days these hours are effective
-                days = int(time.get("colspan", 1))
+                days = int(time_entry.get("colspan", 1))
 
                 if time_text == "Closed":
                     for i in range(days):
