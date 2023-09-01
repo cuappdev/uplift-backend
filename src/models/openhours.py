@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, Identity
+from sqlalchemy import Column, ForeignKey, Integer, String, Float
 from src.database import Base
 
 class OpenHours(Base):
