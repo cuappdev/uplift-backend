@@ -26,7 +26,7 @@ class OpenHours(Base):
     def serialize(self):
         return {
             "id": self.id,
-            "facility_id": self.activity_id,
+            "facility_id": self.facility_id,
             "day": self.day,
             "start_time": self.start_time,
             "end_time": self.end_time,
