@@ -23,8 +23,4 @@ create_gym_table()
 
 # Should only be used for dev
 if __name__ == "__main__":
-<<<<<<< HEAD
     app.run(host="127.0.0.1", port=5000) # For Dev Purposes only (use start_server.sh for release)
-=======
-    app.run(host="127.0.0.1", port=5000)
->>>>>>> 1c9216f (Update capacity scraper)
