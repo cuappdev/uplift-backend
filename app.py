@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_graphql import GraphQLView
-from flask_graphql import GraphQLView
 from graphene import Schema
 from src.database import db_session, init_db
 from src.schema import schema, Query
