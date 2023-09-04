@@ -1,7 +1,7 @@
 import hashlib
 import json
 from datetime import datetime as dt
-
+from src.models.openhours import OpenHours
 
 
 def generate_id(data):
@@ -26,3 +26,19 @@ def parse_datetime(datetime):
 
 def parse_c2c_datetime(datetime):
     return dt.strptime(datetime, "%m/%d/%Y %I:%M %p")
+
+
+"""
+Helper function for generating a list of OpenHours from
+corresponding hours.
+"""
+def create_times(uid_str, facility_id, start, end, weekday):
+  times = []
+  day_range = range(0, 5) if weekday  else range(5, 7)
+  for i in day_range:
+    times.append(OpenHours(id=generate_id(f"{uid_str}-{i}"),
+                           facility_id=facility_id,
+                           day=i,
+                           start_time=start,
+                           end_time=end))
+  return times

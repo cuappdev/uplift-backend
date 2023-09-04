@@ -1,24 +1,9 @@
 import json
-from src.utils import generate_id
+from src.utils import generate_id, create_times
 from src.models.gym import Gym
 from src.models.facility import Facility, FacilityType
 from src.models.openhours import OpenHours
 from src.database import db_session
-
-"""
-Helper function for generating a list of OpenHours from 
-corresponding json object. 
-"""
-def _create_times(uid_str, facility_id, start, end, weekday):
-  times = []
-  day_range = range(0, 5) if weekday  else range(5, 7)
-  for i in day_range:
-    times.append(OpenHours(id=generate_id(f"{uid_str}-{i}"),
-                           facility_id=facility_id,
-                           day=i,
-                           start_time=start,
-                           end_time=end))
-  return times
 
 """
 Initialize basic information for all five fitness centers
@@ -49,7 +34,7 @@ def create_gym_table():
 
         for i, open_hrs in enumerate(facility["hours"]):
           hours_id_str = facility_id_str + str(i)
-          fitness_hours += _create_times(uid_str=hours_id_str,
+          fitness_hours += create_times(uid_str=hours_id_str,
                                          facility_id=facility["id"],
                                          **open_hrs)
   
