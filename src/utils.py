@@ -5,7 +5,7 @@ from datetime import datetime as dt
 
 
 def generate_id(data):
-    return hashlib.sha1(data.encode("utf-8")).hexdigest()
+    return int.from_bytes(hashlib.sha256(data.encode("utf-8")).digest()[:3], 'little')
 
 
 def success_response(data, code=200):

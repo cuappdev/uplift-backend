@@ -2,7 +2,7 @@ from flask import Flask
 from flask_graphql import GraphQLView
 from graphene import Schema
 from src.database import db_session, init_db
-from src.schema import schema, Query
+from src.schema import Query
 from src.constants import create_gym_table
 
 app = Flask(__name__)

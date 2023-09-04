@@ -9,11 +9,11 @@ from src.database import db_session
 Helper function for generating a list of OpenHours from 
 corresponding json object. 
 """
-def _create_times(uid, facility_id, start, end, weekday):
+def _create_times(uid_str, facility_id, start, end, weekday):
   times = []
   day_range = range(0, 5) if weekday  else range(5, 7)
   for i in day_range:
-    times.append(OpenHours(id=f"{uid}-{i}",
+    times.append(OpenHours(id=generate_id(f"{uid_str}-{i}"),
                            facility_id=facility_id,
                            day=i,
                            start_time=start,
@@ -42,13 +42,15 @@ def create_gym_table():
 
       for facility in gym["facilities"]:
         facility["gym_id"] = gym["id"]
-        facility["id"] = generate_id(facility["type"] + facility["name"])
+        facility_id_str = facility["type"] + facility["name"]
+        facility["id"] = generate_id(facility_id_str)
         facility["facility_type"] = FacilityType[facility["type"]]
         facilities.append(Facility(**facility))
+
         for i, open_hrs in enumerate(facility["hours"]):
-          hours_id = facility["id"] + str(i)
-          fitness_hours += _create_times(uid=hours_id, 
-                                         facility_id=facility["id"], 
+          hours_id_str = facility_id_str + str(i)
+          fitness_hours += _create_times(uid_str=hours_id_str,
+                                         facility_id=facility["id"],
                                          **open_hrs)
   
   for gym in gyms:

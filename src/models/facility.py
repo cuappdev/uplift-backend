@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, ForeignKey, String, Enum
+from sqlalchemy import Column, ForeignKey, String, Enum, Integer
 from sqlalchemy.orm import relationship
 from src.database import Base
 
@@ -11,10 +11,10 @@ class FacilityType(enum.Enum):
 class Facility(Base):
     __tablename__ = "facility"
 
-    id = Column(String(40), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    gym_id = Column(Integer, ForeignKey('gym.id'), nullable=False)
     name = Column(String(), nullable=False)
     facility_type = Column(Enum(FacilityType), nullable=False)
-    gym_id = Column(String(40), ForeignKey('gym.id'), nullable=False)
     open_hours = relationship("OpenHours")
 
     # TODO: - Implement the following

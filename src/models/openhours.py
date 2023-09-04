@@ -1,11 +1,11 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Float
+from sqlalchemy import Column, ForeignKey, Integer, Float
 from src.database import Base
 
 class OpenHours(Base):
     __tablename__ = "openhours"
 
-    id = Column(String(), primary_key=True)
-    facility_id = Column(String(40), ForeignKey("facility.id"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
     day = Column(Integer, nullable=False)
     start_time = Column(Float, nullable=False) # TODO: - Convert to DateTime
     end_time = Column(Float, nullable=False)
