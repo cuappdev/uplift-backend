@@ -5,13 +5,8 @@ from src.database import Base
 from src.models.openhours import OpenHours
 from src.models.capacity import Capacity
 
-class ActivityType(enum.Enum):
-    fitness = 0
-    basketball = 1
-
 class FacilityType(enum.Enum):
     fitness = 0
-    basketball = 1
 
 class Facility(Base):
     __tablename__ = "facility"

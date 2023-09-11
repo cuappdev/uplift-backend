@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, DateTime, Float, Identity, String
+from sqlalchemy import Column, ForeignKey, Integer, DateTime, Float
 from sqlalchemy.orm import backref, relationship
 from src.database import Base 
 """
@@ -8,8 +8,8 @@ Store counts for each Gym
 class Capacity(Base):
   __tablename__ = 'capacity'
 
-  id = Column(Integer, Identity(1, 1), primary_key = True)
-  facility_id = Column(String(40), ForeignKey('facility.id'), nullable=False)
+  id = Column(Integer, primary_key = True)
+  facility_id = Column(Integer, ForeignKey('facility.id'), nullable=False)
   count = Column(Integer, nullable=False)
   percent = Column(Float, nullable=False)
   updated = Column(DateTime, nullable=False)
