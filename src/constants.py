@@ -6,10 +6,9 @@ from src.models.capacity import Capacity
 from src.models.openhours import OpenHours
 from src.database import db_session
 
-CONNECT2CONCEPTS_PATH = "https://connect2concepts.com/connect2/?type=bar&key=355de24d-d0e4-4262-ae97-bc0c78b92839"
-CAPACITY_SCRAPE_INTERVAL = 5 # In minutes
-RECTRAC_PATH = "https://rectrac.pe.cornell.edu/private/webtrac.wsc/history.html?historyoption=inquiry&_csrf_token=9e7d41b4de08bca17c1e7b304c9bae559c02e92712476c3dcb8d0b342f6afeac"
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
+CAPACITY_SCRAPE_PATH = "https://connect2concepts.com/connect2/?type=bar&key=355de24d-d0e4-4262-ae97-bc0c78b92839"
+CAPACITY_SCRAPE_INTERVAL_MINUTES = 15
 
 """
 Initialize basic information for all five fitness centers

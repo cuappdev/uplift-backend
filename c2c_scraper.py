@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from collections import namedtuple
 import requests
 from sqlalchemy import and_
-from src.constants import CONNECT2CONCEPTS_PATH, CAPACITY_SCRAPE_INTERVAL
+from src.constants import CAPACITY_SCRAPE_PATH, CAPACITY_SCRAPE_INTERVAL_MINUTES
 from src.database import init_db, db_session
 from src.models.facility import Facility
 from src.models.capacity import Capacity 
@@ -20,15 +20,20 @@ def _scrape_capacity():
   """
   # Get data from C2C module    
   headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0'}
-  page = requests.get(CONNECT2CONCEPTS_PATH, headers=headers).text
+  page = requests.get(CAPACITY_SCRAPE_PATH, headers=headers).text
   soup = BeautifulSoup(page, "lxml")
   data = soup.findAll('div', attrs = {"class":"barChart"})
 
   # For each section,
   # fitness center / open status / last count / updated (date time) / percent
   for gymData in data:
+    capacity_list = []
+    for value_str in gymData.get_text("\n").split("\n"):
+      if value_str != "": 
+        capacity_list.append(str.strip(value_str))
+
     CapacityRawData = namedtuple('CapacityRawData', ["gym_name", "status", "last_count", "updated", "percent"])
-    capacity_data = CapacityRawData(*list(map(str.strip, filter(lambda v: v != '', gymData.get_text("\n").split("\n")))))
+    capacity_data = CapacityRawData(*capacity_list)
 
     # Fitness Center
     index = capacity_data.gym_name.find("Fitness Center")
@@ -65,7 +70,7 @@ def run_capacity_scraper():
   print("Starting capacity scraper")
   while True:
     _scrape_capacity()
-    time.sleep(60 * CAPACITY_SCRAPE_INTERVAL)
+    time.sleep(60 * CAPACITY_SCRAPE_INTERVAL_MINUTES)
 
 if __name__ == "__main__":
   run_capacity_scraper()
