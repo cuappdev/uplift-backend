@@ -6,15 +6,12 @@ Used by cron job.
 from bs4 import BeautifulSoup
 import requests
 from sqlalchemy import and_
+from src.constants import CONNECT2CONCEPTS_PATH, CAPACITY_SCRAPE_INTERVAL
 from src.database import init_db, db_session
 from src.models.facility import Facility
 from src.models.capacity import Capacity 
 from src.utils import parse_c2c_datetime
 import time
-
-CONNECT2CONCEPTS_PATH = "https://connect2concepts.com/connect2/?type=bar&key=355de24d-d0e4-4262-ae97-bc0c78b92839"
-RECTRAC_PATH = "https://rectrac.pe.cornell.edu/private/webtrac.wsc/history.html?historyoption=inquiry&_csrf_token=9e7d41b4de08bca17c1e7b304c9bae559c02e92712476c3dcb8d0b342f6afeac"
-
 
 def _scrape_capacity():
   """
@@ -66,7 +63,7 @@ def run_capacity_scraper():
   print("Starting capacity scraper")
   while True:
     _scrape_capacity()
-    time.sleep(60) # Currently scrapes every minute
+    time.sleep(60 * CAPACITY_SCRAPE_INTERVAL)
 
 if __name__ == "__main__":
   run_capacity_scraper()
