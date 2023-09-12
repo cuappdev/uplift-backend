@@ -4,6 +4,7 @@ Used by cron job.
 """
 
 from bs4 import BeautifulSoup
+from collections import namedtuple
 import requests
 from sqlalchemy import and_
 from src.constants import CONNECT2CONCEPTS_PATH, CAPACITY_SCRAPE_INTERVAL
@@ -26,22 +27,23 @@ def _scrape_capacity():
   # For each section,
   # fitness center / open status / last count / updated (date time) / percent
   for gymData in data:
-    lines = list(map(str.strip, filter(lambda v: v != '', gymData.get_text("\n").split("\n"))))
+    CapacityRawData = namedtuple('CapacityRawData', ["gym_name", "status", "last_count", "updated", "percent"])
+    capacity_data = CapacityRawData(*list(map(str.strip, filter(lambda v: v != '', gymData.get_text("\n").split("\n")))))
 
     # Fitness Center
-    index = lines[0].find("Fitness Center")
-    name = lines[0][0:index].strip()
+    index = capacity_data.gym_name.find("Fitness Center")
+    name = capacity_data.gym_name[0:index].strip()
 
     # Count
-    index = lines[2].find(":")
-    count = int(lines[2][index+1:].strip())
+    index = capacity_data.last_count.find(":")
+    count = int(capacity_data.last_count[index+1:].strip())
 
     # Last Updated
-    index = lines[3].find(":")
-    last_updated = parse_c2c_datetime(lines[3][index+1:].strip())
+    index = capacity_data.updated.find(":")
+    last_updated = parse_c2c_datetime(capacity_data.updated[index+1:].strip())
 
     # Percent
-    percent = -1 if lines[4] == "NA" else (int(lines[4][:-1]) / 100)
+    percent = -1 if capacity_data.percent == "NA" else (int(capacity_data.percent[:-1]) / 100)
 
     facility = Facility.query.filter_by(name=name).first()
 
