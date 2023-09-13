@@ -1,5 +1,5 @@
 from datetime import datetime
-import time
+import time as t
 import datetime as dt
 import random
 
@@ -41,7 +41,7 @@ def scrape_class_detail(class_href):
         name = soup.find(id="main-article").h1.contents[0]
     except AttributeError as e:
         if 503 in soup.find("title").string:
-            time.sleep(10)
+            t.sleep(10)
             return False
         else:
             raise e
@@ -194,11 +194,11 @@ def scrape_special_hours():
 
             current_date_index = 0
 
-            for time_entry in times:
-                time_text = time_entry.text.strip().replace("Noon", "12:00p")
+            for time in times:
+                time_text = time.text.strip().replace("Noon", "12:00p")
 
                 # Number of consecutive days these hours are effective
-                days = int(time_entry.get("colspan", 1))
+                days = int(time.get("colspan", 1))
 
                 if time_text == "Closed":
                     for i in range(days):
