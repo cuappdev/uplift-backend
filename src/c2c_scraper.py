@@ -5,17 +5,15 @@ Used by cron job.
 
 it is very possible there is a more succinct, efficient way to write this!
 """
-from models.gym import Gym 
-from models.capacity import Capacity 
-from database import db_session
 from sqlalchemy import and_
+from src.database import db_session
+from src.models.gym import Gym 
+from src.models.capacity import Capacity 
+from src.constants import CONNECT2CONCEPTS_PATH
 
 from bs4 import BeautifulSoup
-from utils import parse_c2c_datetime
 import requests
-
-CONNECT2CONCEPTS_PATH = "https://connect2concepts.com/connect2/?type=circle&key=355de24d-d0e4-4262-ae97-bc0c78b92839"
-RECTRAC_PATH = "https://rectrac.pe.cornell.edu/private/webtrac.wsc/history.html?historyoption=inquiry&_csrf_token=9e7d41b4de08bca17c1e7b304c9bae559c02e92712476c3dcb8d0b342f6afeac"
+from src.utils import parse_c2c_datetime
 
 
 def scrape_capacity():

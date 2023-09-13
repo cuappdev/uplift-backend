@@ -1,35 +1,48 @@
-import datetime
-from typing import Counter
-from database import Base
-from sqlalchemy import Table, Column, Integer, DateTime, ForeignKey, String, Boolean, null
+import enum
+from sqlalchemy import Column, ForeignKey, String, Enum, Integer
 from sqlalchemy.orm import relationship
-
-activities_to_gyms = Table(
-    "activities_to_gyms",
-    Base.metadata,
-    Column("gym_id", ForeignKey("gym.id"), primary_key=True),
-    Column("activity_id", ForeignKey("activity.id"), primary_key=True),
-)
+from src.database import Base
 
 
-class Activity(Base):
-    __tablename__ = "activity"
+class FacilityType(enum.Enum):
+    fitness = 0
+    basketball = 1
+
+class Facility(Base):
+    __tablename__ = "facility"
 
     id = Column(Integer, primary_key=True)
+    gym_id = Column(Integer, ForeignKey('gym.id'), nullable=False)
     name = Column(String(), nullable=False)
-    details = Column(String(1000), nullable=False)
-    gyms = relationship('Gym', secondary=activities_to_gyms,
-                        back_populates="activities")
-    prices = relationship('Price', cascade='delete, all')
-    amenities = relationship('Amenity', cascade='delete, all')
-    image_url = Column(String(1000), nullable=True)
+    facility_type = Column(Enum(FacilityType), nullable=False)
+    open_hours = relationship("OpenHours")
+
+    # TODO: - Implement the following
+    # prices = relationship('Price', cascade='delete, all')
+    # amenities = relationship('Amenity', cascade='delete, all')
+    # image_url = Column(String(1000), nullable=True)
 
     def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
         self.name = kwargs.get("name")
-        self.details = kwargs.get("details")
-        self.image_url = kwargs.get("image_url")
+        self.gym_id = kwargs.get("gym_id")
+        self.facility_type = kwargs.get("facility_type")
+
+        # TODO: - Implement the following
+        # self.image_url = kwargs.get("image_url")
+
+    def serialize(self):
+        return {
+            "id":self.id,
+            "name": self.name,
+            "gym_id": self.gym_id,
+            "facility_type": self.facility_type,
+        }
 
 
+# Left here as a reference for the above TODOs
+
+"""
 class Price(Base):
     __tablename__ = "price"
 
@@ -60,3 +73,4 @@ class Amenity(Base):
         self.name = kwargs.get("name")
         self.image_url = kwargs.get("image_url")
         self.activity_id = kwargs.get("activity_id")
+"""

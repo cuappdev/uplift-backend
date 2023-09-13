@@ -1,9 +1,11 @@
-from database import Base 
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import backref, relationship
+from src.database import Base 
 """
 Store counts for each Gym
 """
+
+# TODO: Complete...
 class Capacity(Base):
     __tablename__ = 'capacity'
     id = Column(Integer, primary_key = True)
