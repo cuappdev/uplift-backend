@@ -5,7 +5,10 @@ from graphene import Field, ObjectType, String, List, Int, Boolean
 from graphene.types.datetime import Date, Time
 from models.gym import Gym as GymModel, GymTime as GymTimeModel
 from models.daytime import DayTime as DayTimeModel
-from models.activity import Activity as ActivityModel, ActivityPrice as ActivityPriceModel
+from models.activity import (
+    Activity as ActivityModel,
+    ActivityPrice as ActivityPriceModel,
+)
 from models.capacity import Capacity as CapacityModel
 from models.activity import Amenity as AmenityModel
 from models.price import Price as PriceModel
@@ -15,6 +18,7 @@ from models.facility import (
     Equipment as EquipmentModel,
     FacilityTime as FacilityTimeModel,
 )
+from models.classes import Class as ClassModel
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
@@ -36,6 +40,7 @@ class Gym(SQLAlchemyObjectType):
     activities = graphene.List(lambda: Activity, name=graphene.String())
     facilities = graphene.List(lambda: Facility, gym_id=graphene.Int())
     capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
+    classes = graphene.List(lambda: Class, gym_id=graphene.Int())
 
     @staticmethod
     def resolve_times(self, info, day=None, start_time=None, end_time=None):
@@ -69,10 +74,27 @@ class Gym(SQLAlchemyObjectType):
     @staticmethod
     def resolve_capacities(self, info, gym_id=None):
         query = (
-            Capacity.get_query(info=info).filter(CapacityModel.gym_id == self.id).order_by(desc(CapacityModel.updated))
+            Capacity.get_query(info=info)
+            .filter(CapacityModel.gym_id == self.id)
+            .order_by(desc(CapacityModel.updated))
         )
 
         return [query.first()]
+
+    @staticmethod
+    def resolve_classes(self, info, name=None):
+        query = Class.get_query(info=info)
+        class_queries = []
+        for c in self.classes:
+            cls = query.filter(ClassModel.id == c.id)
+            if cls.first() and (name == c.name or name is None):
+                class_queries.append(cls[0])
+        return class_queries
+
+
+class Class(SQLAlchemyObjectType):
+    class Meta:
+        model = ClassModel
 
 
 class DayTime(SQLAlchemyObjectType):
@@ -90,7 +112,9 @@ class Activity(SQLAlchemyObjectType):
         model = ActivityModel
 
     gyms = graphene.List(lambda: Gym, name=graphene.String())
-    prices = graphene.List(lambda: Price, cost=graphene.Int(), one_time=graphene.Boolean())
+    prices = graphene.List(
+        lambda: Price, cost=graphene.Int(), one_time=graphene.Boolean()
+    )
 
     def resolve_gyms(self, info, name=None):
         query = Gym.get_query(info=info)
@@ -228,7 +252,10 @@ class Query(graphene.ObjectType):
         return query.all()
 
     activities = graphene.List(
-        lambda: Activity, name=graphene.String(), details=graphene.String(), image_url=graphene.String()
+        lambda: Activity,
+        name=graphene.String(),
+        details=graphene.String(),
+        image_url=graphene.String(),
     )
 
     def resolve_activities(self, info, name=None):
