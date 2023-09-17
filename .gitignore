@@ -16,3 +16,4 @@ migrations
 .vscode
 Archive
 scripts
+*.sqlite3
