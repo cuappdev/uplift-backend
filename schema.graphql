@@ -2,20 +2,28 @@ schema {
   query: Query
 }
 
-type OpenHours {
-  id: String!
-  facilityId: String!
-  day: Int!
-  startTime: Float!
-  endTime: Float!
+type Capacity {
+  id: ID!
+  facilityId: Int!
+  count: Int!
+  percent: Float!
+  updated: DateTime!
 }
+
+scalar DateTime
 
 type Facility {
   id: ID!
-  gymId: String!
+  gymId: Int!
   name: String!
-  facilityType: String!
-  openHours: [OpenHours]
+  facilityType: FacilityType!
+  openHours(name: String): [OpenHours]
+  capacities: [Capacity]
+  capacity: Capacity
+}
+
+enum FacilityType {
+  FITNESS
 }
 
 type Gym {
@@ -29,6 +37,14 @@ type Gym {
   facilities: [Facility]
 }
 
+type OpenHours {
+  id: ID!
+  facilityId: Int!
+  day: Int!
+  startTime: Float!
+  endTime: Float!
+}
+
 type Query {
-  gyms(): [Gym]
+  gyms: [Gym]
 }
