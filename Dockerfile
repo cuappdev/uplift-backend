@@ -8,4 +8,4 @@ COPY . .
 RUN pip install -r requirements.txt
 
 EXPOSE 5000
-CMD sh start_server.sh
+CMD python3 app.py
