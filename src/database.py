@@ -8,8 +8,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 db_user = os.environ.get("DB_USERNAME")
 db_password = os.environ.get("DB_PASSWORD")
 db_name = os.environ.get("DB_NAME")
+db_host = os.environ.get("DB_HOST")
+db_port = os.environ.get("DB_PORT")
 
-db_url = f"postgresql://{db_user}:{db_password}@localhost:5432/{db_name}"
+db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 engine = create_engine(db_url) # Soley for temp dev testing
 db_session = scoped_session(
   sessionmaker(autocommit=False, autoflush=False, bind=engine)
