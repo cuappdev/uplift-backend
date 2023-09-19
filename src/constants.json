@@ -32,7 +32,7 @@
             "location": "18 Sisson Pl",
             "latitude": 42.45582093240726,
             "longitude": -76.47883902202813,
-            "image_url": "gyms/toni-morrison-outside-min.jpeg",
+            "image_url": "gyms/toni_morrison_outside-min.jpeg",
             "facilities": [
                 {
                     "name": "Toni Morrison",
@@ -58,7 +58,7 @@
             "location": "306 West Ave",
             "latitude": 42.44660528140398,
             "longitude": -76.48803891048553,
-            "image_url": "gyms/noyes.jpg'",
+            "image_url": "gyms/noyes.jpg",
             "facilities": [
                 {
                     "name": "Noyes",
@@ -84,7 +84,7 @@
             "location": "512 Campus Rd",
             "latitude": 42.4459926380709,
             "longitude": -76.47915389837931,
-            "image_url": "gyms/teagle.jpg'",
+            "image_url": "gyms/teagle.jpg",
             "facilities": [
                 {
                     "name": "Teagle Up",
