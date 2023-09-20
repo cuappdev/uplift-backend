@@ -1,0 +1,50 @@
+schema {
+  query: Query
+}
+
+type Capacity {
+  id: ID!
+  facilityId: Int!
+  count: Int!
+  percent: Float!
+  updated: DateTime!
+}
+
+scalar DateTime
+
+type Facility {
+  id: ID!
+  gymId: Int!
+  name: String!
+  facilityType: FacilityType!
+  openHours(name: String): [OpenHours]
+  capacities: [Capacity]
+  capacity: Capacity
+}
+
+enum FacilityType {
+  FITNESS
+}
+
+type Gym {
+  id: ID!
+  name: String!
+  description: String!
+  location: String!
+  latitude: Float!
+  longitude: Float!
+  imageUrl: String
+  facilities: [Facility]
+}
+
+type OpenHours {
+  id: ID!
+  facilityId: Int!
+  day: Int!
+  startTime: Float!
+  endTime: Float!
+}
+
+type Query {
+  gyms: [Gym]
+}
