@@ -19,11 +19,12 @@ type Class {
 
 type ClassInstance {
   id: ID!
-  gymId: Int!
+  gymId: Int
   classId: Int!
   location: String!
   instructor: String!
-  isCancelled: Boolean!
+  isCanceled: Boolean!
+  isVirtual: Boolean!
   startTime: DateTime!
   endTime: DateTime!
   class_: Class
