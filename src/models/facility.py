@@ -5,14 +5,16 @@ from src.database import Base
 from src.models.openhours import OpenHours
 from src.models.capacity import Capacity
 
+
 class FacilityType(enum.Enum):
     fitness = 0
+
 
 class Facility(Base):
     __tablename__ = "facility"
 
     id = Column(Integer, primary_key=True)
-    gym_id = Column(Integer, ForeignKey('gym.id'), nullable=False)
+    gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)
     name = Column(String(), nullable=False)
     facility_type = Column(Enum(FacilityType), nullable=False)
     open_hours = relationship("OpenHours")
@@ -34,11 +36,11 @@ class Facility(Base):
 
     def serialize(self):
         return {
-            "id":self.id,
+            "id": self.id,
             "name": self.name,
             "gym_id": self.gym_id,
             "facility_type": self.facility_type,
-            "capacities": self.capacities
+            "capacities": self.capacities,
         }
 
 
