@@ -1,4 +1,5 @@
 import datetime
+
 from ..database import Base
 from sqlalchemy import (
     Table,
@@ -12,7 +13,6 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import backref, relationship
-
 
 class Class(Base):
     __tablename__ = "class"
@@ -33,7 +33,6 @@ class Class(Base):
             "name": self.name,
             "description": self.description,
         }
-
 
 class ClassInstance(Base):
     __tablename__ = "class_instance"
