@@ -10,8 +10,8 @@ class Gym(Base):
     description = Column(String(1000), nullable=False)
     facilities = relationship("Facility")
 
-    # TODO: - Complete capacity table
-    # capacity = relationship('Capacity', cascade='delete, all')
+
+    # TODO: - complete amenities table and scraper
 
     location=Column(String(1000), nullable=False)
     latitude=Column(Float, nullable=False)
