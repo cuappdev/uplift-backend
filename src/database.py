@@ -4,7 +4,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 
-# engine = create_engine("sqlite:///database.sqlite3")
 db_user = os.environ.get("DB_USERNAME")
 db_password = os.environ.get("DB_PASSWORD")
 db_name = os.environ.get("DB_NAME")
