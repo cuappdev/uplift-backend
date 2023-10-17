@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, Float
+from sqlalchemy import Column, ForeignKey, Integer, Float, DateTime
 from src.database import Base
 
 class OpenHours(Base):
@@ -7,8 +7,8 @@ class OpenHours(Base):
     id = Column(Integer, primary_key=True)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
     day = Column(Integer, nullable=False)
-    start_time = Column(Float, nullable=False) # TODO: - Convert to DateTime
-    end_time = Column(Float, nullable=False)
+    start_time = Column(DateTime(), nullable=False)
+    end_time = Column(DateTime(), nullable=False)
     # TODO: - Handle restrictions and special hours
     # restrictions = Column(String(1000))
     # special_hours = Column(Boolean, nullable=False)

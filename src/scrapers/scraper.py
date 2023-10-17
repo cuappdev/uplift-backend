@@ -117,3 +117,91 @@ def scrape_classes(num_pages):
             classes[class_instance.id] = class_instance
 
     return classes
+
+def scrape_pool_hours(gyms):
+    page = requests.get(BASE_URL + POOL_HOURS_PATH).text
+    soup = BeautifulSoup(page, "lxml")
+    schedules = soup.find_all("table")
+    pool_hours = {}
+
+    for table in schedules:
+        rows = table.find_all("tr")
+        if len(rows) <= 1:
+            continue
+
+        for schedule in rows[1:]:
+            gym_name = schedule.find_all("td")[0].text.strip()
+            times = []
+            for td in schedule.find_all(
+                lambda tag: tag.name == "td" and (len(tag.findChildren()) > 0 or len(tag.text) > 0)
+            )[1:]:
+                women_only = "Women Only" in td.text
+                day = (
+                    td.text.replace("\t", "")
+                    .replace("Women Only", "")
+                    .replace("\xa0", " ")
+                    .replace("*", "")
+                    .replace("am", "AM")
+                    .replace("pm", "PM")
+                    .replace("[", "")
+                    .replace("]", "\n")
+                    .replace("2PM", "2 PM")
+                    .split("\n")
+                )
+                non_empty_hours = []
+                for hours in day:
+                    if hours:
+                        non_empty_hours.append(hours)
+                times.append(non_empty_hours)
+
+            if gym_name.count("Helen Newman") > 0:
+                gym_name = "Helen Newman"
+
+            if gym_name.count("Teagle") > 0:
+                gym_name = "Teagle Down"
+
+            if gym_name not in pool_hours:
+                pool_hours[gym_name] = [[], [], [], [], [], [], []]
+
+            for i in range(len(times)):
+                day = times[i]
+                for time in day:
+                    time_text = time.strip()
+                    try:
+                        if time_text == "Closed":
+                            pool_hours[gym_name][i].append(TimeRangeType(end_time=dt.time(0), start_time=dt.time(0)))
+                        else:
+                            if "-" in time_text and "M" in time_text[time_text.index("-") + 1 :]:
+                                dash_index = time_text.index("-")
+                                start_time_string = time_text[0:dash_index].strip()
+                                end_period_index = time_text[dash_index + 1 :].index("M")
+                                end_time_string = time_text[dash_index + 1 :][: end_period_index + 1].strip()
+                                restrictions = time_text[dash_index + 1 :][end_period_index + 1 :].strip()
+
+                                if ":" not in start_time_string:
+                                    if " AM" in start_time_string:
+                                        start_time_string = start_time_string.replace(" AM", "") + ":00 AM"
+                                    else:
+                                        start_time_string += ":00"
+
+                                if "AM" not in start_time_string and "PM" not in start_time_string:
+                                    if "AM" in end_time_string:
+                                        start_time_string += " AM"
+                                    elif "PM" in end_time_string:
+                                        start_time_string += " PM"
+
+                                if ":" not in end_time_string:
+                                    if " AM" in end_time_string:
+                                        end_time_string = end_time_string.replace(" AM", "") + ":00 AM"
+                                    elif " PM" in end_time_string:
+                                        end_time_string = end_time_string.replace(" PM", "") + ":00 PM"
+
+                                start_time = datetime.strptime(start_time_string, "%I:%M %p").time()
+                                end_time = datetime.strptime(end_time_string, "%I:%M %p").time()
+
+                                pool_hours[gym_name][i].append(
+                                    TimeRangeType(end_time=end_time, restrictions=restrictions, start_time=start_time)
+                                )
+                    except:
+                        pass
+    return pool_hours
