@@ -1,129 +1,133 @@
 {
-    "default_gyms": [
+  "default_gyms": [
+    {
+      "id": 1,
+      "name": "Helen Newman",
+      "description": "description",
+      "location": "163 Cradit Farm Road",
+      "latitude": 42.453188923853595,
+      "longitude": -76.47730907608567,
+      "image_url": "gyms/helen-newman.jpg",
+      "facilities": [
         {
-            "name": "Helen Newman",
-            "description": "description",
-            "location": "163 Cradit Farm Road",
-            "latitude": 42.453188923853595,
-            "longitude": -76.47730907608567,
-            "image_url": "gyms/helen-newman.jpg",
-            "facilities": [
-                {
-                    "name": "Helen Newman",
-                    "type": "fitness",
-                    "hours": [
-                        {
-                            "start": 6,
-                            "end": 21,
-                            "weekday": true
-                        },
-                        {
-                            "start": 10,
-                            "end": 20,
-                            "weekday": false
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Toni Morrison",
-            "description": "description",
-            "location": "18 Sisson Pl",
-            "latitude": 42.45582093240726,
-            "longitude": -76.47883902202813,
-            "image_url": "gyms/toni_morrison_outside-min.jpeg",
-            "facilities": [
-                {
-                    "name": "Toni Morrison",
-                    "type": "fitness",
-                    "hours": [
-                        {
-                            "start": 14,
-                            "end": 23,
-                            "weekday": true
-                        },
-                        {
-                            "start": 12,
-                            "end": 22,
-                            "weekday": false
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Noyes",
-            "description": "description",
-            "location": "306 West Ave",
-            "latitude": 42.44660528140398,
-            "longitude": -76.48803891048553,
-            "image_url": "gyms/noyes.jpg",
-            "facilities": [
-                {
-                    "name": "Noyes",
-                    "type": "fitness",
-                    "hours": [
-                        {
-                            "start": 7,
-                            "end": 23,
-                            "weekday": true
-                        },
-                        {
-                            "start": 14,
-                            "end": 22,
-                            "weekday": false
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Teagle",
-            "description": "description",
-            "location": "512 Campus Rd",
-            "latitude": 42.4459926380709,
-            "longitude": -76.47915389837931,
-            "image_url": "gyms/teagle.jpg",
-            "facilities": [
-                {
-                    "name": "Teagle Up",
-                    "type": "fitness",
-                    "hours": [
-                        {
-                            "start": 7,
-                            "end": 22.75,
-                            "weekday": true
-                        },
-                        {
-                            "start": 12,
-                            "end": 17.5,
-                            "weekday": false
-                        }
-                    ]
-                },
-                {
-                    "name": "Teagle Down",
-                    "type": "fitness",
-                    "hours": [
-                        {
-                            "start": 7,
-                            "end": 8.5,
-                            "weekday": true
-                        },
-                        {
-                            "start": 10,
-                            "end": 22.75,
-                            "weekday": true
-                        },
-                        {
-                            "start": 12,
-                            "end": 17.5,
-                            "weekday": false
-                        }
-                    ]
-                }
-            ]
+          "name": "Helen Newman",
+          "type": "fitness",
+          "hours": [
+            {
+              "start": 6,
+              "end": 21,
+              "weekday": true
+            },
+            {
+              "start": 10,
+              "end": 20,
+              "weekday": false
+            }
+          ]
         }
-    ]
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Toni Morrison",
+      "description": "description",
+      "location": "18 Sisson Pl",
+      "latitude": 42.45582093240726,
+      "longitude": -76.47883902202813,
+      "image_url": "gyms/toni-morrison-outside-min.jpeg",
+      "facilities": [
+        {
+          "name": "Toni Morrison",
+          "type": "fitness",
+          "hours": [
+            {
+              "start": 14,
+              "end": 23,
+              "weekday": true
+            },
+            {
+              "start": 12,
+              "end": 22,
+              "weekday": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Noyes",
+      "description": "description",
+      "location": "306 West Ave",
+      "latitude": 42.44660528140398,
+      "longitude": -76.48803891048553,
+      "image_url": "gyms/noyes.jpg'",
+      "facilities": [
+        {
+          "name": "Noyes",
+          "type": "fitness",
+          "hours": [
+            {
+              "start": 7,
+              "end": 23,
+              "weekday": true
+            },
+            {
+              "start": 14,
+              "end": 22,
+              "weekday": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Teagle",
+      "description": "description",
+      "location": "512 Campus Rd",
+      "latitude": 42.4459926380709,
+      "longitude": -76.47915389837931,
+      "image_url": "gyms/teagle.jpg'",
+      "facilities": [
+        {
+          "name": "Teagle Up",
+          "type": "fitness",
+          "hours": [
+            {
+              "start": 7,
+              "end": 22.75,
+              "weekday": true
+            },
+            {
+              "start": 12,
+              "end": 17.5,
+              "weekday": false
+            }
+          ]
+        },
+        {
+          "name": "Teagle Down",
+          "type": "fitness",
+          "hours": [
+            {
+              "start": 7,
+              "end": 8.5,
+              "weekday": true
+            },
+            {
+              "start": 10,
+              "end": 22.75,
+              "weekday": true
+            },
+            {
+              "start": 12,
+              "end": 17.5,
+              "weekday": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
