@@ -5,6 +5,7 @@ import datetime as dt
 import random
 
 from bs4 import BeautifulSoup
+import re
 import requests
 
 from ..constants import (
@@ -12,6 +13,8 @@ from ..constants import (
     GYMS_BY_ID,
 )
 from ..models.classes import Class, ClassInstance
+from ..models.openhours import OpenHours
+from ..models.facility import Facility
 
 BASE_URL = "https://recreation.athletics.cornell.edu"
 CLASSES_PATH = "/fitness-centers/group-fitness-classes?&page="
@@ -135,23 +138,12 @@ def scrape_pool_hours(gyms):
             for td in schedule.find_all(
                 lambda tag: tag.name == "td" and (len(tag.findChildren()) > 0 or len(tag.text) > 0)
             )[1:]:
-                women_only = "Women Only" in td.text
-                day = (
-                    td.text.replace("\t", "")
-                    .replace("Women Only", "")
-                    .replace("\xa0", " ")
-                    .replace("*", "")
-                    .replace("am", "AM")
-                    .replace("pm", "PM")
-                    .replace("[", "")
-                    .replace("]", "\n")
-                    .replace("2PM", "2 PM")
-                    .split("\n")
-                )
+                day = list(map(lambda match: match.group(), 
+                               re.findall('((\d{1,2}:\d{2}(am|pm)) - (\d{1,2}:\d{2}(am|pm)))|Closed', td.text)))
                 non_empty_hours = []
-                for hours in day:
-                    if hours:
-                        non_empty_hours.append(hours)
+                for interval in day:
+                    if interval:
+                        non_empty_hours.append(interval)
                 times.append(non_empty_hours)
 
             if gym_name.count("Helen Newman") > 0:
@@ -169,7 +161,7 @@ def scrape_pool_hours(gyms):
                     time_text = time.strip()
                     try:
                         if time_text == "Closed":
-                            pool_hours[gym_name][i].append(TimeRangeType(end_time=dt.time(0), start_time=dt.time(0)))
+                            pool_hours[gym_name][i].append(OpenHours(end_time=dt.time(0), start_time=dt.time(0)))
                         else:
                             if "-" in time_text and "M" in time_text[time_text.index("-") + 1 :]:
                                 dash_index = time_text.index("-")
