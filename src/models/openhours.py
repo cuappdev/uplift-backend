@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey, Integer, Float, String
-from src.database import Base
+from database import Base
 
 class OpenHours(Base):
     __tablename__ = "openhours"

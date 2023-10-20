@@ -5,6 +5,9 @@ WORKDIR /usr/src/app
 
 COPY . .
 
+ENV MAX_CONCURRENT_PIP=4
+
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN python c2c_scraper.py
 

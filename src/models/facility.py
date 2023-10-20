@@ -3,8 +3,8 @@ sys.path.append('..')
 import enum
 from sqlalchemy import Column, ForeignKey, String, Enum, Integer
 from sqlalchemy.orm import relationship
-from src.database import Base
-from src.models.capacity import Capacity
+from database import Base
+from models.capacity import Capacity
 
 
 

@@ -41,8 +41,8 @@ type OpenHours {
   id: ID!
   facilityId: Int!
   day: Int!
-  startTime: Float!
-  endTime: Float!
+  startTime: String!
+  endTime: String!
 }
 
 type Query {
