@@ -13,7 +13,7 @@ from ..constants import (
 )
 from ..models.classes import Class, ClassInstance
 
-BASE_URL = "https://recreation.athletics.cornell.edu"
+BASE_URL = "https://scl.cornell.edu/recreation/"
 CLASSES_PATH = "/fitness-centers/group-fitness-classes?&page="
 SPECIAL_HOURS_PATH = "/hours-facilities/cornell-fitness-center-special-hours"
 POOL_HOURS_PATH = "/hours-facilities/pool-hours"
@@ -79,14 +79,13 @@ def scrape_classes(num_pages):
                 date_string = datetime.strftime(datetime.now(), "%m/%d/%Y")
 
             # special handling for time (cancelled)
-            time_str = row_elems[3].string
-
-            if time_str != "" or time_str.strip() != "Canceled":
+            time_str = row_elems[3].string.replace("\n", "").strip()
+            if time_str != "" and "Canceled" not in time_str:
                 class_instance.is_canceled = False
-                time_strs = time_str.split("-")
+                time_strs = time_str.split(" - ")
                 start_time_string = time_strs[0].strip()
                 end_time_string = time_strs[1].strip()
-
+                
                 class_instance.start_time = datetime.strptime(f"{date_string} {start_time_string}", "%m/%d/%Y %I:%M%p")
                 class_instance.end_time = datetime.strptime(f"{date_string} {end_time_string}", "%m/%d/%Y %I:%M%p")
             else:
