@@ -13,7 +13,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import backref, relationship
 
-
 class Class(Base):
     __tablename__ = "class"
 
@@ -34,7 +33,6 @@ class Class(Base):
             "description": self.description,
         }
 
-
 class ClassInstance(Base):
     __tablename__ = "class_instance"
 
@@ -47,6 +45,7 @@ class ClassInstance(Base):
     isVirtual = Column(Boolean(), nullable=False, default=False)
     start_time = Column(DateTime(), nullable=False)
     end_time = Column(DateTime(), nullable=False)
+
     class_ = relationship("Class", back_populates="gyms")
     gym = relationship("Gym", back_populates="classes")
 

@@ -11,6 +11,7 @@ class FacilityType(enum.Enum):
     pool = 1
 
 
+
 class Facility(Base):
     __tablename__ = "facility"
 
