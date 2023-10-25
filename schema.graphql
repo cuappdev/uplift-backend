@@ -45,6 +45,7 @@ type Facility {
 
 enum FacilityType {
   FITNESS
+  POOL
 }
 
 type Gym {
@@ -63,8 +64,8 @@ type OpenHours {
   id: ID!
   facilityId: Int!
   day: Int!
-  startTime: Float!
-  endTime: Float!
+  startTime: String!
+  endTime: String!
 }
 
 type Query {

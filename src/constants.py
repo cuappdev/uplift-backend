@@ -3,7 +3,7 @@ from src.utils import generate_id, create_times
 from src.models.gym import Gym
 from src.models.facility import Facility, FacilityType
 from src.models.capacity import Capacity
-from src.models.openhours import OpenHours
+from src.models.openhours import OpenHours, RestrictionEnum, Restrictions
 from src.database import db_session
 
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
@@ -21,8 +21,7 @@ Initialize basic information for all five fitness centers
 def create_gym_table():
     gyms = []
     facilities = []
-    fitness_hours = []
-
+    fitness_hours = []        
     with open("src/constants.json", "r") as constants_json:
         constants = json.load(constants_json)
 
@@ -40,7 +39,12 @@ def create_gym_table():
                 for i, open_hrs in enumerate(facility["hours"]):
                     hours_id_str = facility_id_str + str(i)
                     fitness_hours += create_times(uid_str=hours_id_str, facility_id=facility["id"], **open_hrs)
-
+                    #TODO: Remove hours
+    
+    i = 1
+    for r in RestrictionEnum:
+        db_session.merge(Restrictions(id=i, restriction=r))
+        i += 1
     for gym in gyms:
         db_session.merge(gym)
     for facility in facilities:

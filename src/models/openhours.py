@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, ForeignKey, Integer, Float, DateTime, String, Table, Enum
+from sqlalchemy import Column, ForeignKey, Integer, Float, Time, String, Table, Enum
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
 
@@ -15,8 +15,8 @@ class OpenHours(Base):
     id = Column(Integer, primary_key=True)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
     day = Column(Integer, nullable=False) # 0=Monday, 6=Sunday
-    start_time = Column(DateTime(), nullable=False)
-    end_time = Column(DateTime(), nullable=False)
+    start_time = Column(Time(), nullable=False)
+    end_time = Column(Time(), nullable=False)
     # TODO: - Handle restrictions and special hours
     restrictions = relationship("Restrictions", secondary=openhours_restrictions, back_populates="openhours")
     # special_hours = Column(Boolean, nullable=False)
@@ -44,10 +44,9 @@ class OpenHours(Base):
         }
     
 class RestrictionEnum(enum.Enum):
-    none = 0
-    closed = 1
-    women_only = 2
-    shallow_pool_only = 3
+    closed = 0
+    women_only = 1
+    shallow_pool_only = 2
 class Restrictions(Base):
     __tablename__ = "restrictions"
     id = Column(Integer, primary_key=True)
