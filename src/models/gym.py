@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Float, String, Integer
 from sqlalchemy.orm import relationship
 from src.database import Base
-
+from src.models.classes import ClassInstance
 
 class Gym(Base):
     __tablename__ = "gym"
