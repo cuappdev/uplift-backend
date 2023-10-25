@@ -167,39 +167,39 @@ def scrape_pool_hours():
                 day = times[i]
                 for time in day:
                     time_text = time.strip()
-                    # try:
-                    if "Closed" in time_text:
-                        openhour = OpenHours(**{"facility_id": pool.id, "day": i, "end_time": dt.time(0), "start_time": dt.time(0), "restrictions": []})
-                        closed_obj = db_session.query(Restrictions).filter_by(restriction='closed').first()
-                        openhour.restrictions.append(closed_obj)
-                        db_session.add(openhour)
-                        db_session.commit()
-                        pool_hours[pool_name][i].append(openhour)
-                    else:
-                        women_only = False
-                        shallow = False
-                        if "Women Only" in time:
-                            women_only = True
-                            time = time.replace("Women Only", "").strip()
-                        if "(shallow)" in time:
-                            shallow = True
-                            time = time.replace("(shallow)", "").strip()
-                        start_time_string, end_time_string = time.split(" - ")
-                        start_time = datetime.strptime(start_time_string, "%I:%M%p").time()
-                        end_time = datetime.strptime(end_time_string, "%I:%M%p").time()
+                    try:
+                        if "Closed" in time_text:
+                            openhour = OpenHours(**{"facility_id": pool.id, "day": i, "end_time": dt.time(0), "start_time": dt.time(0), "restrictions": []})
+                            closed_obj = db_session.query(Restrictions).filter_by(restriction='closed').first()
+                            openhour.restrictions.append(closed_obj)
+                            db_session.add(openhour)
+                            db_session.commit()
+                            pool_hours[pool_name][i].append(openhour)
+                        else:
+                            women_only = False
+                            shallow = False
+                            if "Women Only" in time:
+                                women_only = True
+                                time = time.replace("Women Only", "").strip()
+                            if "(shallow)" in time:
+                                shallow = True
+                                time = time.replace("(shallow)", "").strip()
+                            start_time_string, end_time_string = time.split(" - ")
+                            start_time = datetime.strptime(start_time_string, "%I:%M%p").time()
+                            end_time = datetime.strptime(end_time_string, "%I:%M%p").time()
 
-                        openhour = OpenHours(
-                            **{"facility_id": pool.id, "day": i, "end_time": end_time, "start_time": start_time, "restrictions": []}
-                        )
-                        if women_only:
-                            women_only_obj = db_session.query(Restrictions).filter_by(restriction='women_only').first()
-                            openhour.restrictions.append(women_only_obj)
-                        if shallow:
-                            shallow_obj = db_session.query(Restrictions).filter_by(restriction='shallow_pool_only').first()
-                            openhour.restrictions.append(shallow_obj)
-                        db_session.add(openhour)
-                        db_session.commit()
-                        pool_hours[pool_name][i].append(openhour)
-                    # except:
-                    # pass
+                            openhour = OpenHours(
+                                **{"facility_id": pool.id, "day": i, "end_time": end_time, "start_time": start_time, "restrictions": []}
+                            )
+                            if women_only:
+                                women_only_obj = db_session.query(Restrictions).filter_by(restriction='women_only').first()
+                                openhour.restrictions.append(women_only_obj)
+                            if shallow:
+                                shallow_obj = db_session.query(Restrictions).filter_by(restriction='shallow_pool_only').first()
+                                openhour.restrictions.append(shallow_obj)
+                            db_session.add(openhour)
+                            db_session.commit()
+                            pool_hours[pool_name][i].append(openhour)
+                    except:
+                        pass
     return pool_hours
