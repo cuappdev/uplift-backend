@@ -14,7 +14,7 @@ class OpenHours(Base):
 
     id = Column(Integer, primary_key=True)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
-    day = Column(Integer, nullable=False) # 0=Monday, 5=Weekend
+    day = Column(Integer, nullable=False)  # 0=Monday, 5=Weekend
     start_time = Column(Time(), nullable=False)
     end_time = Column(Time(), nullable=False)
     # TODO: - Handle restrictions and special hours
