@@ -5,7 +5,7 @@ from graphql.utils import schema_printer
 from src.database import db_session, init_db
 from src.schema import Query
 from src.constants import create_gym_table
-from src.scrapers.scraper import scrape_classes
+from scrapers.class_scraper import scrape_classes
 
 
 app = Flask(__name__)
