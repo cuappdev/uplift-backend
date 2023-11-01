@@ -1,8 +1,5 @@
 from datetime import datetime
 from ..database import db_session
-import time as t
-import datetime as dt
-import random
 
 from bs4 import BeautifulSoup
 import requests
