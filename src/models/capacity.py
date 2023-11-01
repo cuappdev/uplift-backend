@@ -1,7 +1,7 @@
 
 from sqlalchemy import Column, ForeignKey, Integer, DateTime, Float
 from sqlalchemy.orm import backref, relationship
-from database import Base 
+from src.database import Base 
 """
 Store counts for each Gym
 """

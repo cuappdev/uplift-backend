@@ -1,6 +1,6 @@
 import datetime
 
-from ..database import Base
+from src.database import Base
 from sqlalchemy import (
     Table,
     Column,

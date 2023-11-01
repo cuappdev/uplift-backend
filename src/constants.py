@@ -37,14 +37,9 @@ def create_gym_table():
                 facility["facility_type"] = FacilityType[facility["type"]]
                 facilities.append(Facility(**facility))
 
-                for i, open_hrs in enumerate(facility["hours"]):
-                    hours_id_str = facility_id_str + str(i)
-                    fitness_hours += create_times(uid_str=hours_id_str, facility_id=facility["id"], **open_hrs)
 
     for gym in gyms:
         db_session.merge(gym)
     for facility in facilities:
         db_session.merge(facility)
-    for hours in fitness_hours:
-        db_session.merge(hours)
     db_session.commit()

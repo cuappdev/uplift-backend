@@ -12,18 +12,7 @@
         {
           "name": "Helen Newman",
           "type": "fitness",
-          "hours": [
-            {
-              "start": 6,
-              "end": 21,
-              "weekday": true
-            },
-            {
-              "start": 10,
-              "end": 20,
-              "weekday": false
-            }
-          ]
+          "hours": []
         }
       ]
     },
@@ -39,18 +28,7 @@
         {
           "name": "Toni Morrison",
           "type": "fitness",
-          "hours": [
-            {
-              "start": 14,
-              "end": 23,
-              "weekday": true
-            },
-            {
-              "start": 12,
-              "end": 22,
-              "weekday": false
-            }
-          ]
+          "hours": []
         }
       ]
     },
@@ -66,18 +44,7 @@
         {
           "name": "Noyes",
           "type": "fitness",
-          "hours": [
-            {
-              "start": 7,
-              "end": 23,
-              "weekday": true
-            },
-            {
-              "start": 14,
-              "end": 22,
-              "weekday": false
-            }
-          ]
+          "hours": []
         }
       ]
     },
@@ -91,41 +58,14 @@
       "image_url": "gyms/teagle.jpg'",
       "facilities": [
         {
-          "name": "Teagle Up",
+          "name": "Teagle Upstairs",
           "type": "fitness",
-          "hours": [
-            {
-              "start": 7,
-              "end": 22.75,
-              "weekday": true
-            },
-            {
-              "start": 12,
-              "end": 17.5,
-              "weekday": false
-            }
-          ]
+          "hours": []
         },
         {
-          "name": "Teagle Down",
+          "name": "Teagle Downstairs",
           "type": "fitness",
-          "hours": [
-            {
-              "start": 7,
-              "end": 8.5,
-              "weekday": true
-            },
-            {
-              "start": 10,
-              "end": 22.75,
-              "weekday": true
-            },
-            {
-              "start": 12,
-              "end": 17.5,
-              "weekday": false
-            }
-          ]
+          "hours": []
         }
       ]
     }
