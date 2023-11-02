@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from src.database import Base
 from src.models.openhours import OpenHours
 from src.models.capacity import Capacity
+from src.models.activity import association_table
 
 
 class FacilityType(enum.Enum):
@@ -21,9 +22,9 @@ class Facility(Base):
     facility_type = Column(Enum(FacilityType), nullable=False)
     open_hours = relationship("OpenHours")
     capacities = relationship("Capacity")
+    activities = relationship("Activity", secondary=association_table, back_populates="facilities")
 
     # TODO: - Implement the following
-    # prices = relationship('Price', cascade='delete, all')
     # amenities = relationship('Amenity', cascade='delete, all')
     # image_url = Column(String(1000), nullable=True)
 
