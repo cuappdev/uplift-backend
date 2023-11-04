@@ -18,6 +18,8 @@ def scrape_capacity():
   """
   scrape capacity and timestamp and add to capacity model for corresponding gym
   """
+      
+  db_session.query(Capacity).delete()
   # Get data from C2C module    
   headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0'}
   page = requests.get(CAPACITY_SCRAPE_PATH, headers=headers).text
