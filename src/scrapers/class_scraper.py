@@ -50,6 +50,7 @@ Returns:
 
 def scrape_classes(num_pages):
     classes = {}
+    db_session.query(ClassInstance).delete()
 
     for i in range(num_pages):
         page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text

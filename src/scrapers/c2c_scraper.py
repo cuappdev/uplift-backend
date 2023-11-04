@@ -14,7 +14,7 @@ from src.models.capacity import Capacity
 from src.utils import parse_c2c_datetime
 import time
 
-def _scrape_capacity():
+def scrape_capacity():
   """
   scrape capacity and timestamp and add to capacity model for corresponding gym
   """
@@ -66,11 +66,3 @@ def _scrape_capacity():
         db_session.add(new_capacity)
         db_session.commit()
 
-def run_capacity_scraper():
-  print("Starting capacity scraper")
-  while True:
-    _scrape_capacity()
-    time.sleep(60 * CAPACITY_SCRAPE_INTERVAL_MINUTES)
-
-if __name__ == "__main__":
-  run_capacity_scraper()
