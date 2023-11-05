@@ -7,7 +7,6 @@ from src.models.openhours import OpenHours
 from src.models.capacity import Capacity
 from src.models.activity import association_table
 
-
 class FacilityType(enum.Enum):
     fitness = 0
 
