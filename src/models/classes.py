@@ -43,8 +43,8 @@ class ClassInstance(Base):
     instructor = Column(String(), nullable=False)
     isCanceled = Column(Boolean(), nullable=False, default=False)
     isVirtual = Column(Boolean(), nullable=False, default=False)
-    start_time = Column(DateTime(), nullable=False)
-    end_time = Column(DateTime(), nullable=False)
+    start_time = Column(DateTime(), nullable=True)
+    end_time = Column(DateTime(), nullable=True)
 
     class_ = relationship("Class", back_populates="gyms")
     gym = relationship("Gym", back_populates="classes")
