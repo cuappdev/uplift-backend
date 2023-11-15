@@ -1,111 +1,74 @@
-import datetime as dt
-from socketserver import StreamRequestHandler
-from xml.sax.handler import property_declaration_handler
-from graphene import Field, ObjectType, String, List, Int, Boolean
-from graphene.types.datetime import Date, Time
-from models.gym import Gym as GymModel, GymTime as GymTimeModel
-from models.daytime import DayTime as DayTimeModel
-from models.activity import Activity as ActivityModel, ActivityPrice as ActivityPriceModel
-from models.capacity import Capacity as CapacityModel
-from models.activity import Amenity as AmenityModel
-from models.price import Price as PriceModel
-from models.facility import Facility as FacilityModel, FacilityPrice as FacilityPriceModel, Equipment as EquipmentModel, FacilityTime as FacilityTimeModel
 import graphene
-from graphene import relay
-from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
-from sqlalchemy import desc
+from graphene import ObjectType
+from graphene_sqlalchemy import SQLAlchemyObjectType
+from src.models.capacity import Capacity as CapacityModel
+from src.models.facility import Facility as FacilityModel
+from src.models.gym import Gym as GymModel
+from src.models.openhours import OpenHours as OpenHoursModel
+from src.models.classes import Class as ClassModel
+from src.models.classes import ClassInstance as ClassInstanceModel
+
+
+# MARK: - Gym
 
 
 class Gym(SQLAlchemyObjectType):
     class Meta:
         model = GymModel
 
-    times = graphene.List(lambda: DayTime, day=graphene.Int(), start_time=graphene.DateTime(
-    ), end_time=graphene.DateTime(), restrictions=graphene.String(), special_hours=graphene.Boolean())
-    activities = graphene.List(lambda: Activity, name=graphene.String())
-    capacities = graphene.List(lambda: Capacity, gym_id=graphene.Int())
+    facilities = graphene.List(lambda: Facility)
 
-    @staticmethod
-    def resolve_times(self, info, day=None, start_time=None, end_time=None):
-        query = GymTime.get_query(info=info)
-        query = query.filter(GymTimeModel.gym_id == self.id)
-        query_daytime = DayTime.get_query(info=info)  # could be wrong
-        if day:
-            query_daytime = query_daytime.filter(DayTimeModel.day == day)
-        if start_time:
-            query_daytime = query_daytime.filter(DayTimeModel.start_time == start_time)
-        if end_time:
-            query_daytime = query_daytime.filter(DayTimeModel.end_time == end_time)
+    def resolve_facilities(self, info):
+        query = Facility.get_query(info=info).filter(FacilityModel.gym_id == self.id)
+        return query
 
-        daytime_queries = []
-        for row in query:
-            daytime = query_daytime.filter(DayTimeModel.id == row.daytime_id)
-            if daytime.first():
-                daytime_queries.append(daytime[0])
 
-        return daytime_queries
+# MARK: - Facility
 
-    def resolve_activities(self, info, name=None):
-        query = Activity.get_query(info=info)
-        activity_queries = []
-        for act in self.activities:
-            activity = query.filter(ActivityModel.id == act.id)
-            if activity.first() and (name == act.name or name == None):
-                activity_queries.append(activity[0])
-        return activity_queries
 
-    @staticmethod
-    def resolve_capacities(self, info, gym_id=None):
-        query = Capacity.get_query(info=info) \
-          .filter(CapacityModel.gym_id == self.id) \
-          .order_by(desc(CapacityModel.updated))
-
-        return [query.first()]
-
-class DayTime(SQLAlchemyObjectType):
+class Facility(SQLAlchemyObjectType):
     class Meta:
-        model = DayTimeModel
+        model = FacilityModel
 
-class GymTime(SQLAlchemyObjectType):
+    open_hours = graphene.List(lambda: OpenHours, name=graphene.String())
+    capacity = graphene.Field(lambda: Capacity)
+
+    def resolve_open_hours(self, info):
+        query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
+        return query
+
+    def resolve_capacity(self, info):
+        query = (
+            Capacity.get_query(info=info)
+            .filter(CapacityModel.facility_id == self.id)
+            .order_by(CapacityModel.updated.desc())
+            .first()
+        )
+        return query
+
+
+# MARK: - Classes
+
+
+class Class(SQLAlchemyObjectType):
     class Meta:
-        model = GymTimeModel
+        model = ClassModel
 
-class Activity(SQLAlchemyObjectType):
+
+class ClassInstance(SQLAlchemyObjectType):
     class Meta:
-        model = ActivityModel
+        model = ClassInstanceModel
 
-    gyms = graphene.List(lambda: Gym, name=graphene.String())
-    prices = graphene.List(lambda: Price, cost=graphene.Int(), one_time=graphene.Boolean())
 
-    def resolve_gyms(self, info, name=None):
-        query = Gym.get_query(info=info)
-        gym_queries = []
-        for g in self.gyms:
-            gym = query.filter(GymModel.id == g.id)
-            if gym.first() and (name == g.name or name == None):
-                gym_queries.append(gym[0])
+# MARK: - Open Hours
 
-        return gym_queries
 
-    @staticmethod
-    def resolve_prices(self, info, name=None, cost=None):
-        query = ActivityPrice.get_query(info=info)
-        query = query.filter(ActivityPriceModel.activity_id == self.id)
-        query_price = Price.get_query(info=info)
+class OpenHours(SQLAlchemyObjectType):
+    class Meta:
+        model = OpenHoursModel
 
-        if name:
-            query_price = query_price.filter(PriceModel.name == name)
-        if cost:
-            query_price = query_price.filter(PriceModel.cost == cost)
 
-        price_queries = []
-        for row in query:
-            price = query_price.filter(PriceModel.id == row.price_id)
-
-            if price.first():
-                price_queries.append(price[0])
-
-        return price_queries
+# MARK: - Capacity
 
 
 class Capacity(SQLAlchemyObjectType):
@@ -113,101 +76,15 @@ class Capacity(SQLAlchemyObjectType):
         model = CapacityModel
 
 
-class Price(SQLAlchemyObjectType):
-    class Meta:
-        model = PriceModel
+# MARK: - Query
 
-
-class ActivityPrice(SQLAlchemyObjectType):
-    class Meta:
-        model = ActivityPriceModel
-
-
-class Facility(SQLAlchemyObjectType):
-    class Meta:
-        model = FacilityModel
-
-    @staticmethod
-    def resolve_times(self, info, day=None, start_time=None, end_time=None):
-        query = FacilityTime.get_query(info=info)
-        query = query.filter(FacilityTimeModel.facilty_id == self.id)
-        query_daytime = DayTime.get_query(info=info)
-
-        if day:
-            query_datytime = query_daytime.filter(DayTimeModel.day == day)
-        if start_time:
-            query_daytime = query_daytime.filter(DayTimeModel.start_time == start_time)
-        if end_time:
-            query_daytime = query_daytime.filter(DayTimeModel.end_time == end_time)
-
-        daytime_queries = []
-        for row in query:
-            daytime = query_daytime.filter(DayTimeModel.id == row.daytime_id)
-            if daytime.first():
-                daytime_queries.append(daytime[0])
-
-        return daytime_queries
-
-    @staticmethod
-    def resolve_price(self, info, name=None, cost=None):
-        query = FacilityPrice.get_query(info=info)
-        query = query.filter(FacilityPriceModel.facility_id == self.id)
-        query_price = Price.get_query(info=info)
-
-        if name:
-            query_price = query_price.filter(PriceModel.name == name)
-        if cost:
-            query_price = query_price.filter(PriceModel.cost == cost)
-
-        price_queries = []
-        for row in query:
-            price = query_price.filter(PriceModel.id == row.price_id)
-
-            if price.first():
-                price_queries.append(price[0])
-
-        return price_queries
-
-class FacilityTime(SQLAlchemyObjectType):
-    class Meta:
-        model = FacilityTimeModel
-
-class FacilityPrice(SQLAlchemyObjectType):
-    class Meta:
-        model = FacilityPriceModel
-
-class Equipment(SQLAlchemyObjectType):
-    class Meta:
-        model = EquipmentModel
-
-class Amenity(SQLAlchemyObjectType):
-    class Meta:
-        model = AmenityModel
 
 class Query(graphene.ObjectType):
+    gyms = graphene.List(Gym)
 
-    gyms = graphene.List(lambda: Gym,
-                         id=graphene.Int(),
-                         name=graphene.String(),
-                         description=graphene.String(),
-                         location=graphene.String(),
-                         latitude=graphene.Float(),
-                         longitude=graphene.Float(),
-                         image_url=graphene.String())
-
-    def resolve_gyms(self, info, name=None):
+    def resolve_gyms(self, info):
         query = Gym.get_query(info)
-        if name:
-            query = query.filter(GymModel.name == name)
         return query.all()
 
-    activities = graphene.List(lambda: Activity, name=graphene.String(
-      ), details=graphene.String(), image_url=graphene.String())
-
-    def resolve_activities(self, info, name=None):
-        query = Activity.get_query(info)
-        if name:
-            query = query.filter(ActivityModel.name == name)
-        return query.all()
 
 schema = graphene.Schema(query=Query)

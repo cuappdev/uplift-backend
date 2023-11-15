@@ -13,6 +13,11 @@
           "name": "Helen Newman",
           "type": "fitness",
           "hours": []
+        },
+        {
+          "name": "Helen Newman Pool",
+          "type": "pool",
+          "hours": []
         }
       ]
     },
@@ -39,7 +44,7 @@
       "location": "306 West Ave",
       "latitude": 42.44660528140398,
       "longitude": -76.48803891048553,
-      "image_url": "gyms/noyes.jpg'",
+      "image_url": "gyms/noyes.jpg",
       "facilities": [
         {
           "name": "Noyes",
@@ -55,7 +60,7 @@
       "location": "512 Campus Rd",
       "latitude": 42.4459926380709,
       "longitude": -76.47915389837931,
-      "image_url": "gyms/teagle.jpg'",
+      "image_url": "gyms/teagle.jpg",
       "facilities": [
         {
           "name": "Teagle Upstairs",
@@ -65,6 +70,11 @@
         {
           "name": "Teagle Downstairs",
           "type": "fitness",
+          "hours": []
+        },
+        {
+          "name": "Teagle Pool",
+          "type": "pool",
           "hours": []
         }
       ]
