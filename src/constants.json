@@ -63,12 +63,12 @@
       "image_url": "gyms/teagle.jpg",
       "facilities": [
         {
-          "name": "Teagle Up",
+          "name": "Teagle Upstairs",
           "type": "fitness",
           "hours": []
         },
         {
-          "name": "Teagle Down",
+          "name": "Teagle Downstairs",
           "type": "fitness",
           "hours": []
         },

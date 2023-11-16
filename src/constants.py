@@ -49,6 +49,4 @@ def create_gym_table():
         db_session.merge(gym)
     for facility in facilities:
         db_session.merge(facility)
-    # for hours in fitness_hours:
-    #     db_session.merge(hours)
     db_session.commit()
