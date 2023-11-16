@@ -10,6 +10,27 @@ type Capacity {
   updated: DateTime!
 }
 
+type Class {
+  id: ID!
+  name: String!
+  description: String!
+  gyms: [ClassInstance]
+}
+
+type ClassInstance {
+  id: ID!
+  gymId: Int
+  classId: Int!
+  location: String!
+  instructor: String!
+  isCanceled: Boolean!
+  isVirtual: Boolean!
+  startTime: DateTime!
+  endTime: DateTime!
+  class_: Class
+  gym: Gym
+}
+
 scalar DateTime
 
 type Facility {
@@ -24,6 +45,7 @@ type Facility {
 
 enum FacilityType {
   FITNESS
+  POOL
 }
 
 type Gym {
@@ -35,14 +57,15 @@ type Gym {
   longitude: Float!
   imageUrl: String
   facilities: [Facility]
+  classes: [ClassInstance]
 }
 
 type OpenHours {
   id: ID!
   facilityId: Int!
   day: Int!
-  startTime: Float!
-  endTime: Float!
+  startTime: String!
+  endTime: String!
 }
 
 type Query {

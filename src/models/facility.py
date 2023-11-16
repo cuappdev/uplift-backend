@@ -9,6 +9,8 @@ from src.models.activity import association_table
 
 class FacilityType(enum.Enum):
     fitness = 0
+    pool = 1
+
 
 
 class Facility(Base):

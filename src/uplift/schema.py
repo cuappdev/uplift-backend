@@ -4,7 +4,7 @@ from xml.sax.handler import property_declaration_handler
 from graphene import Field, ObjectType, String, List, Int, Boolean
 from graphene.types.datetime import Date, Time
 from models.gym import Gym as GymModel, GymTime as GymTimeModel
-from models.daytime import DayTime as DayTimeModel
+# from models.daytime import DayTime as DayTimeModel
 from models.activity import Activity as ActivityModel, ActivityPrice as ActivityPriceModel
 from models.capacity import Capacity as CapacityModel
 from models.activity import Amenity as AmenityModel
