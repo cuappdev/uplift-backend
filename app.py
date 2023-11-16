@@ -5,6 +5,8 @@ from graphql.utils import schema_printer
 from src.database import db_session, init_db
 from src.schema import Query
 from src.constants import create_gym_table
+from src.scrapers.scraper import scrape_classes
+from src.scrapers.gym_scraper import scrape_times
 from src.scrapers.scraper import scrape_classes, scrape_pool_hours
 
 
@@ -30,6 +32,7 @@ def shutdown_session(exception=None):
 # Create database and fill it with constants
 init_db()
 create_gym_table()
+scrape_times()
 scrape_classes(3)
 scrape_pool_hours()
 

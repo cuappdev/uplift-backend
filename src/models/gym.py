@@ -5,7 +5,7 @@ from src.models.classes import ClassInstance
 
 
 class Gym(Base):
-    __tablename__ = "gym"
+    __tablename__ = 'gym'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
@@ -13,8 +13,8 @@ class Gym(Base):
     facilities = relationship("Facility")
     classes = relationship("ClassInstance", back_populates="gym")
 
-    # TODO: - Complete capacity table
-    # capacity = relationship('Capacity', cascade='delete, all')
+    # TODO: - complete amenities table and scraper
+    # # amenities = relationship('Amenity', cascade='delete, all')
 
     location = Column(String(1000), nullable=False)
     latitude = Column(Float, nullable=False)
