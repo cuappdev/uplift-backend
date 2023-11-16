@@ -6,6 +6,7 @@ import requests
 from src.models.facility import Facility, FacilityType
 from src.models.openhours import OpenHours
 from src.models.gym import Gym
+from datetime import datetime as dt
 
 BASE_URL_CENTERS = 'https://scl.cornell.edu/recreation/cornell-fitness-centers'
   
@@ -24,32 +25,46 @@ def create_openhours(times_set, name, begin_day, end_day):
     etime_loc = times[1].lower().find('am') if am_e else times[1].lower().find('pm')
     
     start = times[0][:stime_loc].strip()
-    start = start + 'am' if am_st else start + 'pm'
+    start = start + 'AM' if am_st else start + 'PM'
     end = times[1][:etime_loc].strip()
-    end = end + 'am' if am_e else end + 'pm'
+    end = end + 'AM' if am_e else end + 'PM'
+
     
     facility = db_session.query(Facility).filter(Facility.name == name).first()
     
 
     #put an open hour for each day: 1 = Monday, 2 = Tuesday, etc.
     for i in range(begin_day, end_day):
+      # if int(start[0]) < 10:
+      #   start = '0' + start
+      # if int(end[0]) < 10:
+      #   end = '0' + end
+      if ':' in start:
+        st_obj = dt.strptime(start, "%I:%M%p")
+      else:
+        st_obj = dt.strptime(start, "%I%p")
+      if ':' in end:
+        end_obj = dt.strptime(end, "%I:%M%p")
+      else:
+        end_obj = dt.strptime(end, "%I%p")
       try:
-        hour = db_session.query(OpenHours).filter(OpenHours.facility_id==facility.id, OpenHours.day == i, OpenHours.start_time == start, OpenHours.end_time == end).first()
+        hour = db_session.query(OpenHours).filter(OpenHours.facility_id==facility.id, OpenHours.day == i, OpenHours.start_time == st_obj.time(), OpenHours.end_time == end_obj.time()).first()
         assert hour is not None
       except AssertionError:
-        hour = OpenHours(facility_id=facility.id, day=i, start_time=start, end_time=end)
+        
+        hour = OpenHours(facility_id=facility.id, day=i, start_time=st_obj.time(), end_time=end_obj.time(), restrictions=[])
         db_session.add(hour)
         db_session.commit()
 
 def get_days(data):
   days_to_nums = {
-    'monday': 1,
-    'tuesday': 2,
-    'wednesday': 3,
-    'thursday': 4,
-    'friday': 5,
-    'saturday': 6,
-    'sunday': 7, 
+    'monday': 0,
+    'tuesday': 1,
+    'wednesday': 2,
+    'thursday': 3,
+    'friday': 4,
+    'saturday': 5,
+    'sunday': 6, 
   }
 
 
