@@ -1,0 +1,9 @@
+version: "3.3"
+
+services:
+  web:
+    image: cornellappdev/uplift:test
+    command: sh -c "python app.py"
+    env_file: .env
+    ports:
+      - "8080:5000"
