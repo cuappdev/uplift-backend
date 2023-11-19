@@ -90,7 +90,9 @@ def scrape_classes(num_pages):
                 class_instance.is_canceled = False
                 time_strs = time_str.split(" - ")
                 start_time_string = time_strs[0].strip()
+                # print(start_time_string)
                 end_time_string = time_strs[1].strip()
+                # print(end_time_string)
 
                 class_instance.start_time = datetime.strptime(f"{date_string} {start_time_string}", "%m/%d/%Y %I:%M%p")
                 class_instance.end_time = datetime.strptime(f"{date_string} {end_time_string}", "%m/%d/%Y %I:%M%p")
