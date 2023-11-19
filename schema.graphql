@@ -2,6 +2,14 @@ schema {
   query: Query
 }
 
+type Activity {
+  id: ID!
+  name: String!
+  activityType: Int!
+  imageUrl: String!
+  facilities: [Facility]
+}
+
 type Capacity {
   id: ID!
   facilityId: Int!
@@ -40,7 +48,9 @@ type Facility {
   facilityType: FacilityType!
   openHours(name: String): [OpenHours]
   capacities: [Capacity]
+  activities: [Activity]
   capacity: Capacity
+  activity: Activity
 }
 
 enum FacilityType {

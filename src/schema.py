@@ -7,7 +7,7 @@ from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
-
+from src.models.activity import Activity as ActivityModel
 
 # MARK: - Gym
 
@@ -32,6 +32,7 @@ class Facility(SQLAlchemyObjectType):
 
     open_hours = graphene.List(lambda: OpenHours, name=graphene.String())
     capacity = graphene.Field(lambda: Capacity)
+    activity = graphene.Field(lambda: Activity)
 
     def resolve_open_hours(self, info):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)

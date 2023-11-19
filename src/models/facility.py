@@ -4,6 +4,7 @@ import enum
 from sqlalchemy import Column, ForeignKey, String, Enum, Integer
 from sqlalchemy.orm import relationship
 from src.database import Base
+from src.models.activity import association_table
 from src.models.capacity import Capacity
 
 
