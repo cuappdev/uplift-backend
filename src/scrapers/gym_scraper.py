@@ -10,7 +10,7 @@ from datetime import datetime as dt
 
 BASE_URL_CENTERS = 'https://scl.cornell.edu/recreation/cornell-fitness-centers'
   
-def create_openhours(times_set, name, begin_day, end_day):
+def create_openhours(times_set, name, begin_day, end_day, special):
   for time in times_set:
     times = time.strip().split('-')
     times = [t.strip() for t in times]
@@ -33,12 +33,8 @@ def create_openhours(times_set, name, begin_day, end_day):
     facility = db_session.query(Facility).filter(Facility.name == name).first()
     
 
-    #put an open hour for each day: 1 = Monday, 2 = Tuesday, etc.
+    #put an open hour for each day: 0 = Monday, 1 = Tuesday, etc.
     for i in range(begin_day, end_day):
-      # if int(start[0]) < 10:
-      #   start = '0' + start
-      # if int(end[0]) < 10:
-      #   end = '0' + end
       if ':' in start:
         st_obj = dt.strptime(start, "%I:%M%p")
       else:
@@ -48,11 +44,10 @@ def create_openhours(times_set, name, begin_day, end_day):
       else:
         end_obj = dt.strptime(end, "%I%p")
       try:
-        hour = db_session.query(OpenHours).filter(OpenHours.facility_id==facility.id, OpenHours.day == i, OpenHours.start_time == st_obj.time(), OpenHours.end_time == end_obj.time()).first()
+        hour = db_session.query(OpenHours).filter(OpenHours.facility_id==facility.id, OpenHours.day == i, OpenHours.start_time == st_obj.time(), OpenHours.end_time == end_obj.time(), OpenHours.special_hours == special).first()
         assert hour is not None
       except AssertionError:
-        
-        hour = OpenHours(facility_id=facility.id, day=i, start_time=st_obj.time(), end_time=end_obj.time(), restrictions=[])
+        hour = OpenHours(facility_id=facility.id, day=i, start_time=st_obj.time(), end_time=end_obj.time(), restrictions=[], special_hours=special)
         db_session.add(hour)
         db_session.commit()
 
@@ -81,13 +76,13 @@ def get_days(data):
       converted = []
       for day in days:
         converted.append(days_to_nums[day.strip().lower()])
-      if len(converted == 1):
+      if len(converted) == 1:
         converted.append(converted[0])
       converted[-1] += 1
       day_set[i] = converted
   return day_set
   
-def create_times(day_set, data):
+def create_times(day_set, data, special):
   for row in data[1:]:
     row_data = row.find_all('td')
     name = row_data[0].text.strip()
@@ -97,7 +92,7 @@ def create_times(day_set, data):
     for i in range(len(row_data)):
       colspan = 1
       if 'colspan' in row_data[i].attrs:
-        colspan = row_data[i].attrs['colspan']
+        colspan = int(row_data[i].attrs['colspan'])
       
       begin_day = day_set[k][0]
       for j in range(colspan):
@@ -105,30 +100,18 @@ def create_times(day_set, data):
           k += 1
       times = row_data[i].text.strip().split('/')
 
-      create_openhours(times, name, begin_day, end_day)
+      create_openhours(times, name, begin_day, end_day, special)
 
 def scrape_times():
   page = requests.get(BASE_URL_CENTERS).text
   soup = BeautifulSoup(page, 'lxml')
-  table = soup.find('table', class_='colored striped')
-  data = table.find_all('tr')
+  tables = soup.find_all('table', class_='colored striped')
+  data_list = []
+  for table in tables:
+    data_list.append(table.find_all('tr'))
 
-  d_set = get_days(data)
-  create_times(d_set, data)
-
-  
-
-
-
-
-  
-    
-
-    
-    
-
-    
-
-
-    
-
+  for i in range(len(data_list)):
+    special = i != 0
+    data = data_list[i]
+    d_set = get_days(data)
+    create_times(d_set, data, special)

@@ -90,9 +90,7 @@ def scrape_classes(num_pages):
                 class_instance.is_canceled = False
                 time_strs = time_str.split(" - ")
                 start_time_string = time_strs[0].strip()
-                # print(start_time_string)
                 end_time_string = time_strs[1].strip()
-                # print(end_time_string)
 
                 class_instance.start_time = datetime.strptime(f"{date_string} {start_time_string}", "%m/%d/%Y %I:%M%p")
                 class_instance.end_time = datetime.strptime(f"{date_string} {end_time_string}", "%m/%d/%Y %I:%M%p")
@@ -171,7 +169,7 @@ def scrape_pool_hours():
                     time_text = time.strip()
                     try:
                         if "Closed" in time_text:
-                            openhour = OpenHours(**{"facility_id": pool.id, "day": i, "end_time": dt.time(0), "start_time": dt.time(0), "restrictions": []})
+                            openhour = OpenHours(**{"facility_id": pool.id, "day": i, "end_time": dt.time(0), "start_time": dt.time(0), "restrictions": [], "special_hours": False})
                             closed_obj = db_session.query(Restrictions).filter_by(restriction='closed').first()
                             openhour.restrictions.append(closed_obj)
                             db_session.add(openhour)
@@ -191,7 +189,7 @@ def scrape_pool_hours():
                             end_time = datetime.strptime(end_time_string, "%I:%M%p").time()
 
                             openhour = OpenHours(
-                                **{"facility_id": pool.id, "day": i, "end_time": end_time, "start_time": start_time, "restrictions": []}
+                                **{"facility_id": pool.id, "day": i, "end_time": end_time, "start_time": start_time, "restrictions": [], "special_hours": False}
                             )
                             if women_only:
                                 women_only_obj = db_session.query(Restrictions).filter_by(restriction='women_only').first()

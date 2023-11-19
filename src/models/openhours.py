@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, ForeignKey, Integer, Float, String, Time, String, Table, Enum
+from sqlalchemy import Column, ForeignKey, Integer, Float, String, Time, String, Table, Enum, Boolean
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
 
@@ -19,7 +19,7 @@ class OpenHours(Base):
     end_time = Column(Time(), nullable=True)
     # TODO: - Handle restrictions and special hours
     restrictions = relationship("Restrictions", secondary=openhours_restrictions, back_populates="openhours")
-    # special_hours = Column(Boolean, nullable=False)
+    special_hours = Column(Boolean(), nullable=False)
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
@@ -29,7 +29,7 @@ class OpenHours(Base):
         self.end_time = kwargs.get("end_time")
         # TODO: - Handle restrictions and special hours
         self.restrictions = kwargs.get("restrictions")
-        # self.special_hours = kwargs.get("special_hours")
+        self.special_hours = kwargs.get("special_hours")
 
     def serialize(self):
         return {
@@ -40,7 +40,7 @@ class OpenHours(Base):
             "end_time": self.end_time,
             # TODO: - Handle restrictions and special hours
             "restrictions": self.restrictions,
-            # "special_hours": self.special_hours
+            "special_hours": self.special_hours
         }
     
 class RestrictionEnum(enum.Enum):

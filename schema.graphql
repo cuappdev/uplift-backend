@@ -74,6 +74,7 @@ type OpenHours {
   day: Int!
   startTime: String
   endTime: String
+  specialHours: Boolean!
 }
 
 type Query {
