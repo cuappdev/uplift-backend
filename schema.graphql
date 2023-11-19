@@ -49,8 +49,6 @@ type Facility {
   openHours(name: String): [OpenHours]
   capacities: [Capacity]
   activities: [Activity]
-  capacity: Capacity
-  activity: Activity
 }
 
 enum FacilityType {
