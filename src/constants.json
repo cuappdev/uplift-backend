@@ -1,83 +1,96 @@
-{
-  "default_gyms": [
-    {
-      "id": 1,
-      "name": "Helen Newman",
-      "description": "description",
-      "location": "163 Cradit Farm Road",
-      "latitude": 42.453188923853595,
-      "longitude": -76.47730907608567,
-      "image_url": "gyms/helen-newman.jpg",
-      "facilities": [
-        {
-          "name": "Helen Newman",
-          "type": "fitness",
-          "hours": []
-        },
-        {
-          "name": "Helen Newman Pool",
-          "type": "pool",
-          "hours": []
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "name": "Toni Morrison",
-      "description": "description",
-      "location": "18 Sisson Pl",
-      "latitude": 42.45582093240726,
-      "longitude": -76.47883902202813,
-      "image_url": "gyms/toni-morrison-outside-min.jpeg",
-      "facilities": [
-        {
-          "name": "Toni Morrison",
-          "type": "fitness",
-          "hours": []
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "name": "Noyes",
-      "description": "description",
-      "location": "306 West Ave",
-      "latitude": 42.44660528140398,
-      "longitude": -76.48803891048553,
-      "image_url": "gyms/noyes.jpg",
-      "facilities": [
-        {
-          "name": "Noyes",
-          "type": "fitness",
-          "hours": []
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "name": "Teagle",
-      "description": "description",
-      "location": "512 Campus Rd",
-      "latitude": 42.4459926380709,
-      "longitude": -76.47915389837931,
-      "image_url": "gyms/teagle.jpg",
-      "facilities": [
-        {
-          "name": "Teagle Upstairs",
-          "type": "fitness",
-          "hours": []
-        },
-        {
-          "name": "Teagle Downstairs",
-          "type": "fitness",
-          "hours": []
-        },
-        {
-          "name": "Teagle Pool",
-          "type": "pool",
-          "hours": []
-        }
-      ]
-    }
-  ]
-}
+[
+  {
+    "id": 1,
+    "address": "163 Cradit Farm Road",
+    "facilities": [
+      {
+        "name": "Helen Newman",
+        "type": "fitness",
+        "hours": []
+      },
+      {
+        "name": "Helen Newman Pool",
+        "type": "pool",
+        "hours": []
+      },
+      {
+        "name": "Helen Newman Bowling",
+        "type": "bowling",
+        "hours": []
+      },
+      {
+        "name": "Helen Newman Court 1",
+        "type": "court",
+        "hours": []
+      },
+      {
+        "name": "Helen Newman Court 2",
+        "type": "court",
+        "hours": []
+      }
+    ],
+    "hours": [],
+    "image_url": "gyms/helen-newman.jpg",
+    "latitude": 42.453188923853595,
+    "longitude": -76.47730907608567,
+    "name": "Helen Newman"
+  },
+  {
+    "id": 2,
+    "address": "18 Sisson Pl",
+    "facilities": [
+      {
+        "name": "Morrison Fitness Center",
+        "type": "fitness",
+        "hours": []
+      }
+    ],
+    "hours": [],
+    "image_url": "gyms/morrison.jpeg",
+    "latitude": 42.45582093240726,
+    "longitude": -76.47883902202813,
+    "name": "Toni Morrison"
+  },
+  {
+    "id": 3,
+    "address": "306 West Ave",
+    "facilities": [
+      {
+        "name": "Noyes",
+        "type": "fitness",
+        "hours": []
+      }
+    ],
+    "hours": [],
+    "image_url": "gyms/noyes.jpg",
+    "latitude": 42.44660528140398,
+    "longitude": -76.48803891048553,
+    "name": "Noyes"
+  },
+  {
+    "id": 4,
+    "address": "512 Campus Rd",
+    "facilities": [
+      {
+        "name": "Teagle Up",
+        "type": "fitness",
+        "hours": []
+      },
+      {
+        "name": "Teagle Down",
+        "type": "fitness",
+        "hours": []
+      },
+      {
+        "name": "Teagle Pool",
+        "type": "pool",
+        "hours": []
+      }
+    ],
+    "hours": [],
+    "image_url": "gyms/teagle.jpg",
+    "latitude": 42.4459926380709,
+    "longitude": -76.47915389837931,
+    "name": "Teagle"
+  }
+]

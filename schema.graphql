@@ -4,68 +4,57 @@ schema {
 
 type Capacity {
   id: ID!
-  facilityId: Int!
   count: Int!
+  facilityId: Int
   percent: Float!
   updated: DateTime!
 }
 
-type Class {
-  id: ID!
-  name: String!
-  description: String!
-  gyms: [ClassInstance]
-}
-
-type ClassInstance {
-  id: ID!
-  gymId: Int
-  classId: Int!
-  location: String!
-  instructor: String!
-  isCanceled: Boolean!
-  isVirtual: Boolean!
-  startTime: DateTime
-  endTime: DateTime
-  class_: Class
-  gym: Gym
+enum CourtType {
+  BASKETBALL
+  VOLLEYBALL
+  BADMINTON
 }
 
 scalar DateTime
 
 type Facility {
   id: ID!
+  facilityType: FacilityType!
   gymId: Int!
   name: String!
-  facilityType: FacilityType!
-  openHours(name: String): [OpenHours]
-  capacities: [Capacity]
   capacity: Capacity
+  hours: [OpenHours]
+  openHours(name: String): [OpenHours]
 }
 
 enum FacilityType {
   FITNESS
   POOL
+  BOWLING
+  COURT
 }
 
 type Gym {
   id: ID!
-  name: String!
-  description: String!
-  location: String!
+  address: String!
+  imageUrl: String
   latitude: Float!
   longitude: Float!
-  imageUrl: String
+  name: String!
   facilities: [Facility]
-  classes: [ClassInstance]
+  hours: [OpenHours]
 }
 
 type OpenHours {
   id: ID!
-  facilityId: Int!
-  day: Int!
-  startTime: String
-  endTime: String
+  courtType: CourtType!
+  endTime: String!
+  facilityId: Int
+  gymId: Int
+  isShallow: Boolean
+  isWomen: Boolean
+  startTime: String!
 }
 
 type Query {

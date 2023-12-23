@@ -1,12 +1,9 @@
 import graphene
-from graphene import ObjectType
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from src.models.capacity import Capacity as CapacityModel
 from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
-from src.models.classes import Class as ClassModel
-from src.models.classes import ClassInstance as ClassInstanceModel
 
 
 # MARK: - Gym
@@ -45,19 +42,6 @@ class Facility(SQLAlchemyObjectType):
             .first()
         )
         return query
-
-
-# MARK: - Classes
-
-
-class Class(SQLAlchemyObjectType):
-    class Meta:
-        model = ClassModel
-
-
-class ClassInstance(SQLAlchemyObjectType):
-    class Meta:
-        model = ClassInstanceModel
 
 
 # MARK: - Open Hours
