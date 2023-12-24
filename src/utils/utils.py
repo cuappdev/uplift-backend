@@ -1,10 +1,9 @@
 import hashlib
 import json
-from src.utils.constants import ASSET_BASE_URL
+from src.utils.constants import ASSET_BASE_URL, FACILITY_ID_DICT, GYM_ID_DICT
 from src.models.gym import Gym
 from src.models.facility import Facility, FacilityType
 from datetime import datetime as dt
-from src.models.openhours import OpenHours
 from src.database import db_session
 
 
@@ -42,10 +41,12 @@ def create_gym_table():
         json_gyms = json.load(json_file)
 
         for gym in json_gyms:
+            gym["id"] = GYM_ID_DICT[gym["id"]]
             gym["image_url"] = f"{ASSET_BASE_URL}{gym['image_url']}"
             gyms.append(Gym(**gym))
 
             for facility in gym["facilities"]:
+                facility["id"] = FACILITY_ID_DICT[facility["id"]]
                 facility["gym_id"] = gym["id"]
                 facility["facility_type"] = FacilityType[facility["type"]]
                 facilities.append(Facility(**facility))
@@ -54,17 +55,3 @@ def create_gym_table():
     [db_session.merge(gym) for gym in gyms]
     [db_session.merge(facility) for facility in facilities]
     db_session.commit()
-
-
-def create_times(uid_str, facility_id, start, end, weekday):
-    """
-    Helper function for generating a list of OpenHours from
-    corresponding hours.
-    """
-    times = []
-    day_range = range(0, 5) if weekday else range(5, 7)
-    for i in day_range:
-        times.append(
-            OpenHours(id=generate_id(f"{uid_str}-{i}"), facility_id=facility_id, day=i, start_time=start, end_time=end)
-        )
-    return times

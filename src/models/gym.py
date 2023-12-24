@@ -8,14 +8,14 @@ class Gym(Base):
     A building containing facilities.
 
     Attributes:
-        id              The ID of this gym (building).
-        address         The address of the buildling.
-        facilities      This gym's facilities.
-        hours           The building hours.
-        image_url       The URL of this gym's image.
-        latitude        The latitude coordinate of this gym.
-        longitude       The longitude coordinate of this gym.
-        name            The name of this gym.
+        - `id`              The ID of this gym (building).
+        - `address`         The address of the buildling.
+        - `facilities`      This gym's facilities.
+        - `hours`           The building hours.
+        - `image_url`       The URL of this gym's image.
+        - `latitude`        The latitude coordinate of this gym.
+        - `longitude`       The longitude coordinate of this gym.
+        - `name`            The name of this gym.
     """
 
     __tablename__ = "gym"

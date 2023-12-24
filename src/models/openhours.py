@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Boolean, Column, Enum, Integer, Time, ForeignKey
+from sqlalchemy import Boolean, Column, Enum, Integer, Float, ForeignKey
 from src.database import Base
 
 
@@ -18,26 +18,26 @@ class OpenHours(Base):
     A facility or gym's open hours.
 
     Attributes:
-        id              The ID of these hours.
-        court_type      The type of this court for these hours, if applicable.
-        end_time        The Unix time of when this facility closes for this day.
-        facility_id     The ID of the facility for these hours, if applicable.
-        gym_id          The ID of the gym for these hours, if applicable.
-        is_shallow      True if these hours are for shallow waters only
-        is_women        True if these hours are for women only.
-        start_time      The Unix time of when this facility opens for this day.
+        - `id`            The ID of these hours.
+        - `court_type`    (nullable) The type of this court for these hours, if applicable.
+        - `end_time`      The Unix time of when this facility closes for this day.
+        - `facility_id`   (nullable) The ID of the facility for these hours, if applicable.
+        - `gym_id`        (nullable) The ID of the gym for these hours, if applicable.
+        - `is_shallow`    (nullable) True if these hours are for shallow waters only
+        - `is_women`      (nullable) True if these hours are for women only.
+        - `start_time`    The Unix time of when this facility opens for this day.
     """
 
     __tablename__ = "openhours"
 
     id = Column(Integer, primary_key=True)
-    court_type = Column(Enum(CourtType), nullable=False)
-    end_time = Column(Time(), nullable=False)
+    court_type = Column(Enum(CourtType), nullable=True)
+    end_time = Column(Integer, nullable=False)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=True)
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=True)
     is_shallow = Column(Boolean, nullable=True)
     is_women = Column(Boolean, nullable=True)
-    start_time = Column(Time(), nullable=False)
+    start_time = Column(Integer, nullable=False)
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")

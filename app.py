@@ -5,6 +5,7 @@ from graphql.utils import schema_printer
 from src.database import db_session, init_db
 from src.schema import Query
 from src.utils.utils import create_gym_table
+from src.scrapers.scraper import fetch_reg_fc, fetch_reg_building
 
 
 app = Flask(__name__)
@@ -26,13 +27,11 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 
-# Create database and fill it with constants
+# Create database and fill it with data
 init_db()
 create_gym_table()
-# TODO: Temporarily disable scraper
-# scrape_times()
-# scrape_classes(3)
-# scrape_pool_hours()
+fetch_reg_fc()
+fetch_reg_building()
 
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:

@@ -1,224 +1,201 @@
-# from datetime import datetime
-# from ..database import db_session
-# import time as t
-# import datetime as dt
-# import random
+import gspread, pytz, time
+from datetime import datetime, timedelta
+from src.utils.constants import (
+    FACILITY_ID_DICT,
+    GYM_ID_DICT,
+    LOCAL_TIMEZONE,
+    SERVICE_ACCOUNT_PATH,
+    SHEET_KEY,
+    SHEET_REGULAR_FC,
+    SHEET_REGULAR_BUILDING,
+)
+from src.models.openhours import OpenHours
+from src.database import db_session
 
-# from bs4 import BeautifulSoup
-# import re
-
-# import requests
-
-# from ..utils.constants import (
-#     ASSET_BASE_URL,
-#     GYMS_BY_ID,
-# )
-# from ..models.openhours import OpenHours
-# from ..models.facility import Facility
-
-# BASE_URL = "https://scl.cornell.edu/recreation/"
-# CLASSES_PATH = "/fitness-centers/group-fitness-classes?&page="
-# SPECIAL_HOURS_PATH = "/hours-facilities/cornell-fitness-center-special-hours"
-# POOL_HOURS_PATH = "/hours-facilities/pool-hours"
+# Configure client and sheet
+gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
+sh = gc.open_by_key(SHEET_KEY)
 
 
-# def create_group_class(class_href):
-#     page = requests.get(BASE_URL + class_href).text
-#     soup = BeautifulSoup(page, "lxml")
-#     container = soup.select_one("#main-article")
-#     name = container.select_one("h1").text
-#     try:
-#         contents = container.select("p")
-#     except AttributeError as e:
-#         print(e)
-#         contents = [""]
+def fetch_reg_building():
+    """
+    Fetch regular building hours for the next 7 days (inclusive of today).
 
-#     description = ""
-#     for c in contents:
-#         if isinstance(c, str):
-#             description += c
-#         else:
-#             description += c.text
-#     model = Class(name=name, description=description)
-#     db_session.add(model)
-#     db_session.commit()
-#     return model
+    For example, if today is Tuesday, fetch hours for today up to and including
+    next Monday.
 
+    Returns:    a list of datetime objects.
+    """
+    worksheet = sh.worksheet(SHEET_REGULAR_BUILDING)
 
-# """
-# Scrape classes from the group-fitness-classes page
-# Params:
-#   num_pages: number of pages to scrape
-# Returns:
-#   dict of ClassInstance objects
-# """
+    # Fetch row info
+    hnh = worksheet.row_values("3")[1:]
+    noyes = worksheet.row_values("4")[1:]
+    teagle = worksheet.row_values("5")[1:]
+    morrison = worksheet.row_values("6")[1:]
 
+    # Monday = 0, ..., Sunday = 6
+    for i in range(6):
+        # Determine next day
+        date = datetime.now() + timedelta(days=i)
 
-# def scrape_classes(num_pages):
-#     classes = {}
-#     db_session.query(ClassInstance).delete()
-#     db_session.commit()
-#     for i in range(num_pages):
-#         page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
-#         soup = BeautifulSoup(page, "lxml")
-#         if len(soup.find_all("table")) == 1:
-#             continue
-#         schedule = soup.find_all("table")[1]  # first table is irrelevant
-#         data = schedule.find_all("tr")[1:]  # first row is header
-#         for row in data:
-#             row_elems = row.find_all("td")
-#             class_instance = ClassInstance()
+        # Note that the order matters!
+        time_strings = [hnh[i], noyes[i], teagle[i], morrison[i]]
 
-#             class_name = row_elems[0].a.text
-#             class_href = row_elems[0].a["href"]
-#             try:
-#                 gym_class = db_session.query(Class).filter(Class.name == class_name).first()
-#                 assert gym_class is not None
-#             except AssertionError:
-#                 gym_class = create_group_class(class_href)
-#             class_instance.class_id = gym_class.id
+        gym_ids = [
+            GYM_ID_DICT["hnh"],
+            GYM_ID_DICT["noyes"],
+            GYM_ID_DICT["teagle"],
+            GYM_ID_DICT["morrison"],
+        ]
 
-#             date_string = row_elems[1].text.strip()
-#             if "Today" in date_string:
-#                 date_string = datetime.strftime(datetime.now(), "%m/%d/%Y")
-
-#             # special handling for time (cancelled)
-
-#             time_str = row_elems[3].string.replace("\n", "").strip()
-#             if time_str != "" and time_str != "Canceled":
-#                 class_instance.is_canceled = False
-#                 time_strs = time_str.split(" - ")
-#                 start_time_string = time_strs[0].strip()
-#                 # print(start_time_string)
-#                 end_time_string = time_strs[1].strip()
-#                 # print(end_time_string)
-
-#                 class_instance.start_time = datetime.strptime(f"{date_string} {start_time_string}", "%m/%d/%Y %I:%M%p")
-#                 class_instance.end_time = datetime.strptime(f"{date_string} {end_time_string}", "%m/%d/%Y %I:%M%p")
-#             else:
-#                 class_instance.isCanceled = True
-
-#             try:
-#                 class_instance.instructor = row_elems[4].a.string
-#             except:
-#                 class_instance.instructor = ""
-
-#             try:
-#                 location = row_elems[5].a.string
-#                 class_instance.location = location
-#                 for gym, gym_id in GYMS_BY_ID.items():
-#                     if gym in location:
-#                         if gym == "Virtual":
-#                             class_instance.isVirtual = True
-#                         else:
-#                             class_instance.gym_id = gym_id
-#                         break
-#             except:
-#                 gym_class.location = ""
-
-#             # gym_class.id = generate_id(gym_class.details_id + date_string + gym_class.instructor)
-#             # gym_class.image_url = get_image_url(class_details[class_href].name)
-#             db_session.add(class_instance)
-#             db_session.commit()
-#             classes[class_instance.id] = class_instance
-
-#     return classes
+        # Add to database
+        for j in range(len(time_strings)):
+            # Handle case if there is a forward slash (multiple hours)
+            for time_str in time_strings[j].split("/"):
+                start, end = get_datetimes(time_str, date)
+                add_single_gym_hours(start, end, gym_ids[j])
 
 
-# def scrape_pool_hours():
-#     db_session.query(openhours_restrictions).delete()
-#     db_session.query(OpenHours).delete()
+def fetch_reg_fc():
+    """
+    Fetch regular fitness center hours for the next 7 days (inclusive of today).
 
-#     page = requests.get(BASE_URL + POOL_HOURS_PATH).text
-#     soup = BeautifulSoup(page, "lxml")
-#     schedules = soup.find_all("table")
-#     pool_hours = {}
+    For example, if today is Tuesday, fetch hours for today up to and including
+    next Monday.
 
-#     for table in schedules:
-#         rows = table.find_all("tr")
-#         if len(rows) <= 1:
-#             continue
+    Returns:    a list of datetime objects.
+    """
+    worksheet = sh.worksheet(SHEET_REGULAR_FC)
 
-#         for schedule in rows[1:]:
-#             pool_name = schedule.find_all("td")[0].text.strip()
-#             times = []
-#             for td in schedule.find_all(
-#                 lambda tag: tag.name == "td" and (len(tag.findChildren()) > 0 or len(tag.text) > 0)
-#             )[1:]:
-#                 day = re.findall(
-#                     "(?:Women Only\s*)?(?:\d{1,2}:\d{2}(?:am|pm)) - (?:\d{1,2}:\d{2}(?:am|pm))(?:\s*\(shallow\))?|Closed",
-#                     td.text,
-#                 )
-#                 non_empty_hours = []
-#                 for interval in day:
-#                     if interval:
-#                         non_empty_hours.append(interval)
-#                 times.append(non_empty_hours)
+    # Fetch weekday/weekend strings
+    _, hnh_wday, hnh_wend = worksheet.row_values("3")
+    _, noyes_wday, noyes_wend = worksheet.row_values("4")
+    _, tgl_dn_wday, tgl_dn_wend = worksheet.row_values("5")
+    _, tgl_up_wday, tgl_up_wend = worksheet.row_values("6")
+    _, morr_wday, morr_wend = worksheet.row_values("7")
 
-#             if pool_name.count("Helen Newman Hall") > 0:
-#                 pool_name = "Helen Newman Pool"
+    for i in range(6):
+        # Determine next day and check if weekday or weekend
+        date = datetime.now() + timedelta(days=i)
 
-#             if pool_name.count("Teagle") > 0:
-#                 pool_name = "Teagle Pool"
+        # Note that the order matters!
+        time_strings = [hnh_wend, noyes_wend, tgl_dn_wend, tgl_up_wend, morr_wend]
+        if date.weekday() < 5:
+            # Weekday
+            time_strings = [hnh_wday, noyes_wday, tgl_dn_wday, tgl_up_wday, morr_wday]
 
-#             if pool_name not in pool_hours:
-#                 pool_hours[pool_name] = [[], [], [], [], [], [], []]
-#             pool = db_session.query(Facility).filter_by(name=pool_name).first()
-#             for i in range(len(times)):
-#                 day = times[i]
-#                 for time in day:
-#                     time_text = time.strip()
-#                     try:
-#                         if "Closed" in time_text:
-#                             openhour = OpenHours(
-#                                 **{
-#                                     "facility_id": pool.id,
-#                                     "day": i,
-#                                     "end_time": dt.time(0),
-#                                     "start_time": dt.time(0),
-#                                     "restrictions": [],
-#                                 }
-#                             )
-#                             closed_obj = db_session.query(Restrictions).filter_by(restriction="closed").first()
-#                             openhour.restrictions.append(closed_obj)
-#                             db_session.add(openhour)
-#                             db_session.commit()
-#                             pool_hours[pool_name][i].append(openhour)
-#                         else:
-#                             women_only = False
-#                             shallow = False
-#                             if "Women Only" in time:
-#                                 women_only = True
-#                                 time = time.replace("Women Only", "").strip()
-#                             if "(shallow)" in time:
-#                                 shallow = True
-#                                 time = time.replace("(shallow)", "").strip()
-#                             start_time_string, end_time_string = time.split(" - ")
-#                             start_time = datetime.strptime(start_time_string, "%I:%M%p").time()
-#                             end_time = datetime.strptime(end_time_string, "%I:%M%p").time()
+        facility_ids = [
+            FACILITY_ID_DICT["hnh_fitness"],
+            FACILITY_ID_DICT["noyes_fitness"],
+            FACILITY_ID_DICT["tgl_down"],
+            FACILITY_ID_DICT["tgl_up"],
+            FACILITY_ID_DICT["morr_fitness"],
+        ]
 
-#                             openhour = OpenHours(
-#                                 **{
-#                                     "facility_id": pool.id,
-#                                     "day": i,
-#                                     "end_time": end_time,
-#                                     "start_time": start_time,
-#                                     "restrictions": [],
-#                                 }
-#                             )
-#                             if women_only:
-#                                 women_only_obj = (
-#                                     db_session.query(Restrictions).filter_by(restriction="women_only").first()
-#                                 )
-#                                 openhour.restrictions.append(women_only_obj)
-#                             if shallow:
-#                                 shallow_obj = (
-#                                     db_session.query(Restrictions).filter_by(restriction="shallow_pool_only").first()
-#                                 )
-#                                 openhour.restrictions.append(shallow_obj)
-#                             db_session.add(openhour)
-#                             db_session.commit()
-#                             pool_hours[pool_name][i].append(openhour)
-#                     except:
-#                         pass
-#     return pool_hours
+        # Add to database
+        for j in range(len(time_strings)):
+            # Handle case if there is a forward slash (multiple hours)
+            for time_str in time_strings[j].split("/"):
+                start, end = get_datetimes(time_str, date)
+                add_single_facility_hours(start, end, facility_ids[j])
+
+
+def add_single_gym_hours(start_time, end_time, gym_id):
+    """
+    Add a single gym hours to the database.
+
+    Parameters:
+        - `start_time`      The datetime object representing the opening time.
+        - `end_time`        The datetime object representing the closing time.
+        - `gym_id`          The ID of the gym.
+    """
+    # Convert datetime objects to Unix
+    start_unix = time.mktime(start_time.timetuple())
+    end_unix = time.mktime(end_time.timetuple())
+
+    # Create hours
+    hrs = OpenHours(end_time=end_unix, gym_id=gym_id, start_time=start_unix)
+
+    # Add to database
+    db_session.merge(hrs)
+    db_session.commit()
+
+
+def add_single_facility_hours(start_time, end_time, facility_id, court_type=None, is_shallow=None, is_women=None):
+    """
+    Add a single facility hours to the database.
+
+    Parameters:
+        - `start_time`      The datetime object representing the opening time.
+        - `end_time`        The datetime object representing the closing time.
+        - `facility_id`     The ID of the facility.
+        - `court_type`      The facility court type. None by default.
+        - `is_shallow`      Whether the pool is shallow or not. None by default.
+        - `is_women`        Whether the pool is for women only. None by default.
+    """
+    # Convert datetime objects to Unix
+    start_unix = time.mktime(start_time.timetuple())
+    end_unix = time.mktime(end_time.timetuple())
+
+    # Create hours
+    hrs = OpenHours(
+        end_time=end_unix,
+        facility_id=facility_id,
+        start_time=start_unix,
+        court_type=court_type,
+        is_shallow=is_shallow,
+        is_women=is_women,
+    )
+
+    # Add to database
+    db_session.merge(hrs)
+    db_session.commit()
+
+
+def get_datetimes(time_str, day):
+    """
+    Get datetime objects for a given time string and day in UTC time.
+
+    The first element is the start time. The second element is the end time.
+    If the end time is 12am or later, use the next day. For example, `2pm - 1am`
+    will return an end time for the day after the day for 2pm.
+
+    Parameters:
+        - `time_str`    The Eastern time string to parse in `%I%p - %I%p` format
+                        (ex: `6am - 9pm`) or `%I:%M%p - %I:%M%p` format
+                        (ex: `6:30am - 9:30pm`).
+        - `day`         A datetime object representing the day for these times in UTC.
+
+    Returns:    a list of datetime objects with the first element as start time
+                and second element as end time.
+    """
+    # Remove all spaces
+    time_str = time_str.replace(" ", "")
+
+    # Separate start and end time
+    dash_pos = time_str.index("-")
+    start_time_str = time_str[:dash_pos]
+    end_time_str = time_str[dash_pos + 1 :]
+
+    result = []
+    for time in [start_time_str, end_time_str]:
+        # Change format if minutes is missing (ex: `6pm`)
+        format = "%I%p" if time.find(":") == -1 else "%I:%M%p"
+
+        # Convert to datetime objects and add to given day
+        time_obj = datetime.strptime(time, format)
+        time_obj = day.replace(hour=time_obj.hour, minute=time_obj.minute, second=0, microsecond=0)
+
+        # Check if end time is past midnight (since CFC displays it like this)
+        if time == end_time_str and result[0] > time_obj:
+            time_obj += timedelta(days=1)
+
+        result.append(time_obj)
+
+    # Convert from Eastern to UTC time
+    local_tz = pytz.timezone(LOCAL_TIMEZONE)
+    for i in range(len(result)):
+        result[i] = local_tz.localize(result[i]).astimezone(pytz.UTC)
+
+    return result

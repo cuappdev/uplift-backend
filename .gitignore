@@ -17,3 +17,4 @@ migrations
 Archive
 scripts
 *.sqlite3
+service-account-key.json

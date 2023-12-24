@@ -14,9 +14,14 @@ class Gym(SQLAlchemyObjectType):
         model = GymModel
 
     facilities = graphene.List(lambda: Facility)
+    hours = graphene.List(lambda: OpenHours, name=graphene.String())
 
     def resolve_facilities(self, info):
         query = Facility.get_query(info=info).filter(FacilityModel.gym_id == self.id)
+        return query
+
+    def resolve_open_hours(self, info):
+        query = OpenHours.get_query(info=info).filter(OpenHoursModel.gym_id == self.id)
         return query
 
 
@@ -27,12 +32,8 @@ class Facility(SQLAlchemyObjectType):
     class Meta:
         model = FacilityModel
 
-    open_hours = graphene.List(lambda: OpenHours, name=graphene.String())
     capacity = graphene.Field(lambda: Capacity)
-
-    def resolve_open_hours(self, info):
-        query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
-        return query
+    hours = graphene.List(lambda: OpenHours, name=graphene.String())
 
     def resolve_capacity(self, info):
         query = (
@@ -41,6 +42,10 @@ class Facility(SQLAlchemyObjectType):
             .order_by(CapacityModel.updated.desc())
             .first()
         )
+        return query
+
+    def resolve_open_hours(self, info):
+        query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
         return query
 
 

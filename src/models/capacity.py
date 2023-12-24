@@ -7,11 +7,11 @@ class Capacity(Base):
     Store counts for a Facility.
 
     Attributes:
-        id              The ID of this capacity.
-        count           The number of people in the facility.
-        facility_id     The ID of the facility this capacity belongs to.
-        percent         The percent filled between 0.0 and 1.0.
-        updated         The Unix time since this capacity was last updated.
+        - `id`              The ID of this capacity.
+        - `count`           The number of people in the facility.
+        - `facility_id`     (nullable) The ID of the facility this capacity belongs to.
+        - `percent`         The percent filled between 0.0 and 1.0.
+        - `updated`         The Unix time since this capacity was last updated.
     """
 
     __tablename__ = "capacity"

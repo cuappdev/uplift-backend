@@ -24,8 +24,7 @@ type Facility {
   gymId: Int!
   name: String!
   capacity: Capacity
-  hours: [OpenHours]
-  openHours(name: String): [OpenHours]
+  hours(name: String): [OpenHours]
 }
 
 enum FacilityType {
@@ -43,18 +42,18 @@ type Gym {
   longitude: Float!
   name: String!
   facilities: [Facility]
-  hours: [OpenHours]
+  hours(name: String): [OpenHours]
 }
 
 type OpenHours {
   id: ID!
-  courtType: CourtType!
-  endTime: String!
+  courtType: CourtType
+  endTime: Int!
   facilityId: Int
   gymId: Int
   isShallow: Boolean
   isWomen: Boolean
-  startTime: String!
+  startTime: Int!
 }
 
 type Query {

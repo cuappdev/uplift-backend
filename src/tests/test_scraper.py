@@ -1,0 +1,90 @@
+import unittest, pytz
+from src.utils.constants import LOCAL_TIMEZONE
+from datetime import datetime
+from src.scrapers.scraper import get_datetimes
+
+
+class TestScraperHelpers(unittest.TestCase):
+    """
+    Test suite for scraper helper functions.
+    """
+
+    def create_dt_helper(self, time_str):
+        """
+        Helper function to create a datetime object for testing.
+
+        The format used is `%m/%d/%Y %H:%M` such as (`01/01/2023 23:30`).
+
+        Parameters:
+            - `time_str`    The string of the date to parse in Eastern time.
+
+        Returns:    a datetime object in UTC time.
+        """
+        format = "%m/%d/%Y %H:%M"
+        date_obj = datetime.strptime(time_str, format)
+
+        # Convert from Eastern to UTC time
+        local_tz = pytz.timezone(LOCAL_TIMEZONE)
+        date_obj = local_tz.localize(date_obj).astimezone(pytz.UTC)
+
+        return date_obj
+
+    def assertDateEqual(self, d1, d2):
+        """
+        Assert equality between two datetime objects.
+
+        Parameters:
+            - `d1`      The first datetime object to compare.
+            - `d2`      The second datetime object to compare.
+        """
+        self.assertEqual(d1.replace(tzinfo=None), d2.replace(tzinfo=None))
+
+    def test_get_datetimes(self):
+        print("Testing get_datetimes...")
+        curr_date = self.create_dt_helper("12/24/2023 12:30").replace(tzinfo=None)
+
+        # Start and end both AM
+        result = get_datetimes("6am - 10am", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("12/24/2023 6:00"))
+        self.assertDateEqual(result[1], self.create_dt_helper("12/24/2023 10:00"))
+
+        # Start and end both PM
+        result = get_datetimes("6pm - 10pm", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("12/24/2023 18:00"))
+        self.assertDateEqual(result[1], self.create_dt_helper("12/24/2023 22:00"))
+
+        # Start and end AM to PM
+        result = get_datetimes("6am - 10pm", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("12/24/2023 6:00"))
+        self.assertDateEqual(result[1], self.create_dt_helper("12/24/2023 22:00"))
+
+        # Start and end PM to AM
+        result = get_datetimes("10pm - 1am", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("12/24/2023 22:00"))
+        self.assertDateEqual(result[1], self.create_dt_helper("12/25/2023 1:00"))
+
+        # Start and end with minutes
+        result = get_datetimes("10:30pm - 1:30am", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("12/24/2023 22:30"))
+        self.assertDateEqual(result[1], self.create_dt_helper("12/25/2023 1:30"))
+
+        # Start and end no space
+        result = get_datetimes("10:30pm-1:30am", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("12/24/2023 22:30"))
+        self.assertDateEqual(result[1], self.create_dt_helper("12/25/2023 1:30"))
+
+        # Month Change
+        curr_date = self.create_dt_helper("11/30/2023 12:30").replace(tzinfo=None)
+        result = get_datetimes("10pm-1am", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("11/30/2023 22:00"))
+        self.assertDateEqual(result[1], self.create_dt_helper("12/01/2023 1:00"))
+
+        # Year Change
+        curr_date = self.create_dt_helper("12/31/2023 12:30").replace(tzinfo=None)
+        result = get_datetimes("10pm-1am", curr_date)
+        self.assertDateEqual(result[0], self.create_dt_helper("12/31/2023 22:00"))
+        self.assertDateEqual(result[1], self.create_dt_helper("01/01/2024 1:00"))
+
+
+if __name__ == "__main__":
+    unittest.main()

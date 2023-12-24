@@ -20,12 +20,12 @@ class Facility(Base):
     A facility inside of a Gym.
 
     Attributes:
-        id              The ID of this facility.
-        capacity        The capacity of this facility.
-        facility_type   The type of this facility (FITNESS, POOL, BOWLING, COURT).
-        gym_id          The ID of the gym this facility belongs to.
-        hours           The open hours of this facility.
-        name            The name of this facility.
+        - `id`              The ID of this facility.
+        - `capacity`        The capacity of this facility.
+        - `facility_type`   The type of this facility (FITNESS, POOL, BOWLING, COURT).
+        - `gym_id`          The ID of the gym this facility belongs to.
+        - `hours`           The open hours of this facility.
+        - `name`            The name of this facility.
     """
 
     __tablename__ = "facility"
