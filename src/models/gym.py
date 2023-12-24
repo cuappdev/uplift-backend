@@ -10,6 +10,7 @@ class Gym(Base):
     Attributes:
         - `id`              The ID of this gym (building).
         - `address`         The address of the buildling.
+        - `amenities`       This gym's amenities.
         - `facilities`      This gym's facilities.
         - `hours`           The building hours.
         - `image_url`       The URL of this gym's image.
@@ -22,6 +23,7 @@ class Gym(Base):
 
     id = Column(Integer, primary_key=True)
     address = Column(String(1000), nullable=False)
+    amenities = relationship("Amenity")
     facilities = relationship("Facility")
     hours = relationship("OpenHours")
     image_url = Column(String(1000), nullable=True)

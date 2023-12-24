@@ -2,6 +2,20 @@
   {
     "id": "hnh",
     "address": "163 Cradit Farm Road",
+    "amenities": [
+      {
+        "type": "showers"
+      },
+      {
+        "type": "lockers"
+      },
+      {
+        "type": "parking"
+      },
+      {
+        "type": "elevators"
+      }
+    ],
     "facilities": [
       {
         "id": "hnh_fitness",
@@ -43,6 +57,7 @@
   {
     "id": "morrison",
     "address": "18 Sisson Pl",
+    "amenities": [],
     "facilities": [
       {
         "id": "morr_fitness",
@@ -60,6 +75,14 @@
   {
     "id": "noyes",
     "address": "306 West Ave",
+    "amenities": [
+      {
+        "type": "parking"
+      },
+      {
+        "type": "elevators"
+      }
+    ],
     "facilities": [
       {
         "id": "noyes_fitness",
@@ -83,6 +106,17 @@
   {
     "id": "teagle",
     "address": "512 Campus Rd",
+    "amenities": [
+      {
+        "type": "showers"
+      },
+      {
+        "type": "lockers"
+      },
+      {
+        "type": "parking"
+      }
+    ],
     "facilities": [
       {
         "id": "tgl_up",

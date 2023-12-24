@@ -2,6 +2,19 @@ schema {
   query: Query
 }
 
+type Amenity {
+  id: ID!
+  gymId: Int!
+  type: AmenityType!
+}
+
+enum AmenityType {
+  SHOWERS
+  LOCKERS
+  PARKING
+  ELEVATORS
+}
+
 type Capacity {
   id: ID!
   count: Int!
@@ -24,7 +37,7 @@ type Facility {
   gymId: Int!
   name: String!
   capacity: Capacity
-  hours(name: String): [OpenHours]
+  hours: [OpenHours]
 }
 
 enum FacilityType {
@@ -41,8 +54,9 @@ type Gym {
   latitude: Float!
   longitude: Float!
   name: String!
+  amenities: [Amenity]
   facilities: [Facility]
-  hours(name: String): [OpenHours]
+  hours: [OpenHours]
 }
 
 type OpenHours {
