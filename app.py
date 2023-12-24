@@ -5,7 +5,7 @@ from graphql.utils import schema_printer
 from src.database import db_session, init_db
 from src.schema import Query
 from src.scrapers.capacities_scraper import fetch_capacities
-from src.scrapers.hours_scraper import fetch_reg_fc, fetch_reg_building
+from src.scrapers.hours_scraper import fetch_reg_building, fetch_reg_fc, fetch_reg_pool
 from src.utils.utils import create_gym_table
 
 
@@ -35,6 +35,7 @@ create_gym_table()
 # Fetch Hours
 fetch_reg_fc()
 fetch_reg_building()
+fetch_reg_pool()
 
 # Fetch Capacities
 fetch_capacities()

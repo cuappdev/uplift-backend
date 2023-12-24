@@ -3,19 +3,68 @@ from datetime import datetime, timedelta
 from src.database import db_session
 from src.models.openhours import OpenHours
 from src.utils.constants import (
+    MARKER_CLOSED,
+    MARKER_SHALLOW,
+    MARKER_WOMEN,
     FACILITY_ID_DICT,
     GYM_ID_DICT,
     LOCAL_TIMEZONE,
     SERVICE_ACCOUNT_PATH,
     SHEET_KEY,
-    SHEET_REGULAR_FC,
     SHEET_REGULAR_BUILDING,
+    SHEET_REGULAR_FC,
+    SHEET_REGULAR_POOL,
 )
 from src.utils.utils import unix_time
 
 # Configure client and sheet
 gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
 sh = gc.open_by_key(SHEET_KEY)
+
+
+def fetch_reg_pool():
+    """
+    Fetch regular pool hours for the next 7 days (inclusive of today).
+
+    For example, if today is Tuesday, fetch hours for today up to and including
+    next Monday.
+    """
+    worksheet = sh.worksheet(SHEET_REGULAR_POOL)
+    vals = worksheet.get_all_values()
+
+    # Fetch row info
+    hnh = vals[2][1:]
+    teagle = vals[3][1:]
+
+    # Monday = 0, ..., Sunday = 6
+    for i in range(6):
+        # Determine next day
+        date = datetime.now() + timedelta(days=i)
+
+        # Monday = 0, ..., Sunday = 6
+        weekday = date.weekday()
+        time_strings = [hnh[weekday], teagle[weekday]]
+
+        facility_ids = [FACILITY_ID_DICT["hnh_pool"], FACILITY_ID_DICT["tgl_pool"]]
+
+        # Add to database
+        for j in range(len(time_strings)):
+            # Handle case if there is a new line (multiple hours)
+            for time_str in time_strings[j].split("\n"):
+                # Handle closed
+                if time_str != MARKER_CLOSED:
+                    # Remove MARKERS
+                    cleaned_str = time_str.replace(MARKER_WOMEN, "")
+                    cleaned_str = cleaned_str.replace(MARKER_SHALLOW, "")
+                    start, end = get_hours_datetimes(cleaned_str, date)
+
+                    # Handle women and shallow only
+                    if time_str.find(MARKER_WOMEN) != -1:
+                        add_single_facility_hours(start, end, facility_ids[j], is_women=True)
+                    elif time_str.find(MARKER_SHALLOW) != -1:
+                        add_single_facility_hours(start, end, facility_ids[j], is_shallow=True)
+                    else:
+                        add_single_facility_hours(start, end, facility_ids[j])
 
 
 def fetch_reg_building():
@@ -34,13 +83,13 @@ def fetch_reg_building():
     teagle = vals[4][1:]
     morrison = vals[5][1:]
 
-    # Monday = 0, ..., Sunday = 6
     for i in range(6):
         # Determine next day
         date = datetime.now() + timedelta(days=i)
 
-        # Note that the order matters!
-        time_strings = [hnh[i], noyes[i], teagle[i], morrison[i]]
+        # Monday = 0, ..., Sunday = 6
+        weekday = date.weekday()
+        time_strings = [hnh[weekday], noyes[weekday], teagle[weekday], morrison[weekday]]
 
         gym_ids = [
             GYM_ID_DICT["hnh"],
@@ -53,8 +102,10 @@ def fetch_reg_building():
         for j in range(len(time_strings)):
             # Handle case if there is a forward slash (multiple hours)
             for time_str in time_strings[j].split("/"):
-                start, end = get_hours_datetimes(time_str, date)
-                add_single_gym_hours(start, end, gym_ids[j])
+                # Handle closed
+                if time_str != MARKER_CLOSED:
+                    start, end = get_hours_datetimes(time_str, date)
+                    add_single_gym_hours(start, end, gym_ids[j])
 
 
 def fetch_reg_fc():
@@ -95,8 +146,10 @@ def fetch_reg_fc():
         for j in range(len(time_strings)):
             # Handle case if there is a forward slash (multiple hours)
             for time_str in time_strings[j].split("/"):
-                start, end = get_hours_datetimes(time_str, date)
-                add_single_facility_hours(start, end, facility_ids[j])
+                # Handle closed
+                if time_str != MARKER_CLOSED:
+                    start, end = get_hours_datetimes(time_str, date)
+                    add_single_facility_hours(start, end, facility_ids[j])
 
 
 def add_single_gym_hours(start_time, end_time, gym_id):

@@ -10,9 +10,9 @@ class Gym(Base):
     Attributes:
         - `id`              The ID of this gym (building).
         - `address`         The address of the buildling.
-        - `amenities`       This gym's amenities.
-        - `facilities`      This gym's facilities.
-        - `hours`           The building hours.
+        - `amenities`       (nullable) This gym's amenities.
+        - `facilities`      (nullable) This gym's facilities.
+        - `hours`           (nullable) The building hours.
         - `image_url`       The URL of this gym's image.
         - `latitude`        The latitude coordinate of this gym.
         - `longitude`       The longitude coordinate of this gym.

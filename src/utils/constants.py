@@ -18,10 +18,15 @@ FACILITY_ID_DICT = {
 
 GYM_ID_DICT = {"hnh": 1, "morrison": 2, "noyes": 3, "teagle": 4}
 
-# SHEET SCRAPER
+# MARK: Sheets Scraper
+
 LOCAL_TIMEZONE = "America/New_York"
+MARKER_CLOSED = "Closed"
+MARKER_SHALLOW = "(S)"
+MARKER_WOMEN = "(W)"
 SERVICE_ACCOUNT_PATH = "service-account-key.json"
 SHEET_CAPACITIES = "Capacities"
 SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
-SHEET_REGULAR_FC = "[REG] Fitness Center"
 SHEET_REGULAR_BUILDING = "[REG] Building Hours"
+SHEET_REGULAR_FC = "[REG] Fitness Center"
+SHEET_REGULAR_POOL = "[REG] Pool Hours"
