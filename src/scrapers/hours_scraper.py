@@ -1,5 +1,7 @@
-import gspread, pytz, time
+import gspread, pytz
 from datetime import datetime, timedelta
+from src.database import db_session
+from src.models.openhours import OpenHours
 from src.utils.constants import (
     FACILITY_ID_DICT,
     GYM_ID_DICT,
@@ -9,8 +11,7 @@ from src.utils.constants import (
     SHEET_REGULAR_FC,
     SHEET_REGULAR_BUILDING,
 )
-from src.models.openhours import OpenHours
-from src.database import db_session
+from src.utils.utils import unix_time
 
 # Configure client and sheet
 gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
@@ -23,16 +24,15 @@ def fetch_reg_building():
 
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
-
-    Returns:    a list of datetime objects.
     """
     worksheet = sh.worksheet(SHEET_REGULAR_BUILDING)
+    vals = worksheet.get_all_values()
 
     # Fetch row info
-    hnh = worksheet.row_values("3")[1:]
-    noyes = worksheet.row_values("4")[1:]
-    teagle = worksheet.row_values("5")[1:]
-    morrison = worksheet.row_values("6")[1:]
+    hnh = vals[2][1:]
+    noyes = vals[3][1:]
+    teagle = vals[4][1:]
+    morrison = vals[5][1:]
 
     # Monday = 0, ..., Sunday = 6
     for i in range(6):
@@ -53,7 +53,7 @@ def fetch_reg_building():
         for j in range(len(time_strings)):
             # Handle case if there is a forward slash (multiple hours)
             for time_str in time_strings[j].split("/"):
-                start, end = get_datetimes(time_str, date)
+                start, end = get_hours_datetimes(time_str, date)
                 add_single_gym_hours(start, end, gym_ids[j])
 
 
@@ -63,8 +63,6 @@ def fetch_reg_fc():
 
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
-
-    Returns:    a list of datetime objects.
     """
     worksheet = sh.worksheet(SHEET_REGULAR_FC)
 
@@ -97,7 +95,7 @@ def fetch_reg_fc():
         for j in range(len(time_strings)):
             # Handle case if there is a forward slash (multiple hours)
             for time_str in time_strings[j].split("/"):
-                start, end = get_datetimes(time_str, date)
+                start, end = get_hours_datetimes(time_str, date)
                 add_single_facility_hours(start, end, facility_ids[j])
 
 
@@ -111,8 +109,8 @@ def add_single_gym_hours(start_time, end_time, gym_id):
         - `gym_id`          The ID of the gym.
     """
     # Convert datetime objects to Unix
-    start_unix = time.mktime(start_time.timetuple())
-    end_unix = time.mktime(end_time.timetuple())
+    start_unix = unix_time(start_time)
+    end_unix = unix_time(end_time)
 
     # Create hours
     hrs = OpenHours(end_time=end_unix, gym_id=gym_id, start_time=start_unix)
@@ -135,8 +133,8 @@ def add_single_facility_hours(start_time, end_time, facility_id, court_type=None
         - `is_women`        Whether the pool is for women only. None by default.
     """
     # Convert datetime objects to Unix
-    start_unix = time.mktime(start_time.timetuple())
-    end_unix = time.mktime(end_time.timetuple())
+    start_unix = unix_time(start_time)
+    end_unix = unix_time(end_time)
 
     # Create hours
     hrs = OpenHours(
@@ -153,9 +151,9 @@ def add_single_facility_hours(start_time, end_time, facility_id, court_type=None
     db_session.commit()
 
 
-def get_datetimes(time_str, day):
+def get_hours_datetimes(time_str, day):
     """
-    Get datetime objects for a given time string and day in UTC time.
+    Get datetime objects for OpenHours given a time string and day in UTC time.
 
     The first element is the start time. The second element is the end time.
     If the end time is 12am or later, use the next day. For example, `2pm - 1am`

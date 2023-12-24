@@ -21,6 +21,7 @@ GYM_ID_DICT = {"hnh": 1, "morrison": 2, "noyes": 3, "teagle": 4}
 # SHEET SCRAPER
 LOCAL_TIMEZONE = "America/New_York"
 SERVICE_ACCOUNT_PATH = "service-account-key.json"
+SHEET_CAPACITIES = "Capacities"
 SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
 SHEET_REGULAR_FC = "[REG] Fitness Center"
 SHEET_REGULAR_BUILDING = "[REG] Building Hours"

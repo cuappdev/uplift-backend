@@ -18,9 +18,9 @@ enum AmenityType {
 type Capacity {
   id: ID!
   count: Int!
-  facilityId: Int
+  facilityId: Int!
   percent: Float!
-  updated: DateTime!
+  updated: Float!
 }
 
 enum CourtType {
@@ -28,8 +28,6 @@ enum CourtType {
   VOLLEYBALL
   BADMINTON
 }
-
-scalar DateTime
 
 type Facility {
   id: ID!

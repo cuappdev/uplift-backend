@@ -4,8 +4,9 @@ from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
 from src.schema import Query
+from src.scrapers.capacities_scraper import fetch_capacities
+from src.scrapers.hours_scraper import fetch_reg_fc, fetch_reg_building
 from src.utils.utils import create_gym_table
-from src.scrapers.scraper import fetch_reg_fc, fetch_reg_building
 
 
 app = Flask(__name__)
@@ -30,8 +31,13 @@ def shutdown_session(exception=None):
 # Create database and fill it with data
 init_db()
 create_gym_table()
+
+# Fetch Hours
 fetch_reg_fc()
 fetch_reg_building()
+
+# Fetch Capacities
+fetch_capacities()
 
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
