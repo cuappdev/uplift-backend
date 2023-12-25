@@ -20,7 +20,7 @@ type Capacity {
   count: Int!
   facilityId: Int!
   percent: Float!
-  updated: Float!
+  updated: Int!
 }
 
 enum CourtType {

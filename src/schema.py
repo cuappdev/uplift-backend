@@ -26,7 +26,7 @@ class Gym(SQLAlchemyObjectType):
         query = Facility.get_query(info=info).filter(FacilityModel.gym_id == self.id)
         return query
 
-    def resolve_open_hours(self, info):
+    def resolve_hours(self, info):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.gym_id == self.id)
         return query
 
@@ -50,7 +50,7 @@ class Facility(SQLAlchemyObjectType):
         )
         return query
 
-    def resolve_open_hours(self, info):
+    def resolve_hours(self, info):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
         return query
 

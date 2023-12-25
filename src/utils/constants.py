@@ -1,6 +1,9 @@
 # URL for Uplift image assets
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
 
+# Eastern Timezone
+EASTERN_TIMEZONE = "America/New_York"
+
 # Dictionary of Facility IDs
 FACILITY_ID_DICT = {
     "hnh_fitness": 1,
@@ -18,9 +21,6 @@ FACILITY_ID_DICT = {
 
 # Dictionary of Gym IDs
 GYM_ID_DICT = {"hnh": 1, "morrison": 2, "noyes": 3, "teagle": 4}
-
-# Local Timezone
-LOCAL_TIMEZONE = "America/New_York"
 
 # Marker in sheets for alternating between badminton and volleyball (HNH Fridays)
 MARKER_ALT = "(ALT)"

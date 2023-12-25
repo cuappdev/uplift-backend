@@ -1,8 +1,9 @@
 import gspread, pytz
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.database import db_session
 from src.models.openhours import OpenHours
 from src.utils.constants import (
+    EASTERN_TIMEZONE,
     MARKER_ALT,
     MARKER_BADMINTON,
     MARKER_BASKETBALL,
@@ -13,7 +14,6 @@ from src.utils.constants import (
     MARKER_WOMEN,
     FACILITY_ID_DICT,
     GYM_ID_DICT,
-    LOCAL_TIMEZONE,
     SERVICE_ACCOUNT_PATH,
     SHEET_KEY,
     SHEET_REG_BUILDING,
@@ -305,9 +305,10 @@ def get_hours_datetimes(time_str, day):
 
         result.append(time_obj)
 
-    # Convert from Eastern to UTC time
-    local_tz = pytz.timezone(LOCAL_TIMEZONE)
+    # Convert from Eastern to Local Time
+    eastern_tz = pytz.timezone(EASTERN_TIMEZONE)
+    local_tz = datetime.now(timezone.utc).astimezone().tzinfo
     for i in range(len(result)):
-        result[i] = local_tz.localize(result[i]).astimezone(pytz.UTC)
+        result[i] = eastern_tz.localize(result[i]).astimezone(local_tz)
 
     return result

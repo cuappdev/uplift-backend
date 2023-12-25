@@ -20,7 +20,7 @@ class Capacity(Base):
     count = Column(Integer, nullable=False)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
     percent = Column(Float, nullable=False)
-    updated = Column(Float, nullable=False)
+    updated = Column(Integer, nullable=False)
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")

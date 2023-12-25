@@ -1,8 +1,8 @@
 import gspread, pytz
-from datetime import datetime
+from datetime import datetime, timezone
 from src.database import db_session
 from src.models.capacity import Capacity
-from src.utils.constants import FACILITY_ID_DICT, LOCAL_TIMEZONE, SERVICE_ACCOUNT_PATH, SHEET_CAPACITIES, SHEET_KEY
+from src.utils.constants import FACILITY_ID_DICT, EASTERN_TIMEZONE, SERVICE_ACCOUNT_PATH, SHEET_CAPACITIES, SHEET_KEY
 from src.utils.utils import unix_time
 
 # Configure client and sheet
@@ -87,8 +87,9 @@ def get_capacity_datetime(time_str):
     format = "%m/%d/%Y %I:%M %p"
     time_obj = datetime.strptime(time_str, format)
 
-    # Convert from Eastern to UTC time
-    local_tz = pytz.timezone(LOCAL_TIMEZONE)
-    time_obj = local_tz.localize(time_obj).astimezone(pytz.UTC)
+    # Convert from Eastern to Local time
+    eastern_tz = pytz.timezone(EASTERN_TIMEZONE)
+    local_tz = datetime.now(timezone.utc).astimezone().tzinfo
+    time_obj = eastern_tz.localize(time_obj).astimezone(local_tz)
 
     return time_obj
