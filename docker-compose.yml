@@ -2,8 +2,8 @@ version: "3.3"
 
 services:
   web:
-    image: cornellappdev/uplift:test
-    command: sh -c "python app.py"
+    image: cornellappdev/uplift:${IMAGE_TAG}
+    command: sh -c "gunicorn -w 1 -b 0.0.0.0:5000 app:app"
     env_file: .env
     ports:
       - "8080:5000"
