@@ -64,6 +64,7 @@ type OpenHours {
   facilityId: Int
   gymId: Int
   isShallow: Boolean
+  isSpecial: Boolean!
   isWomen: Boolean
   startTime: Int!
 }

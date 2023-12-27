@@ -19,7 +19,6 @@ FACILITY_ID_DICT = {
     "tgl_pool": 11,
 }
 
-
 # Note that we need to subtract by an offset of 1
 FACILITY_ROW_OFFSET = 1
 
@@ -35,6 +34,7 @@ FACILITY_ROW_DICT = {
     "court_hnh_1": 10 - FACILITY_ROW_OFFSET,
     "court_hnh_2": 11 - FACILITY_ROW_OFFSET,
     "court_noyes": 12 - FACILITY_ROW_OFFSET,
+    "bowling_hnh": 13 - FACILITY_ROW_OFFSET,
 }
 
 # Dictionary of Gym IDs

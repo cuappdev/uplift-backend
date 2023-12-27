@@ -24,6 +24,7 @@ class OpenHours(Base):
         - `facility_id`   (nullable) The ID of the facility for these hours, if applicable.
         - `gym_id`        (nullable) The ID of the gym for these hours, if applicable.
         - `is_shallow`    (nullable) True if these hours are for shallow waters only
+        - `is_special`    True if these hours are special (non-regular). Default is False.
         - `is_women`      (nullable) True if these hours are for women only.
         - `start_time`    The Unix time of when this facility opens for this day.
     """
@@ -36,6 +37,7 @@ class OpenHours(Base):
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=True)
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=True)
     is_shallow = Column(Boolean, nullable=True)
+    is_special = Column(Boolean, nullable=False)
     is_women = Column(Boolean, nullable=True)
     start_time = Column(Integer, nullable=False)
 
@@ -46,6 +48,7 @@ class OpenHours(Base):
         self.facility_id = kwargs.get("facility_id")
         self.gym_id = kwargs.get("gym_id")
         self.is_shallow = kwargs.get("is_shallow")
+        self.is_special = kwargs.get("is_special", False)
         self.is_women = kwargs.get("is_women")
         self.start_time = kwargs.get("start_time")
 
@@ -57,6 +60,7 @@ class OpenHours(Base):
             "facility_id": self.facility_id,
             "gym_id": self.gym_id,
             "is_shallow": self.is_shallow,
+            "is_special": self.is_special,
             "is_women": self.is_women,
             "start_time": self.start_time,
         }

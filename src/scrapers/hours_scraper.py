@@ -27,105 +27,6 @@ gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
 sh = gc.open_by_key(SHEET_KEY)
 
 
-def fetch_reg_court():
-    """
-    Fetch regular court hours for the next 7 days (inclusive of today).
-
-    For example, if today is Tuesday, fetch hours for today up to and including
-    next Monday.
-    """
-    worksheet = sh.worksheet(SHEET_REG_FACILITY)
-    vals = worksheet.get_all_values()
-
-    # Fetch row info
-    hnh_1 = vals[FACILITY_ROW_DICT["court_hnh_1"]][2:]
-    hnh_2 = vals[FACILITY_ROW_DICT["court_hnh_2"]][2:]
-    noyes = vals[FACILITY_ROW_DICT["court_noyes"]][2:]
-
-    for i in range(7):
-        # Determine next day
-        date = datetime.now() + timedelta(days=i)
-
-        # Monday = 0, ..., Sunday = 6
-        weekday = date.weekday()
-        time_strings = [hnh_1[weekday], hnh_2[weekday], noyes[weekday]]
-
-        # Keep order consistent
-        facility_ids = [FACILITY_ID_DICT["hnh_court1"], FACILITY_ID_DICT["hnh_court2"], FACILITY_ID_DICT["noyes_court"]]
-
-        # Add to database
-        for j in range(len(time_strings)):
-            # Handle case if there are multiple hours
-            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
-                # Handle closed
-                if time_str != MARKER_CLOSED:
-                    # Remove MARKERS
-                    cleaned_str = (
-                        time_str.replace(MARKER_BADMINTON, "")
-                        .replace(MARKER_BASKETBALL, "")
-                        .replace(MARKER_VOLLEYBALL, "")
-                        .replace(MARKER_ALT, "")
-                    )
-                    start, end = get_hours_datetimes(cleaned_str, date)
-
-                    # Handle different courts (MUST HAVE A MARKER)
-                    if time_str.find(MARKER_BADMINTON) != -1:
-                        court_type = "badminton"
-                    elif time_str.find(MARKER_BASKETBALL) != -1:
-                        court_type = "basketball"
-                    elif time_str.find(MARKER_VOLLEYBALL) != -1:
-                        court_type = "volleyball"
-                    elif time_str.find(MARKER_ALT) != -1:
-                        # TODO: Odd Day - Badminton; Even Day - Volleyball
-                        court_type = "badminton" if date.day % 2 == 1 else "volleyball"
-
-                    add_single_facility_hours(start, end, facility_ids[j], court_type=court_type)
-
-
-def fetch_reg_pool():
-    """
-    Fetch regular pool hours for the next 7 days (inclusive of today).
-
-    For example, if today is Tuesday, fetch hours for today up to and including
-    next Monday.
-    """
-    worksheet = sh.worksheet(SHEET_REG_FACILITY)
-    vals = worksheet.get_all_values()
-
-    # Fetch row info
-    hnh = vals[FACILITY_ROW_DICT["pool_hnh"]][2:]
-    teagle = vals[FACILITY_ROW_DICT["pool_tgl"]][2:]
-
-    for i in range(7):
-        # Determine next day
-        date = datetime.now() + timedelta(days=i)
-
-        # Monday = 0, ..., Sunday = 6
-        weekday = date.weekday()
-        time_strings = [hnh[weekday], teagle[weekday]]
-
-        # Keep order consistent
-        facility_ids = [FACILITY_ID_DICT["hnh_pool"], FACILITY_ID_DICT["tgl_pool"]]
-
-        # Add to database
-        for j in range(len(time_strings)):
-            # Handle case if there are multiple hours
-            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
-                # Handle closed
-                if time_str != MARKER_CLOSED:
-                    # Remove MARKERS
-                    cleaned_str = time_str.replace(MARKER_WOMEN, "").replace(MARKER_SHALLOW, "")
-                    start, end = get_hours_datetimes(cleaned_str, date)
-
-                    # Handle women and shallow only
-                    if time_str.find(MARKER_WOMEN) != -1:
-                        add_single_facility_hours(start, end, facility_ids[j], is_women=True)
-                    elif time_str.find(MARKER_SHALLOW) != -1:
-                        add_single_facility_hours(start, end, facility_ids[j], is_shallow=True)
-                    else:
-                        add_single_facility_hours(start, end, facility_ids[j])
-
-
 def fetch_reg_building():
     """
     Fetch regular building hours for the next 7 days (inclusive of today).
@@ -168,23 +69,165 @@ def fetch_reg_building():
                     add_single_gym_hours(start, end, gym_ids[j])
 
 
-def fetch_reg_fc():
+def fetch_reg_facility():
+    """
+    Fetch regular facility hours.
+    """
+    worksheet = sh.worksheet(SHEET_REG_FACILITY)
+    vals = worksheet.get_all_values()
+
+    fetch_reg_bowling(hnh=vals[FACILITY_ROW_DICT["bowling_hnh"]][2:])
+    fetch_reg_court(
+        hnh_1=vals[FACILITY_ROW_DICT["court_hnh_1"]][2:],
+        hnh_2=vals[FACILITY_ROW_DICT["court_hnh_2"]][2:],
+        noyes=vals[FACILITY_ROW_DICT["court_noyes"]][2:],
+    )
+    fetch_reg_pool(hnh=vals[FACILITY_ROW_DICT["pool_hnh"]][2:], teagle=vals[FACILITY_ROW_DICT["pool_tgl"]][2:])
+    fetch_reg_fc(
+        hnh=vals[FACILITY_ROW_DICT["fc_hnh"]][2:],
+        noyes=vals[FACILITY_ROW_DICT["fc_noyes"]][2:],
+        tgl_down=vals[FACILITY_ROW_DICT["fc_tgl_down"]][2:],
+        tgl_up=vals[FACILITY_ROW_DICT["fc_tgl_up"]][2:],
+        morr=vals[FACILITY_ROW_DICT["fc_morr"]][2:],
+    )
+
+
+def fetch_reg_bowling(hnh):
+    """
+    Fetch regular bowling hours for the next 7 days (inclusive of today).
+
+    For example, if today is Tuesday, fetch hours for today up to and including
+    next Monday.
+
+    - Parameters:
+        - `hnh`         The row info for Helen Newman Bowling.
+    """
+    for i in range(7):
+        # Determine next day and check if weekday or weekend
+        date = datetime.now() + timedelta(days=i)
+
+        # Monday = 0, ..., Sunday = 6
+        weekday = date.weekday()
+        time_string = hnh[weekday]
+
+        facility_id = FACILITY_ID_DICT["hnh_bowling"]
+
+        # Add to database
+        # Handle case if there are multiple hours
+        for time_str in time_string.split(MARKER_TIME_DELIMITER):
+            # Handle closed
+            if time_str != MARKER_CLOSED:
+                start, end = get_hours_datetimes(time_str, date)
+                add_single_facility_hours(start, end, facility_id)
+
+
+def fetch_reg_court(hnh_1, hnh_2, noyes):
+    """
+    Fetch regular court hours for the next 7 days (inclusive of today).
+
+    For example, if today is Tuesday, fetch hours for today up to and including
+    next Monday.
+
+    - Parameters:
+        - `hnh_1`       The row info for Helen Newman Court 1.
+        - `hnh_2`       The row info for Heen Newman Court 2.
+        - `noyes`       The row info for Noyes Indoor Court.
+    """
+    for i in range(7):
+        # Determine next day
+        date = datetime.now() + timedelta(days=i)
+
+        # Monday = 0, ..., Sunday = 6
+        weekday = date.weekday()
+        time_strings = [hnh_1[weekday], hnh_2[weekday], noyes[weekday]]
+
+        # Keep order consistent
+        facility_ids = [FACILITY_ID_DICT["hnh_court1"], FACILITY_ID_DICT["hnh_court2"], FACILITY_ID_DICT["noyes_court"]]
+
+        # Add to database
+        for j in range(len(time_strings)):
+            # Handle case if there are multiple hours
+            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
+                # Handle closed
+                if time_str != MARKER_CLOSED:
+                    # Remove MARKERS
+                    cleaned_str = (
+                        time_str.replace(MARKER_BADMINTON, "")
+                        .replace(MARKER_BASKETBALL, "")
+                        .replace(MARKER_VOLLEYBALL, "")
+                        .replace(MARKER_ALT, "")
+                    )
+                    start, end = get_hours_datetimes(cleaned_str, date)
+
+                    # Handle different courts (MUST HAVE A MARKER)
+                    if time_str.find(MARKER_BADMINTON) != -1:
+                        court_type = "badminton"
+                    elif time_str.find(MARKER_BASKETBALL) != -1:
+                        court_type = "basketball"
+                    elif time_str.find(MARKER_VOLLEYBALL) != -1:
+                        court_type = "volleyball"
+                    elif time_str.find(MARKER_ALT) != -1:
+                        # TODO: Odd Day - Badminton; Even Day - Volleyball
+                        court_type = "badminton" if date.day % 2 == 1 else "volleyball"
+
+                    add_single_facility_hours(start, end, facility_ids[j], court_type=court_type)
+
+
+def fetch_reg_pool(hnh, teagle):
+    """
+    Fetch regular pool hours for the next 7 days (inclusive of today).
+
+    For example, if today is Tuesday, fetch hours for today up to and including
+    next Monday.
+
+    - Parameters:
+        - `hnh`         The row info for Helen Newman Pool.
+        - `teagle`      The row info for Teagle Pool.
+    """
+    for i in range(7):
+        # Determine next day
+        date = datetime.now() + timedelta(days=i)
+
+        # Monday = 0, ..., Sunday = 6
+        weekday = date.weekday()
+        time_strings = [hnh[weekday], teagle[weekday]]
+
+        # Keep order consistent
+        facility_ids = [FACILITY_ID_DICT["hnh_pool"], FACILITY_ID_DICT["tgl_pool"]]
+
+        # Add to database
+        for j in range(len(time_strings)):
+            # Handle case if there are multiple hours
+            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
+                # Handle closed
+                if time_str != MARKER_CLOSED:
+                    # Remove MARKERS
+                    cleaned_str = time_str.replace(MARKER_WOMEN, "").replace(MARKER_SHALLOW, "")
+                    start, end = get_hours_datetimes(cleaned_str, date)
+
+                    # Handle women and shallow only
+                    if time_str.find(MARKER_WOMEN) != -1:
+                        add_single_facility_hours(start, end, facility_ids[j], is_women=True)
+                    elif time_str.find(MARKER_SHALLOW) != -1:
+                        add_single_facility_hours(start, end, facility_ids[j], is_shallow=True)
+                    else:
+                        add_single_facility_hours(start, end, facility_ids[j])
+
+
+def fetch_reg_fc(hnh, noyes, tgl_down, tgl_up, morr):
     """
     Fetch regular fitness center hours for the next 7 days (inclusive of today).
 
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
+
+    - Parameters:
+        - `hnh`         The row info for Helen Newman Fitness Center.
+        - `noyes`       The row info for Noyes Fitness Center.
+        - `tgl_down`    The row info for Teagle Down Fitness Center.
+        - `tgl_up`      The row info for Teagle Up Fitness Center.
+        - `morr`        The row info for Morrison Fitness Center.
     """
-    worksheet = sh.worksheet(SHEET_REG_FACILITY)
-    vals = worksheet.get_all_values()
-
-    # Fetch row info
-    hnh = vals[FACILITY_ROW_DICT["fc_hnh"]][2:]
-    noyes = vals[FACILITY_ROW_DICT["fc_noyes"]][2:]
-    tgl_down = vals[FACILITY_ROW_DICT["fc_tgl_down"]][2:]
-    tgl_up = vals[FACILITY_ROW_DICT["fc_tgl_up"]][2:]
-    morr = vals[FACILITY_ROW_DICT["fc_morr"]][2:]
-
     for i in range(7):
         # Determine next day and check if weekday or weekend
         date = datetime.now() + timedelta(days=i)
