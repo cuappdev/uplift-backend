@@ -19,7 +19,7 @@
     "facilities": [
       {
         "id": "hnh_fitness",
-        "name": "Fitness Center",
+        "name": "Helen Newman",
         "type": "fitness",
         "hours": []
       },
@@ -61,7 +61,7 @@
     "facilities": [
       {
         "id": "morr_fitness",
-        "name": "Fitness Center",
+        "name": "Morrison",
         "type": "fitness",
         "hours": []
       }
@@ -86,7 +86,7 @@
     "facilities": [
       {
         "id": "noyes_fitness",
-        "name": "Fitness Center",
+        "name": "Noyes",
         "type": "fitness",
         "hours": []
       },

@@ -43,7 +43,7 @@ def fetch_reg_court():
     hnh_2 = vals[3][1:]
     noyes = vals[4][1:]
 
-    for i in range(6):
+    for i in range(7):
         # Determine next day
         date = datetime.now() + timedelta(days=i)
 
@@ -97,7 +97,7 @@ def fetch_reg_pool():
     hnh = vals[2][1:]
     teagle = vals[3][1:]
 
-    for i in range(6):
+    for i in range(7):
         # Determine next day
         date = datetime.now() + timedelta(days=i)
 
@@ -143,7 +143,7 @@ def fetch_reg_building():
     teagle = vals[4][1:]
     morrison = vals[5][1:]
 
-    for i in range(6):
+    for i in range(7):
         # Determine next day
         date = datetime.now() + timedelta(days=i)
 
@@ -185,7 +185,7 @@ def fetch_reg_fc():
     _, tgl_up_wday, tgl_up_wend = worksheet.row_values("6")
     _, morr_wday, morr_wend = worksheet.row_values("7")
 
-    for i in range(6):
+    for i in range(7):
         # Determine next day and check if weekday or weekend
         date = datetime.now() + timedelta(days=i)
 
