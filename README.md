@@ -6,6 +6,15 @@ Technologies involved include:
 
 ## Setup Instructions
 
+### Database
+1. Install PostgreSQL on your local computer.
+2. Create a database and user:
+```
+createdb uplift
+createuser -P -s -e local
+```
+- This creates a database called `uplift` and a user called `local`. You will then use these when defining your environment variables.
+
 ### Virtualenv
 
 ```bash
