@@ -19,6 +19,24 @@ FACILITY_ID_DICT = {
     "tgl_pool": 11,
 }
 
+
+# Note that we need to subtract by an offset of 1
+FACILITY_ROW_OFFSET = 1
+
+# Dictionary of Facility row number in sheets
+FACILITY_ROW_DICT = {
+    "fc_hnh": 3 - FACILITY_ROW_OFFSET,
+    "fc_noyes": 4 - FACILITY_ROW_OFFSET,
+    "fc_tgl_down": 5 - FACILITY_ROW_OFFSET,
+    "fc_tgl_up": 6 - FACILITY_ROW_OFFSET,
+    "fc_morr": 7 - FACILITY_ROW_OFFSET,
+    "pool_hnh": 8 - FACILITY_ROW_OFFSET,
+    "pool_tgl": 9 - FACILITY_ROW_OFFSET,
+    "court_hnh_1": 10 - FACILITY_ROW_OFFSET,
+    "court_hnh_2": 11 - FACILITY_ROW_OFFSET,
+    "court_noyes": 12 - FACILITY_ROW_OFFSET,
+}
+
 # Dictionary of Gym IDs
 GYM_ID_DICT = {"hnh": 1, "morrison": 2, "noyes": 3, "teagle": 4}
 
@@ -58,11 +76,5 @@ SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
 # Worksheet name for regular building hours
 SHEET_REG_BUILDING = "[REG] Building Hours"
 
-# Worksheet name for regular court hours
-SHEET_REG_COURT = "[REG] Court Hours"
-
-# Worksheet name for regular fitness center hours
-SHEET_REG_FC = "[REG] Fitness Center Hours"
-
-# Worksheet name for regular pool hours
-SHEET_REG_POOL = "[REG] Pool Hours"
+# Worksheet name for regular facility hours
+SHEET_REG_FACILITY = "[REG] Facility Hours"

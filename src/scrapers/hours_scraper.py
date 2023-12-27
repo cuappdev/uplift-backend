@@ -13,13 +13,12 @@ from src.utils.constants import (
     MARKER_VOLLEYBALL,
     MARKER_WOMEN,
     FACILITY_ID_DICT,
+    FACILITY_ROW_DICT,
     GYM_ID_DICT,
     SERVICE_ACCOUNT_PATH,
     SHEET_KEY,
     SHEET_REG_BUILDING,
-    SHEET_REG_COURT,
-    SHEET_REG_FC,
-    SHEET_REG_POOL,
+    SHEET_REG_FACILITY,
 )
 from src.utils.utils import unix_time
 
@@ -35,13 +34,13 @@ def fetch_reg_court():
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
     """
-    worksheet = sh.worksheet(SHEET_REG_COURT)
+    worksheet = sh.worksheet(SHEET_REG_FACILITY)
     vals = worksheet.get_all_values()
 
     # Fetch row info
-    hnh_1 = vals[2][1:]
-    hnh_2 = vals[3][1:]
-    noyes = vals[4][1:]
+    hnh_1 = vals[FACILITY_ROW_DICT["court_hnh_1"]][2:]
+    hnh_2 = vals[FACILITY_ROW_DICT["court_hnh_2"]][2:]
+    noyes = vals[FACILITY_ROW_DICT["court_noyes"]][2:]
 
     for i in range(7):
         # Determine next day
@@ -90,12 +89,12 @@ def fetch_reg_pool():
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
     """
-    worksheet = sh.worksheet(SHEET_REG_POOL)
+    worksheet = sh.worksheet(SHEET_REG_FACILITY)
     vals = worksheet.get_all_values()
 
     # Fetch row info
-    hnh = vals[2][1:]
-    teagle = vals[3][1:]
+    hnh = vals[FACILITY_ROW_DICT["pool_hnh"]][2:]
+    teagle = vals[FACILITY_ROW_DICT["pool_tgl"]][2:]
 
     for i in range(7):
         # Determine next day
@@ -176,24 +175,23 @@ def fetch_reg_fc():
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
     """
-    worksheet = sh.worksheet(SHEET_REG_FC)
+    worksheet = sh.worksheet(SHEET_REG_FACILITY)
+    vals = worksheet.get_all_values()
 
-    # Fetch weekday/weekend strings
-    _, hnh_wday, hnh_wend = worksheet.row_values("3")
-    _, noyes_wday, noyes_wend = worksheet.row_values("4")
-    _, tgl_dn_wday, tgl_dn_wend = worksheet.row_values("5")
-    _, tgl_up_wday, tgl_up_wend = worksheet.row_values("6")
-    _, morr_wday, morr_wend = worksheet.row_values("7")
+    # Fetch row info
+    hnh = vals[FACILITY_ROW_DICT["fc_hnh"]][2:]
+    noyes = vals[FACILITY_ROW_DICT["fc_noyes"]][2:]
+    tgl_down = vals[FACILITY_ROW_DICT["fc_tgl_down"]][2:]
+    tgl_up = vals[FACILITY_ROW_DICT["fc_tgl_up"]][2:]
+    morr = vals[FACILITY_ROW_DICT["fc_morr"]][2:]
 
     for i in range(7):
         # Determine next day and check if weekday or weekend
         date = datetime.now() + timedelta(days=i)
 
-        # Keep order consistent
-        time_strings = [hnh_wend, noyes_wend, tgl_dn_wend, tgl_up_wend, morr_wend]
-        if date.weekday() < 5:
-            # Weekday
-            time_strings = [hnh_wday, noyes_wday, tgl_dn_wday, tgl_up_wday, morr_wday]
+        # Monday = 0, ..., Sunday = 6
+        weekday = date.weekday()
+        time_strings = [hnh[weekday], noyes[weekday], tgl_down[weekday], tgl_up[weekday], morr[weekday]]
 
         facility_ids = [
             FACILITY_ID_DICT["hnh_fitness"],
