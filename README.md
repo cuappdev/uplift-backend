@@ -50,7 +50,7 @@ Check the `#uplift-backend` channel for the `service-account-key.json` which sho
 
 To run the app:
 ````bash
-flask run
+python app.py
 ````
 
 To run the test suite:
