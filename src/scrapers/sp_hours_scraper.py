@@ -30,44 +30,56 @@ def fetch_sp_facility():
     worksheet = sh.worksheet(SHEET_SP_FACILITY)
     vals = worksheet.get_all_values()
 
-    # For loop goes here
-    row = vals[2]
-    # for row in vals[2:]:
-    # Grab sheet data
-    dates = get_date_ranges(row[0])
-    type = row[1]
-    name = row[2]
-    time_strings = row[3:]
+    for row in vals[2:]:
+        # Grab sheet data
+        if row[0]:
+            dates = get_date_ranges(row[0])
+            type = row[1]
+            name = row[2]
+            time_strings = row[3:]
 
-    for i in range(len(dates)):
-        date = dates[i]
-        hours = time_strings[date.weekday()]
+            for i in range(len(dates)):
+                date = dates[i]
+                hours = time_strings[date.weekday()]
 
-        # Check if hours exist and is within next 7 days
-        if hours and within_week(date):
-            if hours == MARKER_CLOSED:
-                remove_facility_hours(date, FACILITY_ID_DICT[name])
-            else:
-                # Handle case if there are multiple hours
-                for time_str in hours.split(MARKER_TIME_DELIMITER):
-                    # Check facility type
-                    if type == MARKER_BOWLING or type == MARKER_FITNESS:
-                        start, end = get_hours_datetimes(time_str, date)
-                        add_special_facility_hours(start, end, FACILITY_ID_DICT[name])
-                    elif type == MARKER_COURT:
-                        start, end, type = determine_court_hours(time_str, date)
-                        add_special_facility_hours(start, end, FACILITY_ID_DICT[name], court_type=type)
-                    elif type == MARKER_POOL:
-                        start, end, women, shallow = determine_pool_hours(time_str, date)
-                        if women:
-                            add_special_facility_hours(start, end, FACILITY_ID_DICT[name], is_women=True)
-                        elif shallow:
-                            add_special_facility_hours(start, end, FACILITY_ID_DICT[name], is_shallow=True)
-                        else:
-                            add_special_facility_hours(start, end, FACILITY_ID_DICT[name])
+                # Check if hours exist and is within next 7 days
+                if hours and within_week(date):
+                    if hours == MARKER_CLOSED:
+                        remove_facility_hours(date, FACILITY_ID_DICT[name])
+                    else:
+                        parse_special_hours(hours, type, date, name)
 
 
 # MARK: Helpers
+
+
+def parse_special_hours(time_string, type, date, name):
+    """
+    Parse a time string in the special hours sheet.
+
+    - Parameters:
+        - `time_string`     The string to parse.
+        - `type`            The facility type.
+        - `date`            The datetime object to get hours for.
+        - `name`            The name of the facility.
+    """
+    # Handle case if there are multiple hours
+    for time_str in time_string.split(MARKER_TIME_DELIMITER):
+        # Check facility type
+        if type == MARKER_BOWLING or type == MARKER_FITNESS:
+            start, end = get_hours_datetimes(time_str, date)
+            add_special_facility_hours(start, end, FACILITY_ID_DICT[name])
+        elif type == MARKER_COURT:
+            start, end, type = determine_court_hours(time_str, date)
+            add_special_facility_hours(start, end, FACILITY_ID_DICT[name], court_type=type)
+        elif type == MARKER_POOL:
+            start, end, women, shallow = determine_pool_hours(time_str, date)
+            if women:
+                add_special_facility_hours(start, end, FACILITY_ID_DICT[name], is_women=True)
+            elif shallow:
+                add_special_facility_hours(start, end, FACILITY_ID_DICT[name], is_shallow=True)
+            else:
+                add_special_facility_hours(start, end, FACILITY_ID_DICT[name])
 
 
 def remove_facility_hours(start_time, facility_id):
