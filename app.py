@@ -8,7 +8,8 @@ from src.models.capacity import Capacity
 from src.models.openhours import OpenHours
 from src.schema import Query
 from src.scrapers.capacities_scraper import fetch_capacities
-from src.scrapers.hours_scraper import fetch_reg_building, fetch_reg_facility
+from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
+from src.scrapers.sp_hours_scraper import fetch_sp_facility
 from src.utils.utils import create_gym_table
 
 
@@ -41,6 +42,7 @@ def scrape_sheets():
     # Fetch Hours
     fetch_reg_facility()
     fetch_reg_building()
+    fetch_sp_facility()
 
     # Fetch Capacities
     fetch_capacities()

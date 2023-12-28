@@ -1,7 +1,7 @@
 import unittest, pytz
-from src.utils.constants import LOCAL_TIMEZONE
-from datetime import datetime
-from src.scrapers.hours_scraper import get_hours_datetimes
+from src.utils.constants import EASTERN_TIMEZONE
+from datetime import datetime, timezone
+from src.scrapers.scraper_helpers import get_hours_datetimes
 from src.scrapers.capacities_scraper import get_capacity_datetime
 
 
@@ -24,9 +24,10 @@ class TestScraperHelpers(unittest.TestCase):
         format = "%m/%d/%Y %H:%M"
         date_obj = datetime.strptime(time_str, format)
 
-        # Convert from Eastern to UTC time
-        local_tz = pytz.timezone(LOCAL_TIMEZONE)
-        date_obj = local_tz.localize(date_obj).astimezone(pytz.UTC)
+        # Convert from Eastern to Local Time
+        eastern_tz = pytz.timezone(EASTERN_TIMEZONE)
+        local_tz = datetime.now(timezone.utc).astimezone().tzinfo
+        date_obj = eastern_tz.localize(date_obj).astimezone(local_tz)
 
         return date_obj
 

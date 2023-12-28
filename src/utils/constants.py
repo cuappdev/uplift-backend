@@ -49,8 +49,20 @@ MARKER_BADMINTON = "(BAD)"
 # Marker in sheets for basketball court
 MARKER_BASKETBALL = "(BAS)"
 
+# Marker in sheets for Bowling type
+MARKER_BOWLING = "B"
+
 # Marker in sheets for closed hours (closed for the day)
 MARKER_CLOSED = "Closed"
+
+# Marker in sheets for Court type
+MARKER_COURT = "C"
+
+# Marker in sheets for Fitness Center type
+MARKER_FITNESS = "FC"
+
+# Marker in sheets for Pool type
+MARKER_POOL = "P"
 
 # Marker in sheets for shallow pool
 MARKER_SHALLOW = "(S)"
@@ -78,3 +90,6 @@ SHEET_REG_BUILDING = "[REG] Building Hours"
 
 # Worksheet name for regular facility hours
 SHEET_REG_FACILITY = "[REG] Facility Hours"
+
+# Worksheet name for special facility hours
+SHEET_SP_FACILITY = "[SP] Facility Hours"
