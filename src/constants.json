@@ -1,6 +1,5 @@
 [
   {
-    "id": "hnh",
     "address": "163 Cradit Farm Road",
     "amenities": [
       {
@@ -18,32 +17,27 @@
     ],
     "facilities": [
       {
-        "id": "hnh_fitness",
-        "name": "Helen Newman",
+        "name": "HNH Fitness Center",
         "type": "fitness",
         "hours": []
       },
       {
-        "id": "hnh_pool",
-        "name": "Swimming Pool",
+        "name": "HNH Pool",
         "type": "pool",
         "hours": []
       },
       {
-        "id": "hnh_bowling",
-        "name": "Bowling",
+        "name": "HNH Bowling",
         "type": "bowling",
         "hours": []
       },
       {
-        "id": "hnh_court1",
-        "name": "Court 1",
+        "name": "HNH Court 1",
         "type": "court",
         "hours": []
       },
       {
-        "id": "hnh_court2",
-        "name": "Court 2",
+        "name": "HNH Court 2",
         "type": "court",
         "hours": []
       }
@@ -55,13 +49,11 @@
     "name": "Helen Newman"
   },
   {
-    "id": "morrison",
     "address": "18 Sisson Pl",
     "amenities": [],
     "facilities": [
       {
-        "id": "morr_fitness",
-        "name": "Morrison",
+        "name": "Morrison Fitness Center",
         "type": "fitness",
         "hours": []
       }
@@ -73,7 +65,6 @@
     "name": "Toni Morrison"
   },
   {
-    "id": "noyes",
     "address": "306 West Ave",
     "amenities": [
       {
@@ -85,14 +76,12 @@
     ],
     "facilities": [
       {
-        "id": "noyes_fitness",
-        "name": "Noyes",
+        "name": "Noyes Fitness Center",
         "type": "fitness",
         "hours": []
       },
       {
-        "id": "noyes_court",
-        "name": "Basketball Court",
+        "name": "Noyes Court",
         "type": "court",
         "hours": []
       }
@@ -104,7 +93,6 @@
     "name": "Noyes"
   },
   {
-    "id": "teagle",
     "address": "512 Campus Rd",
     "amenities": [
       {
@@ -119,20 +107,17 @@
     ],
     "facilities": [
       {
-        "id": "tgl_up",
-        "name": "Teagle Up",
+        "name": "Teagle Up Fitness Center",
         "type": "fitness",
         "hours": []
       },
       {
-        "id": "tgl_down",
-        "name": "Teagle Down",
+        "name": "Teagle Down Fitness Center",
         "type": "fitness",
         "hours": []
       },
       {
-        "id": "tgl_pool",
-        "name": "Swimming Pool",
+        "name": "Teagle Pool",
         "type": "pool",
         "hours": []
       }

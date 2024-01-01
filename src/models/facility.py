@@ -35,7 +35,7 @@ class Facility(Base):
     facility_type = Column(Enum(FacilityType), nullable=False)
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)
     hours = relationship("OpenHours")
-    name = Column(String(1000), nullable=False)
+    name = Column(String, nullable=False)
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")

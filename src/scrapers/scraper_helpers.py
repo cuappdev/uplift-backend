@@ -1,5 +1,7 @@
 import pytz
+from collections import namedtuple
 from datetime import datetime, timedelta, timezone
+from src.models.openhours import OpenHours
 from src.utils.constants import (
     EASTERN_TIMEZONE,
     MARKER_ALT,
@@ -8,7 +10,33 @@ from src.utils.constants import (
     MARKER_SHALLOW,
     MARKER_VOLLEYBALL,
     MARKER_WOMEN,
+    SECONDS_IN_DAY,
 )
+from src.utils.utils import unix_time
+
+
+def clean_hours(date, facility_id=None, gym_id=None):
+    """
+    Remove hours that are on the same day as the given date.
+
+    Parameters:
+        - `date`            The date to compare with.
+        - `facility_id`     The ID of the facility to remove from. Default is None.
+        - `gym_id`          The ID of the gym to remove from. Defaut is None.
+    """
+    if facility_id:
+        day_start_unix = unix_time(date.replace(hour=0, minute=0, second=0, microsecond=0))
+        day_end_unix = day_start_unix + SECONDS_IN_DAY
+        OpenHours.query.filter_by(facility_id=facility_id).filter(day_start_unix <= OpenHours.start_time).filter(
+            day_end_unix >= OpenHours.start_time
+        ).delete()
+
+    if gym_id:
+        day_start_unix = unix_time(date.replace(hour=0, minute=0, second=0, microsecond=0))
+        day_end_unix = day_start_unix + SECONDS_IN_DAY
+        OpenHours.query.filter_by(gym_id=gym_id).filter(day_start_unix <= OpenHours.start_time).filter(
+            day_end_unix >= OpenHours.start_time
+        ).delete()
 
 
 def get_hours_datetimes(time_str, day):
@@ -64,39 +92,43 @@ def determine_pool_hours(time_str, date):
     """
     Determine hours for a facility with Pool type.
 
-    The first element is the start time, second is end time, third is women only (bool),
-    fourth is shallow only (bool).
+    The hours are represented by a `CourtHours` named tuple with attributes
+    `start`, `end`, `is_women`, and `is_shallow`.
 
     - Parameters:
         - `time_str`    The time string to parse.
         - `date`        The date to add the hours to.
 
-    - Returns:      An array containing three elements.
+    - Returns:      A named tuple with the attributes described above.
     """
     # Remove MARKERS
     cleaned_str = time_str.replace(MARKER_WOMEN, "").replace(MARKER_SHALLOW, "")
     start, end = get_hours_datetimes(cleaned_str, date)
 
+    # Create named tuple
+    PoolHours = namedtuple("PoolHours", "start end is_women is_shallow")
+
     # Handle women and shallow only
     if time_str.find(MARKER_WOMEN) != -1:
-        return [start, end, True, False]
+        return PoolHours(start, end, True, False)
     elif time_str.find(MARKER_SHALLOW) != -1:
-        return [start, end, False, True]
+        return PoolHours(start, end, False, True)
     else:
-        return [start, end, False, False]
+        return PoolHours(start, end, False, False)
 
 
 def determine_court_hours(time_str, date):
     """
     Determine hours for a facility with Court type.
 
-    The first element is the start time, second is end time, third is court type.
+    The hours are represented by a `CourtHours` named tuple with attributes
+    `start`, `end`, and `type`.
 
     - Parameters:
         - `time_str`    The time string to parse.
         - `date`        The date to add the hours to.
 
-    - Returns:      An array containing three elements.
+    - Returns:      A named tuple with the attributes described above.
     """
     # Remove MARKERS
     cleaned_str = (
@@ -118,4 +150,6 @@ def determine_court_hours(time_str, date):
         # TODO: Odd Day - Badminton; Even Day - Volleyball
         court_type = "badminton" if date.day % 2 == 1 else "volleyball"
 
-    return [start, end, court_type]
+    # Create named tuple
+    CourtHours = namedtuple("Hours", "start end type")
+    return CourtHours(start, end, court_type)

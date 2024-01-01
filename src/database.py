@@ -1,4 +1,4 @@
-import os
+import logging, os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -24,7 +24,7 @@ def init_db():
     Initialize database for Uplift.
     """
     # Clear all tables and then repopulate
-    print("Initializing database")
+    logging.info("Initializing database")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db_session.commit()

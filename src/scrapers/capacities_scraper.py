@@ -1,9 +1,10 @@
 import gspread, pytz
 from datetime import datetime, timezone
+from pandas import DataFrame
 from src.database import db_session
 from src.models.capacity import Capacity
-from src.utils.constants import FACILITY_ID_DICT, EASTERN_TIMEZONE, SERVICE_ACCOUNT_PATH, SHEET_CAPACITIES, SHEET_KEY
-from src.utils.utils import unix_time
+from src.utils.constants import EASTERN_TIMEZONE, SERVICE_ACCOUNT_PATH, SHEET_CAPACITIES, SHEET_KEY
+from src.utils.utils import get_facility_id, unix_time
 
 # Configure client and sheet
 gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
@@ -15,38 +16,15 @@ def fetch_capacities():
     Fetch capacities for all facilities.
     """
     worksheet = sh.worksheet(SHEET_CAPACITIES)
-    vals = worksheet.get_all_values()
-
-    # Fetch row info
-    hnh_fitness = vals[2][1:]
-    noyes_fitness = vals[3][1:]
-    tgl_down = vals[4][1:]
-    tgl_up = vals[5][1:]
-    morr_fitness = vals[6][1:]
-    hnh_court1 = vals[7][1:]
-    hnh_court2 = vals[8][1:]
-    noyes_court = vals[9][1:]
-
-    # Note that the order matters!
-    rows = [hnh_fitness, noyes_fitness, tgl_down, tgl_up, morr_fitness, hnh_court1, hnh_court2, noyes_court]
-    facility_ids = [
-        FACILITY_ID_DICT["hnh_fitness"],
-        FACILITY_ID_DICT["noyes_fitness"],
-        FACILITY_ID_DICT["tgl_down"],
-        FACILITY_ID_DICT["tgl_up"],
-        FACILITY_ID_DICT["morr_fitness"],
-        FACILITY_ID_DICT["hnh_court1"],
-        FACILITY_ID_DICT["hnh_court2"],
-        FACILITY_ID_DICT["noyes_court"],
-    ]
+    vals = DataFrame(worksheet.get_all_records())
+    names = vals["Name"]
 
     # Add to database
-    for i in range(len(rows)):
-        # Count = 0, Percent = 1, Updated = 2
-        count = rows[i][0]
-        percent = rows[i][1]
-        updated = get_capacity_datetime(rows[i][2])
-        facility_id = facility_ids[i]
+    for i in range(len(names)):
+        count = int(vals["Count"][i])
+        percent = float(vals["Percent"][i])
+        updated = get_capacity_datetime(vals["Updated"][i])
+        facility_id = int(get_facility_id(names[i]))
 
         add_single_capacity(count, facility_id, percent, updated)
 
@@ -64,10 +42,11 @@ def add_single_capacity(count, facility_id, percent, updated):
     # Convert datetime object to Unix
     updated_unix = unix_time(updated)
 
-    # Create capacity
+    # Clear old capacity and create a new one
+    Capacity.query.filter_by(facility_id=facility_id).delete()
     capacity = Capacity(count=count, facility_id=facility_id, percent=percent, updated=updated_unix)
 
-    # Add to database
+    # Save to database
     db_session.merge(capacity)
     db_session.commit()
 

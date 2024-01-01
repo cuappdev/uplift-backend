@@ -4,7 +4,7 @@ from src.database import db_session
 from src.models.gym import Gym
 from src.models.facility import Facility, FacilityType
 from src.models.amenity import Amenity, AmenityType
-from src.utils.constants import ASSET_BASE_URL, EASTERN_TIMEZONE, FACILITY_ID_DICT, GYM_ID_DICT
+from src.utils.constants import ASSET_BASE_URL, EASTERN_TIMEZONE
 
 
 def generate_id(data):
@@ -86,13 +86,13 @@ def create_gym_table():
 
         # Add Gyms
         for gym in json_gyms:
-            gym["id"] = GYM_ID_DICT[gym["id"]]
+            gym["id"] = generate_id(gym["name"])
             gym["image_url"] = f"{ASSET_BASE_URL}{gym['image_url']}"
             gyms.append(Gym(**gym))
 
             # Add Facilities
             for facility in gym["facilities"]:
-                facility["id"] = FACILITY_ID_DICT[facility["id"]]
+                facility["id"] = generate_id(facility["name"])
                 facility["gym_id"] = gym["id"]
                 facility["facility_type"] = FacilityType[facility["type"]]
                 facilities.append(Facility(**facility))
@@ -108,3 +108,29 @@ def create_gym_table():
     [db_session.merge(facility) for facility in facilities]
     [db_session.merge(amenity) for amenity in amenities]
     db_session.commit()
+
+
+def get_gym_id(name):
+    """
+    Retreive the ID of a gym.
+
+    Parameters:
+        - `name`    The name of the gym.
+
+    Returns:    The ID of the gym.
+    """
+    gym = Gym.query.filter_by(name=name).first()
+    return gym.id
+
+
+def get_facility_id(name):
+    """
+    Retreive the ID of a facility.
+
+    Parameters:
+        - `name`    The name of the facility.
+
+    Returns:    The ID of the facility.
+    """
+    facility = Facility.query.filter_by(name=name).first()
+    return facility.id

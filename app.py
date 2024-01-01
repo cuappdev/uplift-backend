@@ -1,4 +1,4 @@
-import schedule, time
+import logging, schedule, time
 from flask import Flask, render_template
 from flask_graphql import GraphQLView
 from graphene import Schema
@@ -33,11 +33,7 @@ def shutdown_session(exception=None):
 
 
 def scrape_sheets():
-    print("Scraping from sheets...")
-    # Clear database records
-    Capacity.query.delete()
-    OpenHours.query.delete()
-    db_session.commit()
+    logging.info("Scraping from sheets...")
 
     # Fetch Hours
     fetch_reg_facility()

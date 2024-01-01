@@ -1,20 +1,23 @@
 import gspread
 from datetime import datetime, timedelta
+from pandas import DataFrame
 from src.database import db_session
 from src.models.openhours import OpenHours
-from src.scrapers.scraper_helpers import determine_court_hours, determine_pool_hours, get_hours_datetimes
+from src.scrapers.scraper_helpers import clean_hours, determine_court_hours, determine_pool_hours, get_hours_datetimes
 from src.utils.constants import (
+    DAYS_OF_WEEK,
+    MARKER_BOWLING,
     MARKER_CLOSED,
+    MARKER_COURT,
+    MARKER_FITNESS,
+    MARKER_POOL,
     MARKER_TIME_DELIMITER,
-    FACILITY_ID_DICT,
-    FACILITY_ROW_DICT,
-    GYM_ID_DICT,
     SERVICE_ACCOUNT_PATH,
     SHEET_KEY,
     SHEET_REG_BUILDING,
     SHEET_REG_FACILITY,
 )
-from src.utils.utils import unix_time
+from src.utils.utils import get_facility_id, get_gym_id, unix_time
 
 # Configure client and sheet
 gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
@@ -29,38 +32,30 @@ def fetch_reg_building():
     next Monday.
     """
     worksheet = sh.worksheet(SHEET_REG_BUILDING)
-    vals = worksheet.get_all_values()
+    vals = DataFrame(worksheet.get_all_records())
 
-    # Fetch row info
-    hnh = vals[2][1:]
-    noyes = vals[3][1:]
-    teagle = vals[4][1:]
-    morrison = vals[5][1:]
-
-    for i in range(7):
+    for i in range(len(DAYS_OF_WEEK)):
         # Determine next day
         date = datetime.now() + timedelta(days=i)
 
-        # Monday = 0, ..., Sunday = 6
-        weekday = date.weekday()
-        time_strings = [hnh[weekday], noyes[weekday], teagle[weekday], morrison[weekday]]
-
-        # Keep order consistent
-        gym_ids = [
-            GYM_ID_DICT["hnh"],
-            GYM_ID_DICT["noyes"],
-            GYM_ID_DICT["teagle"],
-            GYM_ID_DICT["morrison"],
-        ]
+        # Get spreadsheet info
+        weekday = DAYS_OF_WEEK[i]
+        names = vals["Name"]
 
         # Add to database
-        for j in range(len(time_strings)):
-            # Handle case if there is a are multiple hours
-            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
+        for j in range(len(names)):
+            time_string = vals[weekday][j]
+            gym_id = get_gym_id(names[j])
+
+            # Clean hours for that day
+            clean_hours(date, gym_id=gym_id)
+
+            # Handle case if there are multiple hours
+            for time_str in time_string.split(MARKER_TIME_DELIMITER):
                 # Handle closed
                 if time_str != MARKER_CLOSED:
                     start, end = get_hours_datetimes(time_str, date)
-                    add_regular_gym_hours(start, end, gym_ids[j])
+                    add_regular_gym_hours(start, end, gym_id)
 
 
 def fetch_reg_facility():
@@ -68,25 +63,15 @@ def fetch_reg_facility():
     Fetch regular facility hours.
     """
     worksheet = sh.worksheet(SHEET_REG_FACILITY)
-    vals = worksheet.get_all_values()
+    vals = DataFrame(worksheet.get_all_records())
 
-    fetch_reg_bowling(hnh=vals[FACILITY_ROW_DICT["bowling_hnh"]][2:])
-    fetch_reg_court(
-        hnh_1=vals[FACILITY_ROW_DICT["court_hnh_1"]][2:],
-        hnh_2=vals[FACILITY_ROW_DICT["court_hnh_2"]][2:],
-        noyes=vals[FACILITY_ROW_DICT["court_noyes"]][2:],
-    )
-    fetch_reg_pool(hnh=vals[FACILITY_ROW_DICT["pool_hnh"]][2:], teagle=vals[FACILITY_ROW_DICT["pool_tgl"]][2:])
-    fetch_reg_fc(
-        hnh=vals[FACILITY_ROW_DICT["fc_hnh"]][2:],
-        noyes=vals[FACILITY_ROW_DICT["fc_noyes"]][2:],
-        tgl_down=vals[FACILITY_ROW_DICT["fc_tgl_down"]][2:],
-        tgl_up=vals[FACILITY_ROW_DICT["fc_tgl_up"]][2:],
-        morr=vals[FACILITY_ROW_DICT["fc_morr"]][2:],
-    )
+    fetch_reg_bowling(vals)
+    fetch_reg_court(vals)
+    fetch_reg_pool(vals)
+    fetch_reg_fc(vals)
 
 
-def fetch_reg_bowling(hnh):
+def fetch_reg_bowling(vals):
     """
     Fetch regular bowling hours for the next 7 days (inclusive of today).
 
@@ -94,28 +79,34 @@ def fetch_reg_bowling(hnh):
     next Monday.
 
     - Parameters:
-        - `hnh`         The row info for Helen Newman Bowling.
+        - `vals`         The spreadsheet data.
     """
-    for i in range(7):
-        # Determine next day and check if weekday or weekend
+    for i in range(len(DAYS_OF_WEEK)):
+        # Determine next day
         date = datetime.now() + timedelta(days=i)
 
-        # Monday = 0, ..., Sunday = 6
-        weekday = date.weekday()
-        time_string = hnh[weekday]
-
-        facility_id = FACILITY_ID_DICT["hnh_bowling"]
+        # Get spreadsheet info
+        weekday = DAYS_OF_WEEK[i]
+        names = vals["Name"]
 
         # Add to database
-        # Handle case if there are multiple hours
-        for time_str in time_string.split(MARKER_TIME_DELIMITER):
-            # Handle closed
-            if time_str != MARKER_CLOSED:
-                start, end = get_hours_datetimes(time_str, date)
-                add_regular_facility_hours(start, end, facility_id)
+        for j in range(len(names)):
+            if vals["Type"][j] == MARKER_BOWLING:
+                time_string = vals[weekday][j]
+                facility_id = get_facility_id(names[j])
+
+                # Clean hours for that day
+                clean_hours(date, facility_id)
+
+                # Handle case if there are multiple hours
+                for time_str in time_string.split(MARKER_TIME_DELIMITER):
+                    # Handle closed
+                    if time_str != MARKER_CLOSED:
+                        start, end = get_hours_datetimes(time_str, date)
+                        add_regular_facility_hours(start, end, facility_id)
 
 
-def fetch_reg_court(hnh_1, hnh_2, noyes):
+def fetch_reg_court(vals):
     """
     Fetch regular court hours for the next 7 days (inclusive of today).
 
@@ -123,32 +114,34 @@ def fetch_reg_court(hnh_1, hnh_2, noyes):
     next Monday.
 
     - Parameters:
-        - `hnh_1`       The row info for Helen Newman Court 1.
-        - `hnh_2`       The row info for Heen Newman Court 2.
-        - `noyes`       The row info for Noyes Indoor Court.
+        - `vals`         The spreadsheet data.
     """
-    for i in range(7):
+    for i in range(len(DAYS_OF_WEEK)):
         # Determine next day
         date = datetime.now() + timedelta(days=i)
 
-        # Monday = 0, ..., Sunday = 6
-        weekday = date.weekday()
-        time_strings = [hnh_1[weekday], hnh_2[weekday], noyes[weekday]]
-
-        # Keep order consistent
-        facility_ids = [FACILITY_ID_DICT["hnh_court1"], FACILITY_ID_DICT["hnh_court2"], FACILITY_ID_DICT["noyes_court"]]
+        # Get spreadsheet info
+        weekday = DAYS_OF_WEEK[i]
+        names = vals["Name"]
 
         # Add to database
-        for j in range(len(time_strings)):
-            # Handle case if there are multiple hours
-            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
-                # Handle closed
-                if time_str != MARKER_CLOSED:
-                    start, end, type = determine_court_hours(time_str, date)
-                    add_regular_facility_hours(start, end, facility_ids[j], court_type=type)
+        for j in range(len(names)):
+            if vals["Type"][j] == MARKER_COURT:
+                time_string = vals[weekday][j]
+                facility_id = get_facility_id(names[j])
+
+                # Clean hours for that day
+                clean_hours(date, facility_id)
+
+                # Handle case if there are multiple hours
+                for time_str in time_string.split(MARKER_TIME_DELIMITER):
+                    # Handle closed
+                    if time_str != MARKER_CLOSED:
+                        start, end, type = determine_court_hours(time_str, date)
+                        add_regular_facility_hours(start, end, facility_id, court_type=type)
 
 
-def fetch_reg_pool(hnh, teagle):
+def fetch_reg_pool(vals):
     """
     Fetch regular pool hours for the next 7 days (inclusive of today).
 
@@ -156,36 +149,39 @@ def fetch_reg_pool(hnh, teagle):
     next Monday.
 
     - Parameters:
-        - `hnh`         The row info for Helen Newman Pool.
-        - `teagle`      The row info for Teagle Pool.
+        - `vals`         The spreadsheet data.
     """
-    for i in range(7):
+    for i in range(len(DAYS_OF_WEEK)):
         # Determine next day
         date = datetime.now() + timedelta(days=i)
 
-        # Monday = 0, ..., Sunday = 6
-        weekday = date.weekday()
-        time_strings = [hnh[weekday], teagle[weekday]]
-
-        # Keep order consistent
-        facility_ids = [FACILITY_ID_DICT["hnh_pool"], FACILITY_ID_DICT["tgl_pool"]]
+        # Get spreadsheet info
+        weekday = DAYS_OF_WEEK[i]
+        names = vals["Name"]
 
         # Add to database
-        for j in range(len(time_strings)):
-            # Handle case if there are multiple hours
-            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
-                # Handle closed
-                if time_str != MARKER_CLOSED:
-                    start, end, women, shallow = determine_pool_hours(time_str, date)
-                    if women:
-                        add_regular_facility_hours(start, end, facility_ids[j], is_women=True)
-                    elif shallow:
-                        add_regular_facility_hours(start, end, facility_ids[j], is_shallow=True)
-                    else:
-                        add_regular_facility_hours(start, end, facility_ids[j])
+        for j in range(len(names)):
+            if vals["Type"][j] == MARKER_POOL:
+                time_string = vals[weekday][j]
+                facility_id = get_facility_id(names[j])
+
+                # Clean hours for that day
+                clean_hours(date, facility_id)
+
+                # Handle case if there are multiple hours
+                for time_str in time_string.split(MARKER_TIME_DELIMITER):
+                    # Handle closed
+                    if time_str != MARKER_CLOSED:
+                        start, end, is_women, is_shallow = determine_pool_hours(time_str, date)
+                        if is_women:
+                            add_regular_facility_hours(start, end, facility_id, is_women=True)
+                        elif is_shallow:
+                            add_regular_facility_hours(start, end, facility_id, is_shallow=True)
+                        else:
+                            add_regular_facility_hours(start, end, facility_id)
 
 
-def fetch_reg_fc(hnh, noyes, tgl_down, tgl_up, morr):
+def fetch_reg_fc(vals):
     """
     Fetch regular fitness center hours for the next 7 days (inclusive of today).
 
@@ -193,36 +189,31 @@ def fetch_reg_fc(hnh, noyes, tgl_down, tgl_up, morr):
     next Monday.
 
     - Parameters:
-        - `hnh`         The row info for Helen Newman Fitness Center.
-        - `noyes`       The row info for Noyes Fitness Center.
-        - `tgl_down`    The row info for Teagle Down Fitness Center.
-        - `tgl_up`      The row info for Teagle Up Fitness Center.
-        - `morr`        The row info for Morrison Fitness Center.
+        - `vals`         The spreadsheet data.
     """
-    for i in range(7):
-        # Determine next day and check if weekday or weekend
+    for i in range(len(DAYS_OF_WEEK)):
+        # Determine next day
         date = datetime.now() + timedelta(days=i)
 
-        # Monday = 0, ..., Sunday = 6
-        weekday = date.weekday()
-        time_strings = [hnh[weekday], noyes[weekday], tgl_down[weekday], tgl_up[weekday], morr[weekday]]
-
-        facility_ids = [
-            FACILITY_ID_DICT["hnh_fitness"],
-            FACILITY_ID_DICT["noyes_fitness"],
-            FACILITY_ID_DICT["tgl_down"],
-            FACILITY_ID_DICT["tgl_up"],
-            FACILITY_ID_DICT["morr_fitness"],
-        ]
+        # Get spreadsheet info
+        weekday = DAYS_OF_WEEK[i]
+        names = vals["Name"]
 
         # Add to database
-        for j in range(len(time_strings)):
-            # Handle case if there are multiple hours
-            for time_str in time_strings[j].split(MARKER_TIME_DELIMITER):
-                # Handle closed
-                if time_str != MARKER_CLOSED:
-                    start, end = get_hours_datetimes(time_str, date)
-                    add_regular_facility_hours(start, end, facility_ids[j])
+        for j in range(len(names)):
+            if vals["Type"][j] == MARKER_FITNESS:
+                time_string = vals[weekday][j]
+                facility_id = get_facility_id(names[j])
+
+                # Clean hours for that day
+                clean_hours(date, facility_id)
+
+                # Handle case if there are multiple hours
+                for time_str in time_string.split(MARKER_TIME_DELIMITER):
+                    # Handle closed
+                    if time_str != MARKER_CLOSED:
+                        start, end = get_hours_datetimes(time_str, date)
+                        add_regular_facility_hours(start, end, facility_id)
 
 
 # MARK: Helpers

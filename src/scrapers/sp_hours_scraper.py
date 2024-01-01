@@ -1,22 +1,21 @@
 import gspread
+from pandas import DataFrame
 from src.database import db_session
-from src.models.capacity import Capacity  # do not remove
 from src.models.openhours import OpenHours
-from src.models.gym import Gym
-from src.scrapers.scraper_helpers import determine_court_hours, determine_pool_hours, get_hours_datetimes
+from src.scrapers.scraper_helpers import clean_hours, determine_court_hours, determine_pool_hours, get_hours_datetimes
 from src.utils.constants import (
+    DAYS_OF_WEEK,
     MARKER_BOWLING,
     MARKER_CLOSED,
     MARKER_COURT,
     MARKER_FITNESS,
     MARKER_POOL,
     MARKER_TIME_DELIMITER,
-    FACILITY_ID_DICT,
     SERVICE_ACCOUNT_PATH,
     SHEET_SP_FACILITY,
     SHEET_KEY,
 )
-from src.utils.utils import unix_time, within_week, get_date_ranges
+from src.utils.utils import unix_time, within_week, get_date_ranges, get_facility_id
 
 # Configure client and sheet
 gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
@@ -28,32 +27,34 @@ def fetch_sp_facility():
     Fetch special facility hours.
     """
     worksheet = sh.worksheet(SHEET_SP_FACILITY)
-    vals = worksheet.get_all_values()
+    vals = DataFrame(worksheet.get_all_records())
 
-    for row in vals[2:]:
-        # Grab sheet data
-        if row[0]:
-            dates = get_date_ranges(row[0])
-            type = row[1]
-            name = row[2]
-            time_strings = row[3:]
+    # Grab sheet data
+    names = vals["Name"]
 
-            for i in range(len(dates)):
-                date = dates[i]
-                hours = time_strings[date.weekday()]
+    for i in range(len(names)):
+        # Check if date range exists
+        date_range = vals["Date Range"][i]
+        if date_range:
+            type = vals["Type"][i]
+            name = names[i]
+
+            for date in get_date_ranges(date_range):
+                day_of_week = DAYS_OF_WEEK[date.weekday()]
+                hours = vals[day_of_week][i]
 
                 # Check if hours exist and is within next 7 days
                 if hours and within_week(date):
                     if hours == MARKER_CLOSED:
-                        remove_facility_hours(date, FACILITY_ID_DICT[name])
+                        clean_hours(date, get_facility_id(name))
                     else:
-                        parse_special_hours(hours, type, date, name)
+                        parse_special_hours(hours, type, date, get_facility_id(name))
 
 
 # MARK: Helpers
 
 
-def parse_special_hours(time_string, type, date, name):
+def parse_special_hours(time_string, type, date, facility_id):
     """
     Parse a time string in the special hours sheet.
 
@@ -61,46 +62,25 @@ def parse_special_hours(time_string, type, date, name):
         - `time_string`     The string to parse.
         - `type`            The facility type.
         - `date`            The datetime object to get hours for.
-        - `name`            The name of the facility.
+        - `facility_id`              The ID of the facility.
     """
     # Handle case if there are multiple hours
     for time_str in time_string.split(MARKER_TIME_DELIMITER):
         # Check facility type
         if type == MARKER_BOWLING or type == MARKER_FITNESS:
             start, end = get_hours_datetimes(time_str, date)
-            add_special_facility_hours(start, end, FACILITY_ID_DICT[name])
+            add_special_facility_hours(start, end, facility_id)
         elif type == MARKER_COURT:
             start, end, type = determine_court_hours(time_str, date)
-            add_special_facility_hours(start, end, FACILITY_ID_DICT[name], court_type=type)
+            add_special_facility_hours(start, end, facility_id, court_type=type)
         elif type == MARKER_POOL:
-            start, end, women, shallow = determine_pool_hours(time_str, date)
-            if women:
-                add_special_facility_hours(start, end, FACILITY_ID_DICT[name], is_women=True)
-            elif shallow:
-                add_special_facility_hours(start, end, FACILITY_ID_DICT[name], is_shallow=True)
+            start, end, is_women, is_shallow = determine_pool_hours(time_str, date)
+            if is_women:
+                add_special_facility_hours(start, end, facility_id, is_women=True)
+            elif is_shallow:
+                add_special_facility_hours(start, end, facility_id, is_shallow=True)
             else:
-                add_special_facility_hours(start, end, FACILITY_ID_DICT[name])
-
-
-def remove_facility_hours(start_time, facility_id):
-    """
-    Remove facility hours from the database.
-
-    Parameters:
-        - `start_time`      The datetime object representing the opening time.
-        - `facility_id`     The ID of the facility.
-    """
-    # Get unix time for the day
-    day_start_unix = unix_time(start_time.replace(hour=0, minute=0, second=0, microsecond=0))
-    day_end_unix = day_start_unix + 86400  # 86400 seconds in a day
-
-    # Delete overlapping hours
-    OpenHours.query.filter_by(facility_id=facility_id).filter(day_start_unix <= OpenHours.start_time).filter(
-        day_end_unix >= OpenHours.start_time
-    ).delete()
-
-    # Save changes
-    db_session.commit()
+                add_special_facility_hours(start, end, facility_id)
 
 
 def add_special_facility_hours(start_time, end_time, facility_id, court_type=None, is_shallow=None, is_women=None):
@@ -121,14 +101,8 @@ def add_special_facility_hours(start_time, end_time, facility_id, court_type=Non
     start_unix = unix_time(start_time)
     end_unix = unix_time(end_time)
 
-    # Get unix time for the day
-    day_start_unix = unix_time(start_time.replace(hour=0, minute=0, second=0, microsecond=0))
-    day_end_unix = day_start_unix + 86400  # 86400 seconds in a day
-
-    # Delete overlapping hours
-    OpenHours.query.filter_by(facility_id=facility_id).filter(day_start_unix <= OpenHours.start_time).filter(
-        day_end_unix >= OpenHours.start_time
-    ).delete()
+    # Clean hours from database
+    clean_hours(start_time, facility_id)
 
     # Create hours
     hrs = OpenHours(

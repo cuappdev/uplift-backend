@@ -22,14 +22,14 @@ class Gym(Base):
     __tablename__ = "gym"
 
     id = Column(Integer, primary_key=True)
-    address = Column(String(1000), nullable=False)
+    address = Column(String, nullable=False)
     amenities = relationship("Amenity")
     facilities = relationship("Facility")
     hours = relationship("OpenHours")
-    image_url = Column(String(1000), nullable=True)
+    image_url = Column(String, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
-    name = Column(String(100), nullable=False)
+    name = Column(String, nullable=False)
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
