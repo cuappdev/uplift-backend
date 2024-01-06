@@ -1,3 +1,5 @@
+import os
+
 # URL for Uplift image assets
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
 
@@ -47,13 +49,17 @@ MARKER_WOMEN = "(W)"
 SECONDS_IN_DAY = 86400
 
 # Path to service account key for scraping sheets
-SERVICE_ACCOUNT_PATH = "service-account-key.json"
+SERVICE_ACCOUNT_PATH = os.environ["GOOGLE_SERVICE_ACCOUNT_PATH"]
 
 # Worksheet name for capacities
 SHEET_CAPACITIES = "Capacities"
 
 # Identifier for the Google Sheet
-SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
+if os.environ["FLASK_ENV"] == "production":
+    # TODO: create new sheet for prod
+    SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
+else:
+    SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
 
 # Worksheet name for regular building hours
 SHEET_REG_BUILDING = "[REG] Building Hours"
