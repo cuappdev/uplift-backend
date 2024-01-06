@@ -16,7 +16,7 @@ click==6.7
 distlib==0.3.7
 fastdiff==0.3.0
 filelock==3.12.2
-Flask==1.0.2
+Flask==2.2.5
 Flask-GraphQL==2.0.0
 Flask-Migrate==2.4.0
 Flask-Script==2.0.5
