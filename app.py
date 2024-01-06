@@ -1,13 +1,16 @@
+import logging, schedule, time
 from flask import Flask, render_template
 from flask_graphql import GraphQLView
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
+from src.models.capacity import Capacity
+from src.models.openhours import OpenHours
 from src.schema import Query
-from src.constants import create_gym_table
-from src.scrapers.scraper import scrape_classes
-from src.scrapers.gym_scraper import scrape_times
-from src.scrapers.scraper import scrape_classes, scrape_pool_hours
+from src.scrapers.capacities_scraper import fetch_capacities
+from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
+from src.scrapers.sp_hours_scraper import fetch_sp_facility
+from src.utils.utils import create_gym_table
 
 
 app = Flask(__name__)
@@ -29,12 +32,22 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 
-# Create database and fill it with constants
+def scrape_sheets():
+    logging.info("Scraping from sheets...")
+
+    # Fetch Hours
+    fetch_reg_facility()
+    fetch_reg_building()
+    fetch_sp_facility()
+
+    # Fetch Capacities
+    fetch_capacities()
+
+
+# Create database and fill it with data
 init_db()
 create_gym_table()
-scrape_times()
-scrape_classes(3)
-scrape_pool_hours()
+scrape_sheets()
 
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
@@ -44,3 +57,9 @@ with open("schema.graphql", "w+") as schema_file:
 # Should only be used for dev
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000)  # For Dev Purposes only (use start_server.sh for release)
+
+# Schedule the scraping to run every 10 minutes
+schedule.every(10).minutes.do(scrape_sheets)
+while True:
+    schedule.run_pending()
+    time.sleep(60)

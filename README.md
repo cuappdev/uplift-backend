@@ -2,11 +2,20 @@
 
 Technologies involved include:
 1. Flask
-2. GraphQL
+2. GraphQL (Graphene)
 
-## Virtualenv
+## Setup Instructions
 
-Virtualenv setup!
+### Database
+1. Install PostgreSQL on your local computer.
+2. Create a database and user:
+```
+createdb uplift
+createuser -P -s -e local
+```
+- This creates a database called `uplift` and a user called `local`. You will then use these when defining your environment variables.
+
+### Virtualenv
 
 ```bash
 virtualenv venv
@@ -14,7 +23,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Environment Variables
+### Environment Variables
 It's recommended to use [`autoenv`](https://github.com/kennethreitz/autoenv).
 The required environment variables for this API are the following:
 
@@ -34,15 +43,19 @@ To use `autoenv` with this repository, run the following and set the variables a
 cp env.template .env
 ````
 
-## Setting Up the Database with Data
+### Service Account Key
+Check the `#uplift-backend` channel for the `service-account-key.json` which should be placed in the root directory.
+
+## Running the App and Test Suite
+
+To run the app:
 ````bash
-python setup_db.py
+python app.py
 ````
 
-## Running the App
-
+To run the test suite:
 ````bash
-flask run
+python -m unittest src.tests.test_scraper
 ````
 
 ## Setting up linter
