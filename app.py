@@ -54,9 +54,8 @@ with open("schema.graphql", "w+") as schema_file:
     schema_file.write(schema_printer.print_schema(schema))
     schema_file.close()
 
-# Should only be used for dev
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000)  # For Dev Purposes only (use start_server.sh for release)
+    app.run(host="127.0.0.1", port=5000)
 
 # Schedule the scraping to run every 10 minutes
 schedule.every(10).minutes.do(scrape_sheets)
