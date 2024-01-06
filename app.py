@@ -5,9 +5,6 @@ from flask_graphql import GraphQLView
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
-
-# from src.models.capacity import Capacity
-# from src.models.openhours import OpenHours
 from src.schema import Query
 from src.scrapers.capacities_scraper import fetch_capacities
 from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
