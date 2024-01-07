@@ -45,9 +45,9 @@ def fetch_sp_facility():
 
                 # Check if hours exist and is within next 7 days
                 if hours and within_week(date):
-                    if hours == MARKER_CLOSED:
-                        clean_hours(date, get_facility_id(name))
-                    else:
+                    # Clean hours from database
+                    clean_hours(date, get_facility_id(name))
+                    if hours != MARKER_CLOSED:
                         parse_special_hours(hours, type, date, get_facility_id(name))
 
 
@@ -100,9 +100,6 @@ def add_special_facility_hours(start_time, end_time, facility_id, court_type=Non
     # Convert datetime objects to Unix
     start_unix = unix_time(start_time)
     end_unix = unix_time(end_time)
-
-    # Clean hours from database
-    clean_hours(start_time, facility_id)
 
     # Create hours
     hrs = OpenHours(
