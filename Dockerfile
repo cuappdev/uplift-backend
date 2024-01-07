@@ -1,4 +1,5 @@
 FROM python:3.9
+ENV TZ="America/New_York"
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 COPY . .

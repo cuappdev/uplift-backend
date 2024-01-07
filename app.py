@@ -21,6 +21,9 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
+# Logging
+logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
+
 
 @app.route("/")
 def index():

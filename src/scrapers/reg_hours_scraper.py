@@ -39,7 +39,7 @@ def fetch_reg_building():
         date = datetime.now() + timedelta(days=i)
 
         # Get spreadsheet info
-        weekday = DAYS_OF_WEEK[i]
+        weekday = DAYS_OF_WEEK[date.weekday()]
         names = vals["Name"]
 
         # Add to database
@@ -86,7 +86,7 @@ def fetch_reg_bowling(vals):
         date = datetime.now() + timedelta(days=i)
 
         # Get spreadsheet info
-        weekday = DAYS_OF_WEEK[i]
+        weekday = DAYS_OF_WEEK[date.weekday()]
         names = vals["Name"]
 
         # Add to database
@@ -121,7 +121,7 @@ def fetch_reg_court(vals):
         date = datetime.now() + timedelta(days=i)
 
         # Get spreadsheet info
-        weekday = DAYS_OF_WEEK[i]
+        weekday = DAYS_OF_WEEK[date.weekday()]
         names = vals["Name"]
 
         # Add to database
@@ -156,7 +156,7 @@ def fetch_reg_pool(vals):
         date = datetime.now() + timedelta(days=i)
 
         # Get spreadsheet info
-        weekday = DAYS_OF_WEEK[i]
+        weekday = DAYS_OF_WEEK[date.weekday()]
         names = vals["Name"]
 
         # Add to database
@@ -196,7 +196,7 @@ def fetch_reg_fc(vals):
         date = datetime.now() + timedelta(days=i)
 
         # Get spreadsheet info
-        weekday = DAYS_OF_WEEK[i]
+        weekday = DAYS_OF_WEEK[date.weekday()]
         names = vals["Name"]
 
         # Add to database
