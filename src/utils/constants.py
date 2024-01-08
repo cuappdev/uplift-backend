@@ -3,6 +3,33 @@ import os
 # URL for Uplift image assets
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
 
+# The path for capacities
+C2C_URL = "https://connect2concepts.com/connect2/?type=bar&key=355de24d-d0e4-4262-ae97-bc0c78b92839&loc_status=false"
+
+# The marker for counts in the HTML
+CAPACITY_MARKER_COUNTS = "Last Count: "
+
+# The marker for each facility name in the HTML
+CAPACITY_MARKER_NAMES = {
+    "Helen Newman Fitness Center": "HNH Fitness Center",
+    "Noyes Fitness Center": "Noyes Fitness Center",
+    "Teagle Down Fitness Center": "Teagle Down Fitness Center",
+    "Teagle Up Fitness Center": "Teagle Up Fitness Center",
+    "Toni Morrison Fitness Center": "Morrison Fitness Center",
+    "HNH Court 1 Basketball": "HNH Court 1",
+    "HNH Court 2 Volleyball/Badminton": "HNH Court 2",
+    "Noyes Court Basketball": "Noyes Court",
+}
+
+# The marker for percent in the HTML
+CAPACITY_MARKER_PERCENT = "%"
+
+# The marker for missing percent in the HTML
+CAPACITY_MARKER_PERCENT_NA = "NA"
+
+# The marker for last updated in the HTML
+CAPACITY_MARKER_UPDATED = "Updated: "
+
 # Days of the week used in the spreadsheet
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
