@@ -1,31 +1,53 @@
-import gspread, pytz
+import pytz, requests
+from bs4 import BeautifulSoup
+from collections import namedtuple
 from datetime import datetime, timezone
-from pandas import DataFrame
 from src.database import db_session
 from src.models.capacity import Capacity
-from src.utils.constants import EASTERN_TIMEZONE, SERVICE_ACCOUNT_PATH, SHEET_CAPACITIES, SHEET_KEY
+from src.utils.constants import (
+    C2C_URL,
+    CAPACITY_MARKER_COUNTS,
+    CAPACITY_MARKER_NAMES,
+    CAPACITY_MARKER_UPDATED,
+    CAPACITY_MARKER_PERCENT,
+    CAPACITY_MARKER_PERCENT_NA,
+    EASTERN_TIMEZONE,
+)
 from src.utils.utils import get_facility_id, unix_time
-
-# Configure client and sheet
-gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
-sh = gc.open_by_key(SHEET_KEY)
 
 
 def fetch_capacities():
     """
-    Fetch capacities for all facilities.
+    Fetch capacities for all facilities from Connect2Concepts.
     """
-    worksheet = sh.worksheet(SHEET_CAPACITIES)
-    vals = DataFrame(worksheet.get_all_records())
-    names = vals["Name"]
+    headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"}
+    html = requests.get(C2C_URL, headers=headers)
+    soup = BeautifulSoup(html.text, "html.parser")
+    data = soup.find_all("div", attrs={"class": "barChart"})
 
-    # Add to database
-    for i in range(len(names)):
-        count = int(vals["Count"][i])
-        percent = float(vals["Percent"][i])
-        updated = get_capacity_datetime(vals["Updated"][i])
-        facility_id = int(get_facility_id(names[i]))
+    # For each div element
+    for facility_data in data:
+        # Grab capacity data
+        capacities = []
+        for val in facility_data.get_text("\n").split("\n"):
+            if val != "":
+                capacities.append(val.strip())
 
+        # Convert to named tuple
+        CapacityData = namedtuple("CapacityData", ["name", "count", "updated", "percent"])
+        capacity_data = CapacityData(*capacities)
+
+        # Parse data
+        facility_id = get_facility_id(CAPACITY_MARKER_NAMES[capacity_data.name])
+        count = int(capacity_data.count.replace(CAPACITY_MARKER_COUNTS, ""))
+        updated = get_capacity_datetime(capacity_data.updated.replace(CAPACITY_MARKER_UPDATED, ""))
+        percent = (
+            0.0
+            if capacity_data.percent == CAPACITY_MARKER_PERCENT_NA
+            else float(capacity_data.percent.replace(CAPACITY_MARKER_PERCENT, "")) / 100
+        )
+
+        # Add to sheets
         add_single_capacity(count, facility_id, percent, updated)
 
 

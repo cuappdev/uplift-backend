@@ -38,24 +38,29 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 
-# Scrape every 15 minutes
-@scheduler.task("interval", id="scrape_sheets", seconds=900)
-def scrape_sheets():
-    logging.info("Scraping from sheets...")
+# Scrape hours every 15 minutes
+@scheduler.task("interval", id="scrape_hours", seconds=900)
+def scrape_hours():
+    logging.info("Scraping hours from sheets...")
 
-    # Fetch Hours
     fetch_reg_facility()
     fetch_reg_building()
     fetch_sp_facility()
 
-    # Fetch Capacities
+
+# Scrape capacities every 10 minutes
+@scheduler.task("interval", id="scrape_capacities", seconds=600)
+def scrape_capacities():
+    logging.info("Scraping capacities from C2C...")
+
     fetch_capacities()
 
 
 # Create database and fill it with data
 init_db()
 create_gym_table()
-scrape_sheets()
+scrape_hours()
+scrape_capacities()
 
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
