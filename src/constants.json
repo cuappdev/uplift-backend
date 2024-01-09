@@ -68,6 +68,9 @@
     "address": "306 West Ave",
     "amenities": [
       {
+        "type": "lockers"
+      },
+      {
         "type": "parking"
       },
       {

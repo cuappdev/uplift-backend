@@ -1,4 +1,4 @@
-import logging, schedule
+import logging
 from flask import Flask, render_template
 from flask_apscheduler import APScheduler
 from flask_graphql import GraphQLView
