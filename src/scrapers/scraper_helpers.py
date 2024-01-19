@@ -15,6 +15,14 @@ from src.utils.constants import (
 from src.utils.utils import unix_time
 
 
+def clean_past_hours():
+    """
+    Remove hours that are in the past by one day.
+    """
+    day_unix = unix_time(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)) - SECONDS_IN_DAY
+    OpenHours.query.filter(OpenHours.end_time <= day_unix).delete()
+
+
 def clean_hours(date, facility_id=None, gym_id=None):
     """
     Remove hours that are on the same day as the given date.
