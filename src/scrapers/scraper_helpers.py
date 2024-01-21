@@ -1,6 +1,7 @@
 import pytz
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
+from src.database import db_session
 from src.models.openhours import OpenHours
 from src.utils.constants import (
     EASTERN_TIMEZONE,
@@ -21,6 +22,7 @@ def clean_past_hours():
     """
     day_unix = unix_time(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)) - SECONDS_IN_DAY
     OpenHours.query.filter(OpenHours.end_time <= day_unix).delete()
+    db_session.commit()
 
 
 def clean_hours(date, facility_id=None, gym_id=None):
