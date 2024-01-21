@@ -44,10 +44,10 @@ def shutdown_session(exception=None):
 def scrape_hours():
     logging.info("Scraping hours from sheets...")
 
-    clean_past_hours()
     fetch_reg_facility()
     fetch_reg_building()
     fetch_sp_facility()
+    clean_past_hours()
 
 
 # Scrape capacities every 10 minutes
