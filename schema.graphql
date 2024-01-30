@@ -2,79 +2,71 @@ schema {
   query: Query
 }
 
-type Activity {
+type Amenity {
   id: ID!
-  name: String!
-  activityType: Int!
-  imageUrl: String!
-  facilities: [Facility]
+  gymId: Int!
+  type: AmenityType!
+}
+
+enum AmenityType {
+  SHOWERS
+  LOCKERS
+  PARKING
+  ELEVATORS
 }
 
 type Capacity {
   id: ID!
-  facilityId: Int!
   count: Int!
+  facilityId: Int!
   percent: Float!
-  updated: DateTime!
+  updated: Int!
 }
 
-type Class {
-  id: ID!
-  name: String!
-  description: String!
-  gyms: [ClassInstance]
+enum CourtType {
+  BASKETBALL
+  VOLLEYBALL
+  BADMINTON
 }
-
-type ClassInstance {
-  id: ID!
-  gymId: Int
-  classId: Int!
-  location: String!
-  instructor: String!
-  isCanceled: Boolean!
-  isVirtual: Boolean!
-  startTime: DateTime
-  endTime: DateTime
-  class_: Class
-  gym: Gym
-}
-
-scalar DateTime
 
 type Facility {
   id: ID!
+  facilityType: FacilityType!
   gymId: Int!
   name: String!
-  facilityType: FacilityType!
-  openHours(name: String): [OpenHours]
-  capacities: [Capacity]
-  activities: [Activity]
+  capacity: Capacity
+  hours: [OpenHours]
 }
 
 enum FacilityType {
   FITNESS
   POOL
+  BOWLING
+  COURT
 }
 
 type Gym {
   id: ID!
-  name: String!
-  description: String!
-  location: String!
+  address: String!
+  imageUrl: String
   latitude: Float!
   longitude: Float!
-  imageUrl: String
+  name: String!
+  amenities: [Amenity]
   facilities: [Facility]
-  classes: [ClassInstance]
+  hours: [OpenHours]
 }
 
 type OpenHours {
   id: ID!
-  facilityId: Int!
-  day: Int!
-  startTime: String
-  endTime: String
-  specialHours: Boolean!
+  courtType: CourtType
+  endTime: Int!
+  facilityId: Int
+  gymId: Int
+  isShallow: Boolean
+  isSpecial: Boolean!
+  isWomen: Boolean
+  startTime: Int!
 }
 
 type Query {
