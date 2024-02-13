@@ -36,6 +36,12 @@ DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturda
 # Eastern Timezone
 EASTERN_TIMEZONE = "America/New_York"
 
+# The path for general gym hours
+GYM_HOUR_BASE_URL = "https://scl.cornell.edu/recreation/cornell-fitness-centers"
+
+# The path for Helen Newman Fitness Center details
+HNH_DETAILS = "https://scl.cornell.edu/recreation/facility/helen-newman-fitness-center"
+
 # Marker in sheets for alternating between badminton and volleyball (HNH Fridays)
 MARKER_ALT = "(ALT)"
 
@@ -72,6 +78,12 @@ MARKER_VOLLEYBALL = "(VOL)"
 # Marker in sheets for women pool
 MARKER_WOMEN = "(W)"
 
+# The path for Morrison Fitness Center details
+MORRISON_DETAILS = "https://scl.cornell.edu/recreation/facility/toni-morrison-fitness-center"
+
+# The path for Noyes Fitness Center details
+NOYES_DETAILS = "https://scl.cornell.edu/recreation/facility/noyes-fitness-center"
+
 # The number of seconds in a day
 SECONDS_IN_DAY = 86400
 
@@ -96,3 +108,11 @@ SHEET_REG_FACILITY = "[REG] Facility Hours"
 
 # Worksheet name for special facility hours
 SHEET_SP_FACILITY = "[SP] Facility Hours"
+
+# The path for Teagle Down Fitness Center details
+TEAGLE_DOWN_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-downstairs"
+
+# The path for Teagle Up Fitness Center details
+TEAGLE_UP_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-upstairs"
+
+
