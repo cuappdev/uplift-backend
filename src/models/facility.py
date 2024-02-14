@@ -2,6 +2,9 @@ import enum
 from sqlalchemy import Column, String, Enum, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from src.database import Base
+from src.models.openhours import OpenHours
+from src.models.equipment import Equipment
+from src.models.capacity import Capacity
 
 
 class FacilityType(enum.Enum):
@@ -36,6 +39,7 @@ class Facility(Base):
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)
     hours = relationship("OpenHours")
     name = Column(String, nullable=False)
+    equipment = relationship("Equipment")
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")

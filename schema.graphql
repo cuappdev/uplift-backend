@@ -2,6 +2,10 @@ schema {
   query: Query
 }
 
+enum AccessibilityType {
+  WHEELCHAIR
+}
+
 type Amenity {
   id: ID!
   gymId: Int!
@@ -29,6 +33,25 @@ enum CourtType {
   BADMINTON
 }
 
+type Equipment {
+  id: ID!
+  name: String!
+  equipmentType: EquipmentType!
+  facilityId: Int!
+  quantity: Int
+  accessibility: AccessibilityType
+}
+
+enum EquipmentType {
+  CARDIO
+  RACKS_AND_BENCHES
+  SELECTORIZED
+  MULTI_CABLE
+  FREE_WEIGHTS
+  MISCELLANEOUS
+  PLATE_LOADED
+}
+
 type Facility {
   id: ID!
   facilityType: FacilityType!
@@ -36,6 +59,7 @@ type Facility {
   name: String!
   capacity: Capacity
   hours: [OpenHours]
+  equipment: [Equipment]
 }
 
 enum FacilityType {

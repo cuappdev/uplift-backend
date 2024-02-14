@@ -10,6 +10,7 @@ from src.scrapers.capacities_scraper import fetch_capacities
 from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
 from src.scrapers.scraper_helpers import clean_past_hours
 from src.scrapers.sp_hours_scraper import fetch_sp_facility
+from src.scrapers.equipment_scraper import scrape_equipment
 from src.utils.utils import create_gym_table
 
 
@@ -63,6 +64,7 @@ init_db()
 create_gym_table()
 scrape_hours()
 scrape_capacities()
+scrape_equipment()
 
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
