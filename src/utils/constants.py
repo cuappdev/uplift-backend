@@ -36,6 +36,12 @@ DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturda
 # Eastern Timezone
 EASTERN_TIMEZONE = "America/New_York"
 
+# The path for general gym hours
+GYM_HOUR_BASE_URL = "https://scl.cornell.edu/recreation/cornell-fitness-centers"
+
+# The path for Helen Newman Fitness Center details
+HNH_DETAILS = "https://scl.cornell.edu/recreation/facility/helen-newman-fitness-center"
+
 # Marker in sheets for alternating between badminton and volleyball (HNH Fridays)
 MARKER_ALT = "(ALT)"
 
@@ -72,6 +78,12 @@ MARKER_VOLLEYBALL = "(VOL)"
 # Marker in sheets for women pool
 MARKER_WOMEN = "(W)"
 
+# The path for Morrison Fitness Center details
+MORRISON_DETAILS = "https://scl.cornell.edu/recreation/facility/toni-morrison-fitness-center"
+
+# The path for Noyes Fitness Center details
+NOYES_DETAILS = "https://scl.cornell.edu/recreation/facility/noyes-fitness-center"
+
 # The number of seconds in a day
 SECONDS_IN_DAY = 86400
 
@@ -83,10 +95,9 @@ SHEET_CAPACITIES = "Capacities"
 
 # Identifier for the Google Sheet
 if os.environ["FLASK_ENV"] == "production":
-    # TODO: create new sheet for prod
-    SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
+    SHEET_KEY = "1jhNvSxUuHZuNr3mjvlRTbosFkSE4RiaBRDbi4bcdssY"
 else:
-    SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
+    SHEET_KEY = "1PKBoOl4UvnjcV1MVihIQl4PklHNO9K8haiQQ_s--NGI"
 
 # Worksheet name for regular building hours
 SHEET_REG_BUILDING = "[REG] Building Hours"
@@ -96,3 +107,11 @@ SHEET_REG_FACILITY = "[REG] Facility Hours"
 
 # Worksheet name for special facility hours
 SHEET_SP_FACILITY = "[SP] Facility Hours"
+
+# The path for Teagle Down Fitness Center details
+TEAGLE_DOWN_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-downstairs"
+
+# The path for Teagle Up Fitness Center details
+TEAGLE_UP_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-upstairs"
+
+
