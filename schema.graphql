@@ -2,17 +2,55 @@ schema {
   query: Query
 }
 
-type Capacity {
-  id: ID!
-  facilityId: Int!
-  count: Int!
-  percent: Float!
-  updated: DateTime!
+enum AccessibilityType {
+  WHEELCHAIR
 }
 
-type Class {
+type Amenity {
+  id: ID!
+  gymId: Int!
+  type: AmenityType!
+}
+
+enum AmenityType {
+  SHOWERS
+  LOCKERS
+  PARKING
+  ELEVATORS
+}
+
+type Capacity {
+  id: ID!
+  count: Int!
+  facilityId: Int!
+  percent: Float!
+  updated: Int!
+}
+
+enum CourtType {
+  BASKETBALL
+  VOLLEYBALL
+  BADMINTON
+}
+
+type Equipment {
   id: ID!
   name: String!
+  equipmentType: EquipmentType!
+  facilityId: Int!
+  quantity: Int
+  accessibility: AccessibilityType
+}
+
+enum EquipmentType {
+  CARDIO
+  RACKS_AND_BENCHES
+  SELECTORIZED
+  MULTI_CABLE
+  FREE_WEIGHTS
+  MISCELLANEOUS
+  PLATE_LOADED
+}
   description: String!
   gyms: [ClassInstance]
 }
@@ -35,29 +73,31 @@ scalar DateTime
 
 type Facility {
   id: ID!
+  facilityType: FacilityType!
   gymId: Int!
   name: String!
-  facilityType: FacilityType!
-  openHours(name: String): [OpenHours]
-  capacities: [Capacity]
   capacity: Capacity
+  hours: [OpenHours]
+  equipment: [Equipment]
 }
 
 enum FacilityType {
   FITNESS
   POOL
+  BOWLING
+  COURT
 }
 
 type Gym {
   id: ID!
-  name: String!
-  description: String!
-  location: String!
+  address: String!
+  imageUrl: String
   latitude: Float!
   longitude: Float!
-  imageUrl: String
+  name: String!
+  amenities: [Amenity]
   facilities: [Facility]
-  classes: [ClassInstance]
+  hours: [OpenHours]
 }
 
 type OpenHours {

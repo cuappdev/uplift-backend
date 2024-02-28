@@ -1,12 +1,11 @@
 import graphene
-from graphene import ObjectType
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from src.models.capacity import Capacity as CapacityModel
 from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
-from src.models.classes import Class as ClassModel
-from src.models.classes import ClassInstance as ClassInstanceModel
+from src.models.amenity import Amenity as AmenityModel
+from src.models.equipment import Equipment as EquipmentModel
 
 
 # MARK: - Gym
@@ -16,10 +15,20 @@ class Gym(SQLAlchemyObjectType):
     class Meta:
         model = GymModel
 
+    amenities = graphene.List(lambda: Amenity)
     facilities = graphene.List(lambda: Facility)
+    hours = graphene.List(lambda: OpenHours)
+
+    def resolve_amenities(self, info):
+        query = Amenity.get_query(info=info).filter(AmenityModel.gym_id == self.id)
+        return query
 
     def resolve_facilities(self, info):
         query = Facility.get_query(info=info).filter(FacilityModel.gym_id == self.id)
+        return query
+
+    def resolve_hours(self, info):
+        query = OpenHours.get_query(info=info).filter(OpenHoursModel.gym_id == self.id)
         return query
 
 
@@ -30,12 +39,9 @@ class Facility(SQLAlchemyObjectType):
     class Meta:
         model = FacilityModel
 
-    open_hours = graphene.List(lambda: OpenHours, name=graphene.String())
     capacity = graphene.Field(lambda: Capacity)
-
-    def resolve_open_hours(self, info):
-        query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
-        return query
+    hours = graphene.List(lambda: OpenHours)
+    equipment = graphene.List(lambda: Equipment)
 
     def resolve_capacity(self, info):
         query = (
@@ -46,18 +52,14 @@ class Facility(SQLAlchemyObjectType):
         )
         return query
 
+    def resolve_hours(self, info):
+        query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
+        return query
+    
+    def resolve_equipment(self, info):
+        query = Equipment.get_query(info=info).filter(EquipmentModel.facility_id == self.id)
+        return query
 
-# MARK: - Classes
-
-
-class Class(SQLAlchemyObjectType):
-    class Meta:
-        model = ClassModel
-
-
-class ClassInstance(SQLAlchemyObjectType):
-    class Meta:
-        model = ClassInstanceModel
 
 
 # MARK: - Open Hours
@@ -67,6 +69,21 @@ class OpenHours(SQLAlchemyObjectType):
     class Meta:
         model = OpenHoursModel
 
+# MARK: - Equipment
+
+
+class Equipment(SQLAlchemyObjectType):
+    class Meta:
+        model = EquipmentModel
+
+
+# MARK: - Amenity
+
+
+class Amenity(SQLAlchemyObjectType):
+    class Meta:
+        model = AmenityModel
+
 
 # MARK: - Capacity
 
@@ -74,6 +91,14 @@ class OpenHours(SQLAlchemyObjectType):
 class Capacity(SQLAlchemyObjectType):
     class Meta:
         model = CapacityModel
+
+# MARK: - Activity
+# class Activity(SQLAlchemyObjectType):
+#     class Meta:
+#         model = ActivityModel
+
+#     facilities = graphene.List(lambda: Facility)
+
 
 
 # MARK: - Query
