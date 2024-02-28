@@ -6,6 +6,8 @@ from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
 from src.models.equipment import Equipment as EquipmentModel
+from src.models.classes import Class as ClassModel
+from src.models.classes import ClassInstance as ClassInstanceModel
 
 
 # MARK: - Gym
@@ -91,6 +93,16 @@ class Amenity(SQLAlchemyObjectType):
 class Capacity(SQLAlchemyObjectType):
     class Meta:
         model = CapacityModel
+
+# MARK: - Class
+class Class(SQLAlchemyObjectType):
+    class Meta:
+        model = ClassModel
+
+
+class ClassInstance(SQLAlchemyObjectType):
+    class Meta:
+        model = ClassInstanceModel
 
 # MARK: - Activity
 # class Activity(SQLAlchemyObjectType):

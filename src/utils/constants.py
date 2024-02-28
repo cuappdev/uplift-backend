@@ -36,6 +36,9 @@ DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturda
 # Eastern Timezone
 EASTERN_TIMEZONE = "America/New_York"
 
+# The list of gyms
+GYMS = ["Helen Newman", "Toni Morrison", "Noyes", "Teagle"]
+
 # The path for general gym hours
 GYM_HOUR_BASE_URL = "https://scl.cornell.edu/recreation/cornell-fitness-centers"
 

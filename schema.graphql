@@ -27,11 +27,34 @@ type Capacity {
   updated: Int!
 }
 
+type Class {
+  id: ID!
+  name: String!
+  description: String!
+  gyms: [ClassInstance]
+}
+
+type ClassInstance {
+  id: ID!
+  gymId: Int
+  classId: Int!
+  location: String!
+  instructor: String!
+  isCanceled: Boolean!
+  isVirtual: Boolean!
+  startTime: DateTime
+  endTime: DateTime
+  class_: Class
+  gym: Gym
+}
+
 enum CourtType {
   BASKETBALL
   VOLLEYBALL
   BADMINTON
 }
+
+scalar DateTime
 
 type Equipment {
   id: ID!
@@ -79,6 +102,7 @@ type Gym {
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
+  classes: [ClassInstance]
 }
 
 type OpenHours {
