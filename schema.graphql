@@ -95,4 +95,11 @@ type OpenHours {
 
 type Query {
   gyms: [Gym]
+  usersByGiveawayid(giveawayId: Int!): [User]
+}
+
+type User {
+  id: ID!
+  netId: String!
+  giveawayId: Int
 }
