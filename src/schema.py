@@ -1,12 +1,13 @@
 import graphene
+from graphene import Enum
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from src.models.capacity import Capacity as CapacityModel
-from src.models.facility import Facility as FacilityModel
+from src.models.facility import Facility as FacilityModel, FacilityType
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
 from src.models.equipment import Equipment as EquipmentModel
-
+from src.models.activity import Activity as ActivityModel, Gear as GearModel
 
 # MARK: - Gym
 
@@ -18,6 +19,7 @@ class Gym(SQLAlchemyObjectType):
     amenities = graphene.List(lambda: Amenity)
     facilities = graphene.List(lambda: Facility)
     hours = graphene.List(lambda: OpenHours)
+    activities = graphene.List(lambda: Activity)
 
     def resolve_amenities(self, info):
         query = Amenity.get_query(info=info).filter(AmenityModel.gym_id == self.id)
@@ -29,6 +31,10 @@ class Gym(SQLAlchemyObjectType):
 
     def resolve_hours(self, info):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.gym_id == self.id)
+        return query
+    
+    def resolve_activities(self, info):
+        query = Activity.get_query(info=info).filter(ActivityModel.gym_id == self.id)
         return query
 
 
@@ -92,13 +98,27 @@ class Capacity(SQLAlchemyObjectType):
     class Meta:
         model = CapacityModel
 
+
+# MARK: - Gear
+
+
+class Gear(SQLAlchemyObjectType):
+    class Meta:
+        model = GearModel
+
+
 # MARK: - Activity
-# class Activity(SQLAlchemyObjectType):
-#     class Meta:
-#         model = ActivityModel
+        
 
-#     facilities = graphene.List(lambda: Facility)
+class Activity(SQLAlchemyObjectType):
+    class Meta:
+        model = ActivityModel
 
+    gear = graphene.List(lambda: Gear)
+
+    def resolve_gear(self, info):
+        query = Amenity.get_query(info=info).filter(GearModel.activity_id == self.id)
+        return query
 
 
 # MARK: - Query
@@ -106,9 +126,14 @@ class Capacity(SQLAlchemyObjectType):
 
 class Query(graphene.ObjectType):
     gyms = graphene.List(Gym)
+    activities = graphene.List(Activity)
 
     def resolve_gyms(self, info):
         query = Gym.get_query(info)
+        return query.all()
+    
+    def resolve_activities(self, info):
+        query = Activity.get_query(info)
         return query.all()
 
 
