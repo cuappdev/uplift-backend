@@ -80,6 +80,13 @@ enum FacilityType {
   COURT
 }
 
+type Gear {
+  id: ID!
+  name: String!
+  price: Float!
+  activityId: Int!
+}
+
 type Gym {
   id: ID!
   address: String!
@@ -91,6 +98,7 @@ type Gym {
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
+  activities: [Activity]
 }
 
 type OpenHours {
