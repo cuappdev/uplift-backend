@@ -9,7 +9,7 @@ class Activity(Base):
     Attributes:
         - `id`              The ID of this activity.
         - `name`            The name of this activity.
-        - `facility_id`     The ID of the facility this acticity belongs to.
+        - `facility_id`     The ID of the facility this activity belongs to.
         - `gym_id`          The ID of the gym this activity belongs to.
         - `one_time_price`  The one-time price of this activity.
         - `needs_reserve`   True if this activity requires group reservation.
@@ -32,7 +32,7 @@ class Activity(Base):
         self.facility_id = kwargs.get("facility_id")
         self.gym_id = kwargs.get("gym_id")
         self.one_time_price = kwargs.get("one_time_price")
-        self.needs_reserve = kwargs.get("needs_reserve")\
+        self.needs_reserve = kwargs.get("needs_reserve")
 
     def serialize(self):
         return {
@@ -54,7 +54,7 @@ class Gear(Base):
     - `id`              The ID of this gear
     - `name`            The name of this gear
     - `price`           The price of this gear
-    - `activity_id`     The ID of the activity this gear belonds to
+    - `activity_id`     The ID of the activity this gear belongs to
     """
 
     __tablename__ = "gear"
