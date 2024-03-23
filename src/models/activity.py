@@ -20,7 +20,7 @@ class Activity(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    facility_id = Column(Integer, nullable=False)
+    facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)
     one_time_price = Column(Boolean, nullable=False)
     needs_reserve = Column(Boolean, nullable=False)
