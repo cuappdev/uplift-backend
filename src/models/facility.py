@@ -29,6 +29,8 @@ class Facility(Base):
         - `gym_id`          The ID of the gym this facility belongs to.
         - `hours`           (nullable) The open hours of this facility.
         - `name`            The name of this facility.
+        - `equipment`       (nullable) The equipment of this facility.
+        - `activities`      (nullable) The activities of this facility
     """
 
     __tablename__ = "facility"
@@ -40,6 +42,7 @@ class Facility(Base):
     hours = relationship("OpenHours")
     name = Column(String, nullable=False)
     equipment = relationship("Equipment")
+    activities = relationship("Activity")
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")

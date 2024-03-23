@@ -48,6 +48,7 @@ class Facility(SQLAlchemyObjectType):
     capacity = graphene.Field(lambda: Capacity)
     hours = graphene.List(lambda: OpenHours)
     equipment = graphene.List(lambda: Equipment)
+    activities = graphene.List(lambda: Activity)
 
     def resolve_capacity(self, info):
         query = (
@@ -64,6 +65,10 @@ class Facility(SQLAlchemyObjectType):
     
     def resolve_equipment(self, info):
         query = Equipment.get_query(info=info).filter(EquipmentModel.facility_id == self.id)
+        return query
+    
+    def resolve_activities(self, info):
+        query = Activity.get_query(info=info).filter(ActivityModel.facility_id == self.id)
         return query
 
 
