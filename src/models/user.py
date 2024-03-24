@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, Float, ForeignKey, String
 from src.database import Base
 
-
 class User(Base):
     """
     A user who enters a giveaway.
