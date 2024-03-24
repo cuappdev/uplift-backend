@@ -150,23 +150,23 @@ class Query(graphene.ObjectType):
         return query.all()
 
 
-# # MARK: - Mutation
+# MARK: - Mutation
 
-# class createUser(graphene.Mutation):
-#     class Arguments:
-#         net_id = graphene.String()
-#         giveaway_id = graphene.Int()
+class createUser(graphene.Mutation):
+    class Arguments:
+        net_id = graphene.String()
+        giveaway_id = graphene.Int()
 
-#     user = graphene.Field(lambda: User)
+    user = graphene.Field(lambda: User)
 
-#     def mutate(root, info, net_id, giveaway_id):
-#         user = User(net_id=net_id, giveaway_id=giveaway_id)
-#         db_session.add(user)
-#         db_session.commit()
-#         return createUser(user=user)
+    def mutate(root, info, net_id, giveaway_id):
+        user = User(net_id=net_id, giveaway_id=giveaway_id)
+        db_session.add(user)
+        db_session.commit()
+        return createUser(user=user)
 
-# class Mutation(graphene.ObjectType):
-#     createUser = createUser.Field()
+class Mutation(graphene.ObjectType):
+    createUser = createUser.Field()
         
 
 
