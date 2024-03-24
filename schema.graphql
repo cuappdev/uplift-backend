@@ -1,5 +1,6 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 enum AccessibilityType {
@@ -81,6 +82,10 @@ type Gym {
   hours: [OpenHours]
 }
 
+type Mutation {
+  createUser(giveawayId: Int, netId: String): createUser
+}
+
 type OpenHours {
   id: ID!
   courtType: CourtType
@@ -95,11 +100,15 @@ type OpenHours {
 
 type Query {
   gyms: [Gym]
-  usersByGiveawayid(giveawayId: Int!): [User]
+  usersByGiveawayid(id: Int): [User]
 }
 
 type User {
   id: ID!
   netId: String!
   giveawayId: Int
+}
+
+type createUser {
+  user: User
 }

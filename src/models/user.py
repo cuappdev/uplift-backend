@@ -12,7 +12,7 @@ class User(Base):
         - `giveaway_id`     (nullable) The giveaway a user is entered into. //check this
     """
     
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)    
     net_id = Column(String, nullable=False)
