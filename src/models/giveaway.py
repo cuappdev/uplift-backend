@@ -4,14 +4,6 @@ from sqlalchemy.orm import relationship
 from src.database import Base
 from src.models.user import User
 
-# class GiveawayType(enum.Enum):
-#     """
-#     An enumeration representing a giveaway type.
-#     """
-
-#     utea_giftcard = 0
-#     stanley = 1
-
 class Giveaway(Base):
     """
     A giveaway object.
