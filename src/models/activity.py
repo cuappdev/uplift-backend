@@ -4,7 +4,7 @@ from src.database import Base
 
 class Activity(Base):
     """
-    Activity provided by a recreation center
+    Activity provided by a recreation center.
 
     Attributes:
         - `id`              The ID of this activity.
