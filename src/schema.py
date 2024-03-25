@@ -32,7 +32,7 @@ class Gym(SQLAlchemyObjectType):
     def resolve_hours(self, info):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.gym_id == self.id)
         return query
-    
+
     def resolve_activities(self, info):
         query = Activity.get_query(info=info).filter(ActivityModel.gym_id == self.id)
         return query
@@ -62,15 +62,14 @@ class Facility(SQLAlchemyObjectType):
     def resolve_hours(self, info):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
         return query
-    
+
     def resolve_equipment(self, info):
         query = Equipment.get_query(info=info).filter(EquipmentModel.facility_id == self.id)
         return query
-    
+
     def resolve_activities(self, info):
         query = Activity.get_query(info=info).filter(ActivityModel.facility_id == self.id)
         return query
-
 
 
 # MARK: - Open Hours
@@ -79,6 +78,7 @@ class Facility(SQLAlchemyObjectType):
 class OpenHours(SQLAlchemyObjectType):
     class Meta:
         model = OpenHoursModel
+
 
 # MARK: - Equipment
 
@@ -113,7 +113,7 @@ class Gear(SQLAlchemyObjectType):
 
 
 # MARK: - Activity
-        
+
 
 class Activity(SQLAlchemyObjectType):
     class Meta:
@@ -136,7 +136,7 @@ class Query(graphene.ObjectType):
     def resolve_gyms(self, info):
         query = Gym.get_query(info)
         return query.all()
-    
+
     def resolve_activities(self, info):
         query = Activity.get_query(info)
         return query.all()
