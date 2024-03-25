@@ -31,8 +31,6 @@ class Facility(Base):
         - `gym_id`          The ID of the gym this facility belongs to.
         - `hours`           (nullable) The open hours of this facility.
         - `name`            The name of this facility.
-        - `equipment`       (nullable) The equipment of this facility.
-        - `activities`      (nullable) The activities of this facility
     """
 
     __tablename__ = "facility"

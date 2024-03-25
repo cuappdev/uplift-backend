@@ -20,6 +20,7 @@ class Activity(Base):
     Attributes:
         - `id`              The ID of this activity.
         - `facility_id`     The ID of the facility this activity belongs to.
+        - `gear`            (nullable) This activity's gear.
         - `gym_id`          The ID of the gym this activity belongs to.
         - `has_membership   True if this activity is available with memberships.
         - `name`            The name of this activity.
@@ -31,6 +32,7 @@ class Activity(Base):
 
     id = Column(Integer, primary_key=True)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
+    gear = relationship("Gear", cascade="delete")
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)
     has_membership = Column(Boolean, nullable=False)
     name = Column(String, nullable=False)

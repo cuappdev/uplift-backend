@@ -15,7 +15,6 @@ class Gym(Base):
         - `amenities`       (nullable) This gym's amenities.
         - `facilities`      (nullable) This gym's facilities.
         - `hours`           (nullable) The building hours.
-        - `activities`      (nullable) The gym's activities.
         - `image_url`       The URL of this gym's image.
         - `latitude`        The latitude coordinate of this gym.
         - `longitude`       The longitude coordinate of this gym.
@@ -30,7 +29,6 @@ class Gym(Base):
     amenities = relationship("Amenity")
     facilities = relationship("Facility")
     hours = relationship("OpenHours")
-    activities = relationship("Activity")
     image_url = Column(String, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
