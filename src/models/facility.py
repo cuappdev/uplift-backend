@@ -24,25 +24,25 @@ class Facility(Base):
 
     Attributes:
         - `id`              The ID of this facility.
+        - `activities`      (nullable) The activities of this facility.
         - `capacity`        (nullable) The capacity of this facility.
+        - `equipment`       (nullable) The equipment of this facility.
         - `facility_type`   The type of this facility (FITNESS, POOL, BOWLING, COURT).
         - `gym_id`          The ID of the gym this facility belongs to.
         - `hours`           (nullable) The open hours of this facility.
         - `name`            The name of this facility.
-        - `equipment`       (nullable) The equipment of this facility.
-        - `activities`      (nullable) The activities of this facility
     """
 
     __tablename__ = "facility"
 
     id = Column(Integer, primary_key=True)
+    activities = relationship("Activity")
     capacity = relationship("Capacity")
+    equipment = relationship("Equipment")
     facility_type = Column(Enum(FacilityType), nullable=False)
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)
     hours = relationship("OpenHours")
     name = Column(String, nullable=False)
-    equipment = relationship("Equipment")
-    activities = relationship("Activity")
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")

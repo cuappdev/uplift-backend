@@ -10,11 +10,11 @@ class Gym(Base):
 
     Attributes:
         - `id`              The ID of this gym (building).
+        - `activities`      (nullable) The gym's activities.
         - `address`         The address of the buildling.
         - `amenities`       (nullable) This gym's amenities.
         - `facilities`      (nullable) This gym's facilities.
         - `hours`           (nullable) The building hours.
-        - `activities`      (nullable) The gym's activities.
         - `image_url`       The URL of this gym's image.
         - `latitude`        The latitude coordinate of this gym.
         - `longitude`       The longitude coordinate of this gym.
@@ -24,11 +24,11 @@ class Gym(Base):
     __tablename__ = "gym"
 
     id = Column(Integer, primary_key=True)
+    activities = relationship("Activity")
     address = Column(String, nullable=False)
     amenities = relationship("Amenity")
     facilities = relationship("Facility")
     hours = relationship("OpenHours")
-    activities = relationship("Activity")
     image_url = Column(String, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
