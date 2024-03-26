@@ -10,6 +10,7 @@ class Gym(Base):
 
     Attributes:
         - `id`              The ID of this gym (building).
+        - `activities`      (nullable) The gym's activities.
         - `address`         The address of the buildling.
         - `amenities`       (nullable) This gym's amenities.
         - `facilities`      (nullable) This gym's facilities.
@@ -23,6 +24,7 @@ class Gym(Base):
     __tablename__ = "gym"
 
     id = Column(Integer, primary_key=True)
+    activities = relationship("Activity")
     address = Column(String, nullable=False)
     amenities = relationship("Amenity")
     facilities = relationship("Facility")

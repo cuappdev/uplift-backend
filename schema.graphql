@@ -6,6 +6,16 @@ enum AccessibilityType {
   WHEELCHAIR
 }
 
+type Activity {
+  id: ID!
+  name: String!
+  facilityId: Int!
+  gymId: Int!
+  oneTimePrice: Boolean!
+  needsReserve: Boolean!
+  gear: [Gear]
+}
+
 type Amenity {
   id: ID!
   gymId: Int!
@@ -69,6 +79,13 @@ enum FacilityType {
   COURT
 }
 
+type Gear {
+  id: ID!
+  name: String!
+  price: Float!
+  activityId: Int!
+}
+
 type Gym {
   id: ID!
   address: String!
@@ -79,6 +96,7 @@ type Gym {
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
+  activities: [Activity]
 }
 
 type OpenHours {
@@ -95,4 +113,5 @@ type OpenHours {
 
 type Query {
   gyms: [Gym]
+  activities: [Activity]
 }
