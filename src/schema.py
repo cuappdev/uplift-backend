@@ -6,7 +6,9 @@ from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
 from src.models.equipment import Equipment as EquipmentModel
-
+from src.models.user import User as UserModel
+from src.models.giveaway import Giveaway as GiveawayModel
+from src.database import db_session
 
 # MARK: - Gym
 
@@ -92,6 +94,37 @@ class Capacity(SQLAlchemyObjectType):
     class Meta:
         model = CapacityModel
 
+
+# MARK: - User
+        
+class User(SQLAlchemyObjectType):
+    class Meta:
+        model = UserModel
+
+class UserInput(graphene.InputObjectType):
+    net_id = graphene.String(required=True)
+    giveaway_id = graphene.Int(required=True)
+
+
+#MARK: - Giveaway
+        
+class Giveaway(SQLAlchemyObjectType):
+    class Meta:
+        model = GiveawayModel
+
+    user_ids = graphene.List(lambda: User)
+
+    def resolve_userids(self, info):
+        query = User.get_query(info=info).filter(UserModel.giveaway_id == self.id)
+        return query
+
+# MARK: - Activity
+# class Activity(SQLAlchemyObjectType):
+#     class Meta:
+#         model = ActivityModel
+
+#     facilities = graphene.List(lambda: Facility)
+
 # MARK: - Activity
 # class Activity(SQLAlchemyObjectType):
 #     class Meta:
@@ -106,10 +139,35 @@ class Capacity(SQLAlchemyObjectType):
 
 class Query(graphene.ObjectType):
     gyms = graphene.List(Gym)
+    users_by_giveawayid = graphene.List(User, id=graphene.Int())
 
     def resolve_gyms(self, info):
         query = Gym.get_query(info)
         return query.all()
+    
+    def resolve_users_by_giveawayid(self, info, id):
+        query = User.get_query(info).filter(UserModel.giveaway_id == id)
+        return query.all()
 
 
-schema = graphene.Schema(query=Query)
+# MARK: - Mutation
+
+class createUser(graphene.Mutation):
+    class Arguments:
+        net_id = graphene.String()
+        giveaway_id = graphene.Int()
+
+    user = graphene.Field(lambda: User)
+
+    def mutate(root, info, net_id, giveaway_id):
+        user = User(net_id=net_id, giveaway_id=giveaway_id)
+        db_session.add(user)
+        db_session.commit()
+        return createUser(user=user)
+
+class Mutation(graphene.ObjectType):
+    createUser = createUser.Field()
+        
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)
