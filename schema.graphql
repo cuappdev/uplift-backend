@@ -51,25 +51,6 @@ enum EquipmentType {
   MISCELLANEOUS
   PLATE_LOADED
 }
-  description: String!
-  gyms: [ClassInstance]
-}
-
-type ClassInstance {
-  id: ID!
-  gymId: Int
-  classId: Int!
-  location: String!
-  instructor: String!
-  isCanceled: Boolean!
-  isVirtual: Boolean!
-  startTime: DateTime
-  endTime: DateTime
-  class_: Class
-  gym: Gym
-}
-
-scalar DateTime
 
 type Facility {
   id: ID!
@@ -102,10 +83,14 @@ type Gym {
 
 type OpenHours {
   id: ID!
-  facilityId: Int!
-  day: Int!
-  startTime: String
-  endTime: String
+  courtType: CourtType
+  endTime: Int!
+  facilityId: Int
+  gymId: Int
+  isShallow: Boolean
+  isSpecial: Boolean!
+  isWomen: Boolean
+  startTime: Int!
 }
 
 type Query {
