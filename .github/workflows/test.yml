@@ -44,3 +44,11 @@ jobs:
         pip freeze
         pip install -r requirements.txt
         python -m unittest src.tests.test_scraper
+      env:
+        DB_HOST: localhost
+        DB_NAME: uplift
+        DB_PORT: 5432
+        DB_PASSWORD: password
+        DB_USERNAME: local
+        FLASK_ENV: dev
+        GOOGLE_SERVICE_ACCOUNT_PATH: service-account-key.json
