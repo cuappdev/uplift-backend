@@ -104,10 +104,9 @@ SHEET_CAPACITIES = "Capacities"
 
 # Identifier for the Google Sheet
 if os.environ["FLASK_ENV"] == "production":
-    # TODO: create new sheet for prod
-    SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
+    SHEET_KEY = "1jhNvSxUuHZuNr3mjvlRTbosFkSE4RiaBRDbi4bcdssY"
 else:
-    SHEET_KEY = "1luODvvGKe7-qerJ4-7mM1o1oiIuP26m5Z_2P-SRxxlY"
+    SHEET_KEY = "1PKBoOl4UvnjcV1MVihIQl4PklHNO9K8haiQQ_s--NGI"
 
 # Worksheet name for regular building hours
 SHEET_REG_BUILDING = "[REG] Building Hours"

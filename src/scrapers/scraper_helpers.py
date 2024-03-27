@@ -1,10 +1,8 @@
-import pytz
 from collections import namedtuple
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from src.database import db_session
 from src.models.openhours import OpenHours
 from src.utils.constants import (
-    EASTERN_TIMEZONE,
     MARKER_ALT,
     MARKER_BADMINTON,
     MARKER_BASKETBALL,
@@ -88,12 +86,6 @@ def get_hours_datetimes(time_str, day):
             time_obj += timedelta(days=1)
 
         result.append(time_obj)
-
-    # Convert from Eastern to Local Time
-    eastern_tz = pytz.timezone(EASTERN_TIMEZONE)
-    local_tz = datetime.now(timezone.utc).astimezone().tzinfo
-    for i in range(len(result)):
-        result[i] = eastern_tz.localize(result[i]).astimezone(local_tz)
 
     return result
 

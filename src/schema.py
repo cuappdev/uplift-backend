@@ -94,24 +94,6 @@ class Capacity(SQLAlchemyObjectType):
     class Meta:
         model = CapacityModel
 
-# MARK: - Class
-class Class(SQLAlchemyObjectType):
-    class Meta:
-        model = ClassModel
-
-
-class ClassInstance(SQLAlchemyObjectType):
-    class Meta:
-        model = ClassInstanceModel
-
-# MARK: - Activity
-# class Activity(SQLAlchemyObjectType):
-#     class Meta:
-#         model = ActivityModel
-
-#     facilities = graphene.List(lambda: Facility)
-
-
 
 # MARK: - Query
 

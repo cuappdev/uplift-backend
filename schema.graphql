@@ -54,27 +54,6 @@ enum CourtType {
   BADMINTON
 }
 
-scalar DateTime
-
-type Equipment {
-  id: ID!
-  name: String!
-  equipmentType: EquipmentType!
-  facilityId: Int!
-  quantity: Int
-  accessibility: AccessibilityType
-}
-
-enum EquipmentType {
-  CARDIO
-  RACKS_AND_BENCHES
-  SELECTORIZED
-  MULTI_CABLE
-  FREE_WEIGHTS
-  MISCELLANEOUS
-  PLATE_LOADED
-}
-
 type Facility {
   id: ID!
   facilityType: FacilityType!
