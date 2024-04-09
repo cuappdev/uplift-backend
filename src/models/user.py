@@ -25,4 +25,4 @@ class User(Base):
         self.net_id = kwargs.get("net_id")
 
     def serialize(self):
-        return {"id": self.id, "giveaway_ids": self.giveaway_ids, "net_id": self.net_id}
+        return {"id": self.id, "net_id": self.net_id, "giveaway_id": self.giveaway_id}
