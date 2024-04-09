@@ -13,6 +13,22 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: uplift        
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v1
@@ -22,8 +38,17 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install libxml2-dev libxslt-dev
+        sudo apt-get install --yes --no-install-recommends postgresql-client
         pip install --force-reinstall pip==20.0.2
         pip install --force-reinstall setuptools==44.0.0
         pip freeze
         pip install -r requirements.txt
         python -m unittest src.tests.test_scraper
+      env:
+        DB_HOST: localhost
+        DB_NAME: uplift
+        DB_PORT: 5432
+        DB_PASSWORD: password
+        DB_USERNAME: local
+        FLASK_ENV: dev
+        GOOGLE_SERVICE_ACCOUNT_PATH: service-account-key.json

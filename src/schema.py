@@ -6,6 +6,8 @@ from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
 from src.models.equipment import Equipment as EquipmentModel
+from src.models.classes import Class as ClassModel
+from src.models.classes import ClassInstance as ClassInstanceModel
 from src.models.user import User as UserModel
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
