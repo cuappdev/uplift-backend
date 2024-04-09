@@ -1,31 +1,28 @@
 from sqlalchemy import Column, Integer, Float, ForeignKey, String
+from sqlalchemy.orm import backref, relationship
 from src.database import Base
 
 
 class User(Base):
     """
-    A user who enters a giveaway.
+    An uplift user.
 
     Attributes:
         - `id`              The ID of user.
+        - `giveaway_id`     (nullable) The list of giveaways a user is entered into.
         - `net_id`          The user's Net ID.
-        - `giveaway_id`     (nullable) The giveaway a user is entered into. //check this
     """
-    
+
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)    
+    id = Column(Integer, primary_key=True)
+    giveaway_ids = relationship("GiveawayInstance", back_populates="giveaways")
     net_id = Column(String, nullable=False)
-    giveaway_id = Column(Integer, ForeignKey("giveaway.id"), nullable=True)
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
+        self.giveaway_ids = kwargs.get("giveaway_ids")
         self.net_id = kwargs.get("net_id")
-        self.giveaway_id = kwargs.get("giveaways")
 
-    def serialize(self):    
-        return {        
-            "id": self.id,        
-            "net_id": self.net_id,
-            "giveaway_id": self.giveaway_id
-        }
+    def serialize(self):
+        return {"id": self.id, "giveaway_ids": self.giveaway_ids, "net_id": self.net_id}

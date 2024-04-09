@@ -1,16 +1,8 @@
-import enum
 from sqlalchemy import Column, Integer, Float, ForeignKey, String
 from sqlalchemy.orm import relationship
 from src.database import Base
 from src.models.user import User
 
-# class GiveawayType(enum.Enum):
-#     """
-#     An enumeration representing a giveaway type.
-#     """
-
-#     utea_giftcard = 0
-#     stanley = 1
 
 class Giveaway(Base):
     """
@@ -21,21 +13,38 @@ class Giveaway(Base):
         - `name`            The name of the giveaway.
         - `user_ids`        (nullable) The IDs of users entered into this giveaway.
     """
-    
+
     __tablename__ = "giveaway"
 
-    id = Column(Integer, primary_key=True) 
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    user_ids = relationship(User)
+    user_ids = relationship("GiveawayInstance", back_populates="users")
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
         self.name = kwargs.get("name")
         self.user_ids = kwargs.get("user_id")
 
-    def serialize(self):    
-        return {        
-            "id": self.id,
-            "name": self.name,
-            "user_ids": self.user_ids
-        }
+    def serialize(self):
+        return {"id": self.id, "name": self.name, "user_ids": self.user_ids}
+
+
+class GiveawayInstance(Base):
+    """
+    An entry into a giveaway.
+
+    Attributes:
+        - `id`                 The ID of the giveaway entry.
+        - `giveaway_id`        The ID of the giveaway.
+        - `user_id`            The ID of the user entered into the giveaway.
+        - `numEntries`         The number of entries of this user into the giveaway.
+    """
+
+    __tablename__ = "giveaway_instance"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    giveaway_id = Column(Integer, ForeignKey("giveaway.id"), nullable=False)
+    numEntries = Column(Integer, nullable=False)
+    users = relationship("Giveaway", back_populates="user_ids")
+    giveaways = relationship("User", back_populates="giveaway_ids")
