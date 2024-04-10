@@ -18,11 +18,3 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     giveaway_ids = relationship("GiveawayInstance", back_populates="giveaways")
     net_id = Column(String, nullable=False)
-
-    def __init__(self, **kwargs):
-        self.id = kwargs.get("id")
-        self.giveaway_ids = kwargs.get("giveaway_ids")
-        self.net_id = kwargs.get("net_id")
-
-    def serialize(self):
-        return {"id": self.id, "net_id": self.net_id, "giveaway_id": self.giveaway_id}
