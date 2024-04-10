@@ -152,7 +152,7 @@ class Query(graphene.ObjectType):
 
 class CreateUser(graphene.Mutation):
     class Arguments:
-        net_id = graphene.String()
+        net_id = graphene.String(required=True)
 
     user = graphene.Field(User)
 
