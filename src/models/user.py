@@ -9,7 +9,7 @@ class User(Base):
 
     Attributes:
         - `id`              The ID of user.
-        - `giveaway_id`     (nullable) The list of giveaways a user is entered into.
+        - `giveaways`       (nullable) The list of giveaways a user is entered into.
         - `net_id`          The user's Net ID.
     """
 
