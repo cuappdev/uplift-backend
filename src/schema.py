@@ -161,11 +161,13 @@ class CreateUser(graphene.Mutation):
     user = graphene.Field(User)
 
     def mutate(root, info, net_id):
-        existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+        # Check to see if NetID already exists
+        existing_user = User.get_query(info).filter(UserModel.net_id == net_id).first()
         if existing_user:
-            return CreateUser(user=existing_user)
+            raise GraphQLError("NetID already exists.")
 
-        new_user = UserModel(net_id=net_id, giveaway_ids=[])
+        # NetID does not exist
+        new_user = UserModel(net_id=net_id)
         db_session.add(new_user)
         db_session.commit()
         return CreateUser(user=new_user)
