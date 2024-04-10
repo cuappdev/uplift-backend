@@ -141,9 +141,10 @@ class Query(graphene.ObjectType):
         return query.all()
 
 
-def resolve_users_by_giveaway_id(self, info, id):
-    query = User.get_query(info).filter(UserModel.giveaway_ids.any(GiveawayInstance.giveaway_id == id))
-    return query.all()
+    def resolve_get_users_by_giveaway_id(self, info, id):
+        entries = GiveawayInstance.get_query(info).filter(GiveawayInstanceModel.giveaway_id == id).all()
+        users = [User.get_query(info).filter(UserModel.id == entry.user_id).first() for entry in entries]
+        return users
 
 
 # MARK: - Mutation
