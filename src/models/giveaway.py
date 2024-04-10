@@ -11,7 +11,7 @@ class Giveaway(Base):
     Attributes:
         - `id`              The ID of the giveaway.
         - `name`            The name of the giveaway.
-        - `user_ids`        (nullable) The IDs of users entered into this giveaway.
+        - `users`           (nullable) The users that entered into this giveaway.
     """
 
     __tablename__ = "giveaway"
