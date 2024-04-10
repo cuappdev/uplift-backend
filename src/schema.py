@@ -181,18 +181,32 @@ class EnterGiveaway(graphene.Mutation):
     giveaway_instance = graphene.Field(GiveawayInstance)
 
     def mutate(self, info, user_net_id, giveaway_id):
-        user = db_session.query(UserModel).filter_by(net_id=user_net_id).first()
+        # Check if NetID and Giveaway ID exists
+        user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
         if not user:
-            return EnterGiveaway(success=False, giveaway_instance=None)
+            raise GraphQLError("User with given NetID does not exist.")
 
-        giveaway = db_session.query(GiveawayModel).get(giveaway_id)
-        if not giveaway or any(instance.giveaway_id == giveaway_id for instance in user.giveaway_ids):
-            return EnterGiveaway(success=False, giveaway_instance=None)
+        giveaway = Giveaway.get_query(info).filter(GiveawayModel.id == giveaway_id).first()
+        if not giveaway:
+            raise GraphQLError("Giveaway does not exist.")
 
-        giveaway_instance = GiveawayInstanceModel(user_id=user.id, giveaway_id=giveaway_id, numEntries=1)
-        db_session.add(giveaway_instance)
+        # Compute number of entries
+        giveaway_instance = (
+            GiveawayInstance.get_query(info)
+            .filter(GiveawayInstanceModel.giveaway_id == giveaway_id)
+            .filter(GiveawayInstanceModel.user_id == user.id)
+            .first()
+        )
+        if not giveaway_instance:
+            # Giveaway does not exist
+            giveaway_instance = GiveawayInstanceModel(user_id=user.id, giveaway_id=giveaway_id, num_entries=1)
+            db_session.add(giveaway_instance)
+        else:
+            # Giveaway exists
+            giveaway_instance.num_entries += 1
+
         db_session.commit()
-        return EnterGiveaway(success=True, giveaway_instance=giveaway_instance)
+        return EnterGiveaway(giveaway_instance=giveaway_instance)
 
 
 class Mutation(graphene.ObjectType):
