@@ -133,8 +133,8 @@ class GiveawayInstance(SQLAlchemyObjectType):
 
 
 class Query(graphene.ObjectType):
-    gyms = graphene.List(Gym)
-    users_by_giveawayid = graphene.List(User, id=graphene.Int())
+    get_all_gyms = graphene.List(Gym, description="Get all gyms.")
+    get_users_by_giveaway_id = graphene.List(User, id=graphene.Int(), description="Get all users given a giveaway ID.")
 
     def resolve_gyms(self, info):
         query = Gym.get_query(info)
