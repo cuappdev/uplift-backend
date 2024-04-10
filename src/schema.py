@@ -209,6 +209,18 @@ class EnterGiveaway(graphene.Mutation):
         return EnterGiveaway(giveaway_instance=giveaway_instance)
 
 
+class CreateGiveaway(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+
+    giveaway = graphene.Field(Giveaway)
+
+    def mutate(self, info, name):
+        giveaway = GiveawayModel(name=name)
+        db_session.add(giveaway)
+        db_session.commit()
+        return CreateGiveaway(giveaway=giveaway)
+
 class Mutation(graphene.ObjectType):
     createUser = CreateUser.Field()
     enterGiveaway = EnterGiveaway.Field()
