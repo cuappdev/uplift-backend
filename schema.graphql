@@ -6,6 +6,16 @@ enum AccessibilityType {
   WHEELCHAIR
 }
 
+type Activity {
+  id: ID!
+  facilityId: Int!
+  gymId: Int!
+  hasMembership: Boolean!
+  name: String!
+  needsReserve: Boolean!
+  pricing: [Price]
+}
+
 type Amenity {
   id: ID!
   gymId: Int!
@@ -30,6 +40,20 @@ type Capacity {
 type Class {
   id: ID!
   name: String!
+  equipmentType: EquipmentType!
+  facilityId: Int!
+  quantity: Int
+  accessibility: AccessibilityType
+}
+
+enum EquipmentType {
+  CARDIO
+  RACKS_AND_BENCHES
+  SELECTORIZED
+  MULTI_CABLE
+  FREE_WEIGHTS
+  MISCELLANEOUS
+  PLATE_LOADED
   description: String!
   gyms: [ClassInstance]
 }
@@ -59,9 +83,10 @@ type Facility {
   facilityType: FacilityType!
   gymId: Int!
   name: String!
+  activities: [Activity]
   capacity: Capacity
-  hours: [OpenHours]
   equipment: [Equipment]
+  hours: [OpenHours]
 }
 
 enum FacilityType {
@@ -78,6 +103,7 @@ type Gym {
   latitude: Float!
   longitude: Float!
   name: String!
+  activities: [Activity]
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
@@ -96,6 +122,21 @@ type OpenHours {
   startTime: Int!
 }
 
+type Price {
+  id: ID!
+  activityId: Int!
+  name: String!
+  cost: Float!
+  rate: String
+  type: PriceType!
+}
+
+enum PriceType {
+  RATE
+  GEAR
+}
+
 type Query {
   gyms: [Gym]
+  activities: [Activity]
 }

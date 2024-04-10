@@ -1,11 +1,13 @@
 import graphene
+from graphene import Enum
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from src.models.capacity import Capacity as CapacityModel
-from src.models.facility import Facility as FacilityModel
+from src.models.facility import Facility as FacilityModel, FacilityType
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
 from src.models.equipment import Equipment as EquipmentModel
+from src.models.activity import Activity as ActivityModel, Price as PriceModel
 from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
 
@@ -20,6 +22,7 @@ class Gym(SQLAlchemyObjectType):
     amenities = graphene.List(lambda: Amenity)
     facilities = graphene.List(lambda: Facility)
     hours = graphene.List(lambda: OpenHours)
+    activities = graphene.List(lambda: Activity)
 
     def resolve_amenities(self, info):
         query = Amenity.get_query(info=info).filter(AmenityModel.gym_id == self.id)
@@ -33,6 +36,10 @@ class Gym(SQLAlchemyObjectType):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.gym_id == self.id)
         return query
 
+    def resolve_activities(self, info):
+        query = Activity.get_query(info=info).filter(ActivityModel.gym_id == self.id)
+        return query
+
 
 # MARK: - Facility
 
@@ -44,6 +51,7 @@ class Facility(SQLAlchemyObjectType):
     capacity = graphene.Field(lambda: Capacity)
     hours = graphene.List(lambda: OpenHours)
     equipment = graphene.List(lambda: Equipment)
+    activities = graphene.List(lambda: Activity)
 
     def resolve_capacity(self, info):
         query = (
@@ -57,19 +65,27 @@ class Facility(SQLAlchemyObjectType):
     def resolve_hours(self, info):
         query = OpenHours.get_query(info=info).filter(OpenHoursModel.facility_id == self.id)
         return query
-    
+
     def resolve_equipment(self, info):
         query = Equipment.get_query(info=info).filter(EquipmentModel.facility_id == self.id)
         return query
 
+    def resolve_activities(self, info):
+        query = Activity.get_query(info=info).filter(ActivityModel.facility_id == self.id)
+        return query
 
+    def resolve_activities(self, info):
+        query = Activity.get_query(info=info).filter(ActivityModel.facility_id == self.id)
+        return query
 
+      
 # MARK: - Open Hours
 
 
 class OpenHours(SQLAlchemyObjectType):
     class Meta:
         model = OpenHoursModel
+
 
 # MARK: - Equipment
 
@@ -95,14 +111,41 @@ class Capacity(SQLAlchemyObjectType):
         model = CapacityModel
 
 
+# MARK: - Price
+
+
+class Price(SQLAlchemyObjectType):
+    class Meta:
+        model = PriceModel
+
+
+# MARK: - Activity
+
+
+class Activity(SQLAlchemyObjectType):
+    class Meta:
+        model = ActivityModel
+
+    pricing = graphene.List(lambda: Price)
+
+    def resolve_pricing(self, info):
+        query = Amenity.get_query(info=info).filter(PriceModel.activity_id == self.id)
+        return query
+
+
 # MARK: - Query
 
 
 class Query(graphene.ObjectType):
     gyms = graphene.List(Gym)
+    activities = graphene.List(Activity)
 
     def resolve_gyms(self, info):
         query = Gym.get_query(info)
+        return query.all()
+
+    def resolve_activities(self, info):
+        query = Activity.get_query(info)
         return query.all()
 
 
