@@ -119,11 +119,6 @@ class Giveaway(SQLAlchemyObjectType):
     class Meta:
         model = GiveawayModel
 
-    user_ids = graphene.List(lambda: User)
-
-    def resolve_user_ids(self, info):
-        query = User.get_query(info=info).filter(UserModel.giveaway_id == self.id)
-        return query
 
 
 # MARK: - Giveaway
