@@ -18,15 +18,7 @@ class Giveaway(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    user_ids = relationship("GiveawayInstance", back_populates="users")
-
-    def __init__(self, **kwargs):
-        self.id = kwargs.get("id")
-        self.name = kwargs.get("name")
-        self.user_ids = kwargs.get("user_id")
-
-    def serialize(self):
-        return {"id": self.id, "name": self.name, "user_ids": self.user_ids}
+    users = relationship("User", secondary="giveaway_instance", back_populates="giveaways")
 
 
 class GiveawayInstance(Base):
