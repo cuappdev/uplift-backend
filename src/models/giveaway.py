@@ -45,6 +45,4 @@ class GiveawayInstance(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     giveaway_id = Column(Integer, ForeignKey("giveaway.id"), nullable=False)
-    numEntries = Column(Integer, nullable=False)
-    users = relationship("Giveaway", back_populates="user_ids")
-    giveaways = relationship("User", back_populates="giveaway_ids")
+    num_entries = Column(Integer, nullable=False)
