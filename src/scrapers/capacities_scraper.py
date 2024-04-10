@@ -1,7 +1,7 @@
-import pytz, requests
+import requests
 from bs4 import BeautifulSoup
 from collections import namedtuple
-from datetime import datetime, timezone
+from datetime import datetime
 from src.database import db_session
 from src.models.capacity import Capacity
 from src.utils.constants import (
@@ -11,7 +11,6 @@ from src.utils.constants import (
     CAPACITY_MARKER_UPDATED,
     CAPACITY_MARKER_PERCENT,
     CAPACITY_MARKER_PERCENT_NA,
-    EASTERN_TIMEZONE,
 )
 from src.utils.utils import get_facility_id, unix_time
 
@@ -77,20 +76,12 @@ def get_capacity_datetime(time_str):
     """
     Get a datetime object for a Capacity given a time string.
 
-    The time is converted into UTC time from Eastern time.
-
     Parameters:
         - `time_str`    The Eastern time string to parse in `%m/%d/%Y %I:%M %p`
                         format (ex: `12/18/2023 5:54 PM`).
 
-    Returns:    a datetime object in UTC time.
+    Returns:    a datetime object.
     """
     format = "%m/%d/%Y %I:%M %p"
     time_obj = datetime.strptime(time_str, format)
-
-    # Convert from Eastern to Local time
-    eastern_tz = pytz.timezone(EASTERN_TIMEZONE)
-    local_tz = datetime.now(timezone.utc).astimezone().tzinfo
-    time_obj = eastern_tz.localize(time_obj).astimezone(local_tz)
-
     return time_obj

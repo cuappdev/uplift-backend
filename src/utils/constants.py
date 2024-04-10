@@ -3,6 +3,9 @@ import os
 # URL for Uplift image assets
 ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
 
+# Base URL for Cornell Recreation Website
+BASE_URL = "https://scl.cornell.edu/recreation/"
+
 # The path for capacities
 C2C_URL = "https://connect2concepts.com/connect2/?type=bar&key=355de24d-d0e4-4262-ae97-bc0c78b92839&loc_status=false"
 
@@ -30,11 +33,17 @@ CAPACITY_MARKER_PERCENT_NA = "NA"
 # The marker for last updated in the HTML
 CAPACITY_MARKER_UPDATED = "Updated: "
 
+# The path for group classes
+CLASSES_PATH = "/fitness-centers/group-fitness-classes?&page="
+
 # Days of the week used in the spreadsheet
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 # Eastern Timezone
 EASTERN_TIMEZONE = "America/New_York"
+
+# The list of gyms
+GYMS = ["Helen Newman", "Toni Morrison", "Noyes", "Teagle"]
 
 # The path for general gym hours
 GYM_HOUR_BASE_URL = "https://scl.cornell.edu/recreation/cornell-fitness-centers"

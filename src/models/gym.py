@@ -2,6 +2,7 @@ from sqlalchemy import Column, Float, String, Integer
 from sqlalchemy.orm import relationship
 from src.database import Base
 from src.models.openhours import OpenHours
+from src.models.classes import ClassInstance, Class
 
 
 class Gym(Base):
@@ -29,6 +30,7 @@ class Gym(Base):
     amenities = relationship("Amenity")
     facilities = relationship("Facility")
     hours = relationship("OpenHours")
+    classes = relationship("ClassInstance", back_populates="gym")
     image_url = Column(String, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)

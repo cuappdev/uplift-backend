@@ -8,6 +8,9 @@ from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
 from src.models.equipment import Equipment as EquipmentModel
 from src.models.activity import Activity as ActivityModel, Price as PriceModel
+from src.models.classes import Class as ClassModel
+from src.models.classes import ClassInstance as ClassInstanceModel
+
 
 # MARK: - Gym
 
@@ -75,6 +78,7 @@ class Facility(SQLAlchemyObjectType):
         query = Activity.get_query(info=info).filter(ActivityModel.facility_id == self.id)
         return query
 
+      
 # MARK: - Open Hours
 
 
