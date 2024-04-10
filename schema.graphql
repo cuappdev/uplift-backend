@@ -8,12 +8,12 @@ enum AccessibilityType {
 
 type Activity {
   id: ID!
-  name: String!
   facilityId: Int!
   gymId: Int!
-  oneTimePrice: Boolean!
+  hasMembership: Boolean!
+  name: String!
   needsReserve: Boolean!
-  gear: [Gear]
+  pricing: [Price]
 }
 
 type Amenity {
@@ -61,34 +61,16 @@ enum EquipmentType {
   MISCELLANEOUS
   PLATE_LOADED
 }
-  description: String!
-  gyms: [ClassInstance]
-}
-
-type ClassInstance {
-  id: ID!
-  gymId: Int
-  classId: Int!
-  location: String!
-  instructor: String!
-  isCanceled: Boolean!
-  isVirtual: Boolean!
-  startTime: DateTime
-  endTime: DateTime
-  class_: Class
-  gym: Gym
-}
-
-scalar DateTime
 
 type Facility {
   id: ID!
   facilityType: FacilityType!
   gymId: Int!
   name: String!
+  activities: [Activity]
   capacity: Capacity
-  hours: [OpenHours]
   equipment: [Equipment]
+  hours: [OpenHours]
 }
 
 enum FacilityType {
@@ -98,13 +80,6 @@ enum FacilityType {
   COURT
 }
 
-type Gear {
-  id: ID!
-  name: String!
-  price: Float!
-  activityId: Int!
-}
-
 type Gym {
   id: ID!
   address: String!
@@ -112,18 +87,36 @@ type Gym {
   latitude: Float!
   longitude: Float!
   name: String!
+  activities: [Activity]
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
-  activities: [Activity]
 }
 
 type OpenHours {
   id: ID!
-  facilityId: Int!
-  day: Int!
-  startTime: String
-  endTime: String
+  courtType: CourtType
+  endTime: Int!
+  facilityId: Int
+  gymId: Int
+  isShallow: Boolean
+  isSpecial: Boolean!
+  isWomen: Boolean
+  startTime: Int!
+}
+
+type Price {
+  id: ID!
+  activityId: Int!
+  name: String!
+  cost: Float!
+  rate: String
+  type: PriceType!
+}
+
+enum PriceType {
+  RATE
+  GEAR
 }
 
 type Query {

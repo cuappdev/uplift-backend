@@ -7,7 +7,7 @@ from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
 from src.models.equipment import Equipment as EquipmentModel
-from src.models.activity import Activity as ActivityModel, Gear as GearModel
+from src.models.activity import Activity as ActivityModel, Price as PriceModel
 
 # MARK: - Gym
 
@@ -104,12 +104,12 @@ class Capacity(SQLAlchemyObjectType):
         model = CapacityModel
 
 
-# MARK: - Gear
+# MARK: - Price
 
 
-class Gear(SQLAlchemyObjectType):
+class Price(SQLAlchemyObjectType):
     class Meta:
-        model = GearModel
+        model = PriceModel
 
 
 # MARK: - Activity
@@ -119,10 +119,10 @@ class Activity(SQLAlchemyObjectType):
     class Meta:
         model = ActivityModel
 
-    gear = graphene.List(lambda: Gear)
+    pricing = graphene.List(lambda: Price)
 
-    def resolve_gear(self, info):
-        query = Amenity.get_query(info=info).filter(GearModel.activity_id == self.id)
+    def resolve_pricing(self, info):
+        query = Amenity.get_query(info=info).filter(PriceModel.activity_id == self.id)
         return query
 
 
