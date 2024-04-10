@@ -34,12 +34,15 @@ enum CourtType {
   BADMINTON
 }
 
+type CreateGiveaway {
+  giveaway: Giveaway
+}
+
 type CreateUser {
   user: User
 }
 
 type EnterGiveaway {
-  success: Boolean
   giveawayInstance: GiveawayInstance
 }
 
@@ -82,7 +85,7 @@ enum FacilityType {
 type Giveaway {
   id: ID!
   name: String!
-  userIds: [User]
+  users: [User]
 }
 
 type GiveawayInstance {
@@ -90,8 +93,6 @@ type GiveawayInstance {
   userId: Int!
   giveawayId: Int!
   numEntries: Int!
-  users: Giveaway
-  giveaways: User
 }
 
 type Gym {
@@ -107,7 +108,8 @@ type Gym {
 }
 
 type Mutation {
-  createUser(netId: String): CreateUser
+  createGiveaway(name: String!): CreateGiveaway
+  createUser(netId: String!): CreateUser
   enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
 }
 
@@ -124,12 +126,12 @@ type OpenHours {
 }
 
 type Query {
-  gyms: [Gym]
-  usersByGiveawayid(id: Int): [User]
+  getAllGyms: [Gym]
+  getUsersByGiveawayId(id: Int): [User]
 }
 
 type User {
   id: ID!
   netId: String!
-  giveawayIds: [GiveawayInstance]
+  giveaways: [Giveaway]
 }

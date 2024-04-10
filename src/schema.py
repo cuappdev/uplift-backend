@@ -1,5 +1,6 @@
 import graphene
 from graphene_sqlalchemy import SQLAlchemyObjectType
+from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
 from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
