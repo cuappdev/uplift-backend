@@ -178,7 +178,6 @@ class EnterGiveaway(graphene.Mutation):
         user_net_id = graphene.String(required=True)
         giveaway_id = graphene.Int(required=True)
 
-    success = graphene.Boolean()
     giveaway_instance = graphene.Field(GiveawayInstance)
 
     def mutate(self, info, user_net_id, giveaway_id):
