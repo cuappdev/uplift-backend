@@ -16,5 +16,5 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    giveaway_ids = relationship("GiveawayInstance", back_populates="giveaways")
+    giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
     net_id = Column(String, nullable=False)
