@@ -222,8 +222,9 @@ class CreateGiveaway(graphene.Mutation):
         return CreateGiveaway(giveaway=giveaway)
 
 class Mutation(graphene.ObjectType):
-    createUser = CreateUser.Field()
-    enterGiveaway = EnterGiveaway.Field()
+    create_giveaway = CreateGiveaway.Field(description="Creates a new giveaway.")
+    create_user = CreateUser.Field(description="Creates a new user.")
+    enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
