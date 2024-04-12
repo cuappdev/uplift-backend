@@ -5,7 +5,7 @@ from flask_graphql import GraphQLView
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
-from src.schema import Query
+from src.schema import Query, Mutation
 from src.scrapers.capacities_scraper import fetch_capacities
 from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
 from src.scrapers.scraper_helpers import clean_past_hours
@@ -17,7 +17,7 @@ from src.utils.utils import create_gym_table
 
 app = Flask(__name__)
 app.debug = True
-schema = Schema(query=Query)
+schema = Schema(query=Query, mutation=Mutation)
 
 # Scheduler
 scheduler = APScheduler()

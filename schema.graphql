@@ -1,5 +1,6 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 enum AccessibilityType {
@@ -37,7 +38,25 @@ type Capacity {
   updated: Int!
 }
 
-type Class {
+enum CourtType {
+  BASKETBALL
+  VOLLEYBALL
+  BADMINTON
+}
+
+type CreateGiveaway {
+  giveaway: Giveaway
+}
+
+type CreateUser {
+  user: User
+}
+
+type EnterGiveaway {
+  giveawayInstance: GiveawayInstance
+}
+
+type Equipment {
   id: ID!
   name: String!
   equipmentType: EquipmentType!
@@ -54,28 +73,6 @@ enum EquipmentType {
   FREE_WEIGHTS
   MISCELLANEOUS
   PLATE_LOADED
-  description: String!
-  gyms: [ClassInstance]
-}
-
-type ClassInstance {
-  id: ID!
-  gymId: Int
-  classId: Int!
-  location: String!
-  instructor: String!
-  isCanceled: Boolean!
-  isVirtual: Boolean!
-  startTime: DateTime
-  endTime: DateTime
-  class_: Class
-  gym: Gym
-}
-
-enum CourtType {
-  BASKETBALL
-  VOLLEYBALL
-  BADMINTON
 }
 
 type Facility {
@@ -96,6 +93,19 @@ enum FacilityType {
   COURT
 }
 
+type Giveaway {
+  id: ID!
+  name: String!
+  users: [User]
+}
+
+type GiveawayInstance {
+  id: ID!
+  userId: Int!
+  giveawayId: Int!
+  numEntries: Int!
+}
+
 type Gym {
   id: ID!
   address: String!
@@ -107,7 +117,12 @@ type Gym {
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
-  classes: [ClassInstance]
+}
+
+type Mutation {
+  createGiveaway(name: String!): CreateGiveaway
+  createUser(netId: String!): CreateUser
+  enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
 }
 
 type OpenHours {
@@ -137,6 +152,13 @@ enum PriceType {
 }
 
 type Query {
-  gyms: [Gym]
+  getAllGyms: [Gym]
+  getUsersByGiveawayId(id: Int): [User]
   activities: [Activity]
+}
+
+type User {
+  id: ID!
+  netId: String!
+  giveaways: [Giveaway]
 }
