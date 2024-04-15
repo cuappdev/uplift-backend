@@ -13,6 +13,7 @@ from src.scrapers.sp_hours_scraper import fetch_sp_facility
 from src.scrapers.equipment_scraper import scrape_equipment
 from src.scrapers.class_scraper import fetch_classes
 from src.utils.utils import create_gym_table
+from src.models.openhours import OpenHours
 
 
 app = Flask(__name__)
@@ -46,6 +47,9 @@ def shutdown_session(exception=None):
 def scrape_hours():
     logging.info("Scraping hours from sheets...")
 
+    # Clear hours
+    db_session.query(OpenHours).delete()
+
     fetch_reg_facility()
     fetch_reg_building()
     fetch_sp_facility()
@@ -58,6 +62,7 @@ def scrape_capacities():
     logging.info("Scraping capacities from C2C...")
 
     fetch_capacities()
+
 
 # Scrape classes every hour
 @scheduler.task("interval", id="scrape_classes", seconds=3600)
