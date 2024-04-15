@@ -121,7 +121,7 @@ type Gym {
 
 type Mutation {
   createGiveaway(name: String!): CreateGiveaway
-  createUser(netId: String!): CreateUser
+  createUser(instagram: String, netId: String!): CreateUser
   enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
 }
 
@@ -159,6 +159,7 @@ type Query {
 
 type User {
   id: ID!
+  instagram: String
   netId: String!
   giveaways: [Giveaway]
 }
