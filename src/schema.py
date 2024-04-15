@@ -190,18 +190,19 @@ class Query(graphene.ObjectType):
 
 class CreateUser(graphene.Mutation):
     class Arguments:
+        instagram = graphene.String()
         net_id = graphene.String(required=True)
 
     user = graphene.Field(User)
 
-    def mutate(root, info, net_id):
+    def mutate(root, info, net_id, instagram=None):
         # Check to see if NetID already exists
         existing_user = User.get_query(info).filter(UserModel.net_id == net_id).first()
         if existing_user:
             raise GraphQLError("NetID already exists.")
 
         # NetID does not exist
-        new_user = UserModel(net_id=net_id)
+        new_user = UserModel(instagram=instagram, net_id=net_id)
         db_session.add(new_user)
         db_session.commit()
         return CreateUser(user=new_user)
