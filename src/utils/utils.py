@@ -103,6 +103,9 @@ def create_gym_table():
                 amenity["type"] = AmenityType[amenity["type"]]
                 amenities.append(Amenity(**amenity))
 
+    # Clear amenities to prevent duplication
+    db_session.query(Amenity).delete()
+
     # Add to database
     [db_session.merge(gym) for gym in gyms]
     [db_session.merge(facility) for facility in facilities]
