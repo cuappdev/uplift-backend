@@ -1,9 +1,20 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 enum AccessibilityType {
   WHEELCHAIR
+}
+
+type Activity {
+  id: ID!
+  facilityId: Int!
+  gymId: Int!
+  hasMembership: Boolean!
+  name: String!
+  needsReserve: Boolean!
+  pricing: [Price]
 }
 
 type Amenity {
@@ -27,31 +38,41 @@ type Capacity {
   updated: Int!
 }
 
-type Class {
-  id: ID!
-  name: String!
-  description: String!
-  gyms: [ClassInstance]
-}
-
-type ClassInstance {
-  id: ID!
-  gymId: Int
-  classId: Int!
-  location: String!
-  instructor: String!
-  isCanceled: Boolean!
-  isVirtual: Boolean!
-  startTime: DateTime
-  endTime: DateTime
-  class_: Class
-  gym: Gym
-}
-
 enum CourtType {
   BASKETBALL
   VOLLEYBALL
   BADMINTON
+}
+
+type CreateGiveaway {
+  giveaway: Giveaway
+}
+
+type CreateUser {
+  user: User
+}
+
+type EnterGiveaway {
+  giveawayInstance: GiveawayInstance
+}
+
+type Equipment {
+  id: ID!
+  name: String!
+  equipmentType: EquipmentType!
+  facilityId: Int!
+  quantity: Int
+  accessibility: AccessibilityType
+}
+
+enum EquipmentType {
+  CARDIO
+  RACKS_AND_BENCHES
+  SELECTORIZED
+  MULTI_CABLE
+  FREE_WEIGHTS
+  MISCELLANEOUS
+  PLATE_LOADED
 }
 
 type Facility {
@@ -59,9 +80,10 @@ type Facility {
   facilityType: FacilityType!
   gymId: Int!
   name: String!
+  activities: [Activity]
   capacity: Capacity
-  hours: [OpenHours]
   equipment: [Equipment]
+  hours: [OpenHours]
 }
 
 enum FacilityType {
@@ -71,6 +93,19 @@ enum FacilityType {
   COURT
 }
 
+type Giveaway {
+  id: ID!
+  name: String!
+  users: [User]
+}
+
+type GiveawayInstance {
+  id: ID!
+  userId: Int!
+  giveawayId: Int!
+  numEntries: Int!
+}
+
 type Gym {
   id: ID!
   address: String!
@@ -78,10 +113,16 @@ type Gym {
   latitude: Float!
   longitude: Float!
   name: String!
+  activities: [Activity]
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
-  classes: [ClassInstance]
+}
+
+type Mutation {
+  createGiveaway(name: String!): CreateGiveaway
+  createUser(instagram: String, netId: String!): CreateUser
+  enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
 }
 
 type OpenHours {
@@ -96,6 +137,29 @@ type OpenHours {
   startTime: Int!
 }
 
+type Price {
+  id: ID!
+  activityId: Int!
+  name: String!
+  cost: Float!
+  rate: String
+  type: PriceType!
+}
+
+enum PriceType {
+  RATE
+  GEAR
+}
+
 type Query {
-  gyms: [Gym]
+  getAllGyms: [Gym]
+  getUsersByGiveawayId(id: Int): [User]
+  activities: [Activity]
+}
+
+type User {
+  id: ID!
+  instagram: String
+  netId: String!
+  giveaways: [Giveaway]
 }
