@@ -72,8 +72,17 @@ MARKER_COURT = "C"
 # Marker in sheets for Fitness Center type
 MARKER_FITNESS = "FC"
 
+# Marker in sheets for gear type
+MARKER_GEAR = "(G)"
+
 # Marker in sheets for Pool type
 MARKER_POOL = "P"
+
+# Marker in sheets to delimit multiple pricing options
+MARKER_PRICE_DELIMITER = "\n"
+
+# Marker in sheets for price type
+MARKER_RATE = "(R)"
 
 # Marker in sheets for shallow pool
 MARKER_SHALLOW = "(S)"
@@ -108,6 +117,9 @@ if os.environ["FLASK_ENV"] == "production":
 else:
     SHEET_KEY = "1PKBoOl4UvnjcV1MVihIQl4PklHNO9K8haiQQ_s--NGI"
 
+# Worksheet name for activities
+SHEET_ACTIVITY = "Activities"
+
 # Worksheet name for regular building hours
 SHEET_REG_BUILDING = "[REG] Building Hours"
 
@@ -122,5 +134,3 @@ TEAGLE_DOWN_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-downst
 
 # The path for Teagle Up Fitness Center details
 TEAGLE_UP_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-upstairs"
-
-

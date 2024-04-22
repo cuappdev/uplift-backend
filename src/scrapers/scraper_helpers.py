@@ -2,10 +2,13 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 from src.database import db_session
 from src.models.openhours import OpenHours
+from src.models.activity import PriceType
 from src.utils.constants import (
     MARKER_ALT,
     MARKER_BADMINTON,
     MARKER_BASKETBALL,
+    MARKER_GEAR,
+    MARKER_RATE,
     MARKER_SHALLOW,
     MARKER_VOLLEYBALL,
     MARKER_WOMEN,
@@ -155,3 +158,38 @@ def determine_court_hours(time_str, date):
     # Create named tuple
     CourtHours = namedtuple("Hours", "start end type")
     return CourtHours(start, end, court_type)
+
+
+def get_pricing(pricing_str):
+    """
+    Determine pricing of a gear or rate for an activity.
+
+    The pricings are represented by a `Pricing` named tuple with attributes
+    `name`, `cost`, `rate`, and `type`.
+
+    - Parameters:
+        - `pricing_str` The price string to parse.
+
+    - Returns:      A named tuple with the attributes described above.
+    """
+    # Separate into elements
+    parts = pricing_str.split(", ")
+    name = parts[0][4:]
+
+    # Handle different price types (MUST HAVE A MARKER)
+    if pricing_str.find(MARKER_RATE) != -1:
+        price_type = PriceType.rate
+    elif pricing_str.find(MARKER_GEAR) != -1:
+        price_type = PriceType.gear
+    cost_part = parts[1]
+    if "/" in cost_part:
+        cost, rate = cost_part.split("/")
+    else:
+        cost = cost_part
+        rate = None
+    cost = float(cost)
+
+    # Create named tuple
+    Price = namedtuple("Pricing", "name cost rate type")
+    print(Price)
+    return Price(cost, name, rate, price_type)

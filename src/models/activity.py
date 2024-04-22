@@ -65,8 +65,8 @@ class Price(Base):
     Attributes:
         - `id`              The ID of this price.
         - `activity_id`     The ID of the activity this price belongs to.
-        - `name`            The name associated with this price.
         - `cost`            The cost of this price.
+        - `name`            The name associated with this price.
         - `rate`            (nullable) The pricing rate of this price.
         = `type`            The type of this price.
     """
@@ -75,16 +75,16 @@ class Price(Base):
 
     id = Column(Integer, primary_key=True)
     activity_id = Column(Integer, ForeignKey("activity.id"), nullable=False)
-    name = Column(String, nullable=False)
     cost = Column(Float, nullable=-False)
+    name = Column(String, nullable=False)
     rate = Column(String)
     type = Column(Enum(PriceType), nullable=False)
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
         self.activity_id = kwargs.get("activity_id")
-        self.name = kwargs.get("name")
         self.cost = kwargs.get("price")
+        self.name = kwargs.get("name")
         self.rate = kwargs.get("rate")
         self.type = kwargs.get("type")
 
@@ -92,8 +92,8 @@ class Price(Base):
         return {
             "id": self.id,
             "activity_id": self.activity_id,
-            "name": self.name,
             "cost": self.cost,
+            "name": self.name,
             "rate": self.rate,
             "type": self.type,
         }
