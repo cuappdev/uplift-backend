@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from flask_apscheduler import APScheduler
 from flask_graphql import GraphQLView
 from graphene import Schema
@@ -62,6 +62,13 @@ def scrape_capacities():
     logging.info("Scraping capacities from C2C...")
 
     fetch_capacities()
+
+# Scrape classes every hour
+@scheduler.task("interval", id="scrape_classes", seconds=3600)
+def scrape_classes():
+    logging.info("Scraping classes from group-fitness-classes...")
+
+    fetch_classes(3)
 
 
 # Scrape classes every hour
