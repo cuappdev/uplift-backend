@@ -2,9 +2,11 @@ import gspread
 from pandas import DataFrame
 from src.database import db_session
 from src.models.activity import Activity, Price
-from src.scrapers.scraper_helpers import get_pricing
+from src.models.activity import PriceType
 from src.utils.constants import (
     MARKER_PRICE_DELIMITER,
+    MARKER_RATE,
+    MARKER_GEAR,
     SERVICE_ACCOUNT_PATH,
     SHEET_KEY,
     SHEET_ACTIVITY,
@@ -44,20 +46,62 @@ def fetch_activity():
             needs_reserve=needs_reserve,
             pricing=None,
         )
-
         # Add activity to database
-        db_session.merge(activity)
+        db_session.add(activity)
+        db_session.commit()
 
         # Handle case if there are multiple pricing options
         for price in pricing.split(MARKER_PRICE_DELIMITER):
-            cost, name, rate, type = get_pricing(price)
-            add_pricing(activity.id, cost, name, rate, type)
+            add_pricing(price, activity.id)
 
 
 # MARK: Helpers
 
 
-def add_pricing(activity_id, cost, name, rate, type):
+def add_pricing(pricing_str, activity_id):
+    """
+    Determine pricing of a gear or rate for an activity.
+
+    The pricings are represented by a `Pricing` named tuple with attributes
+    `name`, `cost`, `rate`, and `type`.
+
+    - Parameters:
+        - `pricing_str` The price string to parse.
+
+    - Returns:      A named tuple with the attributes described above.
+    """
+    # Separate into elements
+    parts = pricing_str.split(", ")
+    name = parts[0][4:]
+
+    # Handle different price types (MUST HAVE A MARKER)
+    if pricing_str.find(MARKER_RATE) != -1:
+        price_type = PriceType.rate
+    elif pricing_str.find(MARKER_GEAR) != -1:
+        price_type = PriceType.gear
+    cost_part = parts[1]
+    if "/" in cost_part:
+        cost, rate = cost_part.split("/")
+    else:
+        cost = cost_part
+        rate = None
+    cost = float(cost)
+
+    # Create price
+    price = Price(
+        activity_id=activity_id,
+        cost=cost,
+        name=name,
+        rate=rate,
+        type=price_type,
+    )
+
+    # Add to database
+    db_session.merge(price)
+    db_session.commit()
+
+
+def add_proicing(activity_id, cost, name, rate, type):
     """
     Add pricing to the database.
 
@@ -68,6 +112,7 @@ def add_pricing(activity_id, cost, name, rate, type):
         - `rate`            The rate of the price.
         - `type`            The type of the price.
     """
+    # print(activity_id + " " + cost + " " + name + " " + rate + " " + type)
     # Create price
     price = Price(
         activity_id=activity_id,

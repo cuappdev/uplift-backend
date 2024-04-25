@@ -37,7 +37,13 @@ type Capacity {
   updated: Int!
 }
 
-type Class {
+enum CourtType {
+  BASKETBALL
+  VOLLEYBALL
+  BADMINTON
+}
+
+type Equipment {
   id: ID!
   name: String!
   equipmentType: EquipmentType!
@@ -54,28 +60,6 @@ enum EquipmentType {
   FREE_WEIGHTS
   MISCELLANEOUS
   PLATE_LOADED
-  description: String!
-  gyms: [ClassInstance]
-}
-
-type ClassInstance {
-  id: ID!
-  gymId: Int
-  classId: Int!
-  location: String!
-  instructor: String!
-  isCanceled: Boolean!
-  isVirtual: Boolean!
-  startTime: DateTime
-  endTime: DateTime
-  class_: Class
-  gym: Gym
-}
-
-enum CourtType {
-  BASKETBALL
-  VOLLEYBALL
-  BADMINTON
 }
 
 type Facility {
@@ -107,7 +91,6 @@ type Gym {
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
-  classes: [ClassInstance]
 }
 
 type OpenHours {
@@ -125,8 +108,8 @@ type OpenHours {
 type Price {
   id: ID!
   activityId: Int!
-  name: String!
   cost: Float!
+  name: String!
   rate: String
   type: PriceType!
 }

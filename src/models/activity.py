@@ -49,7 +49,6 @@ class Activity(Base):
         return {
             "id": self.id,
             "facility_id": self.facility_id,
-            "gear": self.gear,
             "gym_id": self.gym_id,
             "has_membership": self.has_membership,
             "name": self.name,
@@ -83,7 +82,7 @@ class Price(Base):
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
         self.activity_id = kwargs.get("activity_id")
-        self.cost = kwargs.get("price")
+        self.cost = kwargs.get("cost")
         self.name = kwargs.get("name")
         self.rate = kwargs.get("rate")
         self.type = kwargs.get("type")
