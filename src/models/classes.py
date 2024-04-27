@@ -33,7 +33,7 @@ class Class(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(), nullable=False)
     description = Column(String(), nullable=False)
-    gyms = relationship("ClassInstance", back_populates="class_")
+    class_instances = relationship("ClassInstance", back_populates="class_")
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
@@ -60,7 +60,7 @@ class ClassInstance(Base):
     isVirtual = Column(Boolean(), nullable=False, default=False)
     start_time = Column(DateTime(), nullable=True)
     end_time = Column(DateTime(), nullable=True)
-    class_ = relationship("Class", back_populates="gyms")
+    class_ = relationship("Class", back_populates="class_instances")
     gym = relationship("Gym", back_populates="classes")
 
     def __init__(self, **kwargs):
