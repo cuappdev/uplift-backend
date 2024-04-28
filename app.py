@@ -12,6 +12,7 @@ from src.scrapers.scraper_helpers import clean_past_hours
 from src.scrapers.sp_hours_scraper import fetch_sp_facility
 from src.scrapers.equipment_scraper import scrape_equipment
 from src.scrapers.class_scraper import fetch_classes
+from src.scrapers.activities_scraper import fetch_activity
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
 
@@ -63,6 +64,7 @@ def scrape_capacities():
 
     fetch_capacities()
 
+
 # Scrape classes every hour
 @scheduler.task("interval", id="scrape_classes", seconds=3600)
 def scrape_classes():
@@ -87,6 +89,8 @@ scrape_hours()
 scrape_capacities()
 scrape_equipment()
 
+logging.info("Scraping activities from sheets...")
+fetch_activity()
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
     schema_file.write(schema_printer.print_schema(schema))

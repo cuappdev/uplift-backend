@@ -48,6 +48,7 @@ class Gym(Base):
     def serialize(self):
         return {
             "id": self.id,
+            "activities": self.activities,
             "address": self.address,
             "facilities": self.facilities,
             "hours": self.hours,

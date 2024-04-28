@@ -163,7 +163,7 @@ class Activity(SQLAlchemyObjectType):
     pricing = graphene.List(lambda: Price)
 
     def resolve_pricing(self, info):
-        query = Amenity.get_query(info=info).filter(PriceModel.activity_id == self.id)
+        query = Price.get_query(info=info).filter(PriceModel.activity_id == self.id)
         return query
 
 
