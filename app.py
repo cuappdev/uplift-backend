@@ -1,4 +1,5 @@
 import logging
+import sentry_sdk
 from flask import Flask, render_template, redirect, url_for
 from flask_apscheduler import APScheduler
 from flask_graphql import GraphQLView
@@ -16,6 +17,16 @@ from src.scrapers.activities_scraper import fetch_activity
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
 
+sentry_sdk.init(
+    dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
 
 app = Flask(__name__)
 app.debug = True
