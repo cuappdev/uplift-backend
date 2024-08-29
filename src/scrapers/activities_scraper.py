@@ -99,29 +99,3 @@ def add_pricing(pricing_str, activity_id):
     # Add to database
     db_session.merge(price)
     db_session.commit()
-
-
-def add_proicing(activity_id, cost, name, rate, type):
-    """
-    Add pricing to the database.
-
-    Parameters:
-        - `activity_id`     The ID of the activity.
-        - `cost`            The cost of the price.
-        - `name`            The name of the price.
-        - `rate`            The rate of the price.
-        - `type`            The type of the price.
-    """
-    # print(activity_id + " " + cost + " " + name + " " + rate + " " + type)
-    # Create price
-    price = Price(
-        activity_id=activity_id,
-        cost=cost,
-        name=name,
-        rate=rate,
-        type=type,
-    )
-
-    # Add to database
-    db_session.merge(price)
-    db_session.commit()
