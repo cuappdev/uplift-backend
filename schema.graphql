@@ -38,29 +38,9 @@ type Capacity {
   updated: Int!
 }
 
-enum CourtType {
-  BASKETBALL
-  VOLLEYBALL
-  BADMINTON
-}
-
-type Equipment {
+type Class {
   id: ID!
   name: String!
-  equipmentType: EquipmentType!
-  facilityId: Int!
-  quantity: Int
-  accessibility: AccessibilityType
-}
-
-enum EquipmentType {
-  CARDIO
-  RACKS_AND_BENCHES
-  SELECTORIZED
-  MULTI_CABLE
-  FREE_WEIGHTS
-  MISCELLANEOUS
-  PLATE_LOADED
   description: String!
   classInstances: [ClassInstance]
 }
@@ -160,6 +140,7 @@ type Gym {
   amenities: [Amenity]
   facilities: [Facility]
   hours: [OpenHours]
+  classes: [ClassInstance]
 }
 
 type Mutation {
