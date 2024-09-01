@@ -119,6 +119,39 @@ class Price(SQLAlchemyObjectType):
     class Meta:
         model = PriceModel
 
+# MARK: - Class
+
+
+class Class(SQLAlchemyObjectType):
+    class Meta:
+        model = ClassModel
+
+    class_instances = graphene.List(lambda: ClassInstance)
+
+    def resolve_class_instances(self, info):
+        query = ClassInstance.get_query(info=info).filter(ClassInstanceModel.class_id == self.id)
+        return query
+    
+
+
+# MARK: - Class Instance
+
+
+class ClassInstance(SQLAlchemyObjectType):
+    class Meta:
+        model = ClassInstanceModel
+
+    gym = graphene.Field(lambda: Gym)
+    class_ = graphene.Field(lambda: Class)
+
+    def resolve_gym(self, info):
+        query = Gym.get_query(info=info).filter(GymModel.id == self.gym_id).first()
+        return query   
+    
+    def resolve_class_(self, info):
+        query = Class.get_query(info=info).filter(ClassModel.id == self.class_id).first()
+        return query
+
 
 # MARK: - Activity
 
@@ -130,7 +163,7 @@ class Activity(SQLAlchemyObjectType):
     pricing = graphene.List(lambda: Price)
 
     def resolve_pricing(self, info):
-        query = Amenity.get_query(info=info).filter(PriceModel.activity_id == self.id)
+        query = Price.get_query(info=info).filter(PriceModel.activity_id == self.id)
         return query
 
 
