@@ -1,4 +1,3 @@
-import datetime
 from src.database import Base
 from sqlalchemy import (
     Table,
@@ -6,12 +5,10 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
-    Float,
     String,
     Boolean,
-    func,
 )
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 
 classes_to_gyms = Table(
     "classes_to_gyms",
@@ -46,7 +43,7 @@ class Class(Base):
             "name": self.name,
             "description": self.description,
         }
-    
+
 
 class ClassInstance(Base):
     __tablename__ = "class_instance"
@@ -86,5 +83,3 @@ class ClassInstance(Base):
             "start_time": self.start_time,
             "end_time": self.end_time,
         }
-
-

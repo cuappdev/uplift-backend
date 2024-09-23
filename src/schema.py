@@ -1,9 +1,8 @@
 import graphene
-from graphene import Enum
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
-from src.models.facility import Facility as FacilityModel, FacilityType
+from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
 from src.models.amenity import Amenity as AmenityModel
@@ -119,6 +118,7 @@ class Price(SQLAlchemyObjectType):
     class Meta:
         model = PriceModel
 
+
 # MARK: - Class
 
 
@@ -131,7 +131,6 @@ class Class(SQLAlchemyObjectType):
     def resolve_class_instances(self, info):
         query = ClassInstance.get_query(info=info).filter(ClassInstanceModel.class_id == self.id)
         return query
-    
 
 
 # MARK: - Class Instance
@@ -146,8 +145,8 @@ class ClassInstance(SQLAlchemyObjectType):
 
     def resolve_gym(self, info):
         query = Gym.get_query(info=info).filter(GymModel.id == self.gym_id).first()
-        return query   
-    
+        return query
+
     def resolve_class_(self, info):
         query = Class.get_query(info=info).filter(ClassModel.id == self.class_id).first()
         return query
