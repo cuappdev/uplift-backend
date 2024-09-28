@@ -18,4 +18,3 @@ Archive
 scripts
 *.sqlite3
 service-account-key.json
-client_secret.json
