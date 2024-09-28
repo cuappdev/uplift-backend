@@ -1,0 +1,25 @@
+{
+    "strict": true,
+    "debug": true,
+    "sp": {
+        "entityId": "http://localhost:5000/metadata", 
+        "assertionConsumerService": {
+            "url": "http://localhost:5000/sso/callback",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        },
+        "singleLogoutService": {
+            "url": "http://localhost:5000/sso/logout",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "MIID...your_cert_data_here...Tg==",
+        "privateKey": "MIIEvQIBADAN...your_private_key_here...DFg=="
+    },
+    "idp": {
+        "entityId": "https://shibidp.cit.cornell.edu/idp/shibboleth",
+        "singleSignOnService": {
+            "url": "https://shibidp.cit.cornell.edu/idp/profile/SAML2/Redirect/SSO",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "MIIDLTCCAhWgAwIBAgIUQgz83IBjVzrtMG0sjvsllWKkqR4wDQYJKoZIhvcNAQEL BQAwJjEkMCIGA1UEAwwbbGljZW5zaW5nLnN0b3JlLmNvcm5lbGwuZWR1MB4XDTIx MDcxNDE5NDM0N1oXDTMxMDcxMjE5NDM0N1owJjEkMCIGA1UEAwwbbGljZW5zaW5n LnN0b3JlLmNvcm5lbGwuZWR1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC AQEAtz3ejUzqMjzU+BQ71Cf70bvMGAVyGfe7E6l3/gWeOhsx1zUASsbiQa5xDeHb +m+NnAKSYNvNDshaGFzlZLYF1Gknn17nRQDDZhB5Ey0e4gOQzulcgvVyKGMWj575 tsNMF9UvXnFy28LQNUminIuFu3vvRnXnCyVcuPIG86ibIicfTMYYFtL2FJd38gH1 63ZXB7ELVxPtbJ3E6ssGVRHoHytp/i4+e/l/+2fRseorj4Ymad2XcL4/0dsA7a7G m61j7KMuUSyBMNr+FbFWv+NH40f2NbMg/03xtuVZ5KcqP4M8nPs7pueeeXoGHDUl veC7sHwvUJOPffPvRz8I8Hr9YwIDAQABo1MwUTAdBgNVHQ4EFgQU58RqQSg1lhjd AC7jquatGf/s6hswHwYDVR0jBBgwFoAU58RqQSg1lhjdAC7jquatGf/s6hswDwYD VR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAHZCLgZ6FoaoINIqS43nU DvPR6TDnyTWbwVC2wsZqTE7p/hae9Aor3a3rMdeTAyWK5WpNfF0dUoAlvuLMXJSZ +QYnYZ1QktT6lC+Ietta4mRnThBwn9DCFKwQ/WysyHHV8g/dDlmpdysSWgoZlaK+ mLyGi+DWwTgG6uxoUGDQN6eXqrdcv+uoMz/zN2NcNAnEvIt+isvaJBn3Tee3Gysq xCPfxC3neyYo7xA0b+Mbw0R5RVXYZUMmW9jLutx5z/5O5Ucrp6KROlw4pqgn3V8V hzbmM1NqCSCnkHKe2v47qdA4hNQQU7gNBsAjUE1qUTFIGu/RHdeJTAl//RC8fbAm Xg== "
+    }
+}

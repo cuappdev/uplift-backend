@@ -145,8 +145,10 @@ type Gym {
 
 type Mutation {
   createGiveaway(name: String!): CreateGiveaway
-  createUser(instagram: String, netId: String!): CreateUser
+  createUser(email: String!, name: String!, netId: String!): CreateUser
   enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
+  setWorkoutGoals(userId: Int!, workoutGoal: [String]!): SetWorkoutGoals
+  logWorkout(userId: Int!, workoutTime: DateTime!): logWorkout
 }
 
 type OpenHours {
@@ -178,12 +180,30 @@ enum PriceType {
 type Query {
   getAllGyms: [Gym]
   getUsersByGiveawayId(id: Int): [User]
+  getWeeklyWorkoutDays(id: Int): [String]
   activities: [Activity]
+}
+
+type SetWorkoutGoals {
+  user: User
 }
 
 type User {
   id: ID!
-  instagram: String
+  email: String!
   netId: String!
+  name: String!
+  totalWorkouts: Int
+  workoutGoal: [String]
   giveaways: [Giveaway]
+}
+
+type Workout {
+  id: ID!
+  workoutTime: DateTime!
+  userId: Int!
+}
+
+type logWorkout {
+  workout: Workout
 }
