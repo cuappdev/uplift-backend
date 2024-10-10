@@ -18,5 +18,6 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
+    reports = relationship("Report", back_populates="user")
     instagram = Column(String, nullable=True)
     net_id = Column(String, nullable=False)
