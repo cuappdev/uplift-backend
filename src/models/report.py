@@ -20,7 +20,6 @@ class Report(Base):
         - `issue`           The issue reported (discrete options).
         - `description`     The description of the report.
         - `created_at`      The date and time the report was created.
-        - `updated_at`      The date and time the report was last updated.
         - `gym_id`          The ID of the gym associated with the report.
     """
 
