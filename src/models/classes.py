@@ -1,6 +1,5 @@
-import datetime
 from src.database import Base
-from sqlalchemy import Table, Column, DateTime, ForeignKey, Integer, Float, String, Boolean, func
+from sqlalchemy import Table, Column, DateTime, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import backref, relationship
 
 classes_to_gyms = Table(

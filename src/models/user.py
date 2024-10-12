@@ -1,8 +1,18 @@
 from sqlalchemy import Column, Integer, String, ARRAY
+from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
+from enum import Enum
 
-# from src.models.classes import user_class_preference
+
+class DayOfWeekEnum(Enum):
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+    SUNDAY = "Sunday"
 
 
 class User(Base):
@@ -15,8 +25,7 @@ class User(Base):
         - `giveaways`                             (nullable) The list of giveaways a user is entered into.
         - `net_id`                                The user's Net ID.
         - `name`                                  The user's name.
-        - `total_workouts`                        The total number of workouts the user has completed.
-        - `workout_goal`                          The number of workouts per week the user has set as their personal goal.
+        - `workout_goal`                          The days of the week the user has set as their personal goal.
     """
 
     __tablename__ = "users"
@@ -26,6 +35,5 @@ class User(Base):
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
     net_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    total_workouts = Column(Integer, default=0)
-    workout_goal = Column(ARRAY(String), nullable=True)
+    workout_goal = Column(ARRAY(SQLAEnum(DayOfWeekEnum)), nullable=True)
     # instagram = Column(String, nullable=True)

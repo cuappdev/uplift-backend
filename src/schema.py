@@ -12,6 +12,7 @@ from src.models.activity import Activity as ActivityModel, Price as PriceModel
 from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
 from src.models.user import User as UserModel
+from src.models.user import DayOfWeekEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
@@ -214,6 +215,7 @@ class Query(graphene.ObjectType):
     get_weekly_workout_days = graphene.List(
         graphene.String, id=graphene.Int(), description="Get the days a user worked out for the current week."
     )
+    get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
 
     def resolve_get_all_gyms(self, info):
@@ -228,6 +230,13 @@ class Query(graphene.ObjectType):
         entries = GiveawayInstance.get_query(info).filter(GiveawayInstanceModel.giveaway_id == id).all()
         users = [User.get_query(info).filter(UserModel.id == entry.user_id).first() for entry in entries]
         return users
+
+    def resolve_get_workouts_by_id(self, info, id):
+        user = User.get_query(info).filter(UserModel.id == id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+        workouts = Workout.get_query(info).filter(WorkoutModel.user_id == user.id).all()
+        return workouts
 
     def resolve_get_weekly_workout_days(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
@@ -261,19 +270,19 @@ class CreateUser(graphene.Mutation):
         net_id = graphene.String(required=True)
         email = graphene.String(required=True)
 
-    user = graphene.Field(User)
+    Output = User
 
-    def mutate(root, info, net_id, name, email):
-        # Check to see if NetID already exists
-        existing_user = User.get_query(info).filter(UserModel.net_id == net_id).first()
+    def mutate(self, info, name, net_id, email):
+        # Check if a user with the given NetID already exists
+        existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
         if existing_user:
             raise GraphQLError("NetID already exists.")
 
-        # NetID does not exist
         new_user = UserModel(name=name, net_id=net_id, email=email)
         db_session.add(new_user)
         db_session.commit()
-        return CreateUser(user=new_user)
+
+        return new_user
 
 
 class EnterGiveaway(graphene.Mutation):
@@ -281,7 +290,7 @@ class EnterGiveaway(graphene.Mutation):
         user_net_id = graphene.String(required=True)
         giveaway_id = graphene.Int(required=True)
 
-    giveaway_instance = graphene.Field(GiveawayInstance)
+    Output = GiveawayInstance
 
     def mutate(self, info, user_net_id, giveaway_id):
         # Check if NetID and Giveaway ID exists
@@ -309,24 +318,20 @@ class EnterGiveaway(graphene.Mutation):
             giveaway_instance.num_entries += 1
 
         db_session.commit()
-        return EnterGiveaway(giveaway_instance=giveaway_instance)
+        return giveaway_instance
 
 
 class CreateGiveaway(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
 
-    giveaway = graphene.Field(Giveaway)
+    Output = Giveaway
 
     def mutate(self, info, name):
         giveaway = GiveawayModel(name=name)
         db_session.add(giveaway)
         db_session.commit()
-        return CreateGiveaway(giveaway=giveaway)
-
-
-# List of valid days of the week
-VALID_DAYS = ["Monday", "Tuesday", "Wednesday", "Thurday", "Friday", "Saturday", "Sunday"]
+        return giveaway
 
 
 class SetWorkoutGoals(graphene.Mutation):
@@ -338,7 +343,7 @@ class SetWorkoutGoals(graphene.Mutation):
             description="The new workout goal for the user in terms of days of the week.",
         )
 
-    user = graphene.Field(lambda: User)
+    Output = User
 
     def mutate(self, info, user_id, workout_goal):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
@@ -346,15 +351,19 @@ class SetWorkoutGoals(graphene.Mutation):
             raise GraphQLError("User with given ID does not exist.")
 
         # Validate that all workout days are valid
+        validated_workout_goal = []
         for day in workout_goal:
-            if day not in VALID_DAYS:
+            try:
+                # Convert string to enum
+                validated_workout_goal.append(DayOfWeekEnum[day.upper()])
+            except KeyError:
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
-        user.workout_goal = workout_goal
+        user.workout_goal = validated_workout_goal
 
         db_session.commit()
 
-        return SetWorkoutGoals(user=user)
+        return user
 
 
 class logWorkout(graphene.Mutation):
@@ -362,7 +371,7 @@ class logWorkout(graphene.Mutation):
         workout_time = graphene.DateTime(required=True)
         user_id = graphene.Int(required=True)
 
-    workout = graphene.Field(Workout)
+    Output = Workout
 
     def mutate(self, info, workout_time, user_id):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
@@ -371,11 +380,9 @@ class logWorkout(graphene.Mutation):
 
         workout = WorkoutModel(workout_time=workout_time, user_id=user.id)
 
-        user.total_workouts += 1
-
         db_session.add(workout)
         db_session.commit()
-        return logWorkout(workout=workout)
+        return workout
 
 
 class Mutation(graphene.ObjectType):

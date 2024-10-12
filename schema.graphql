@@ -65,18 +65,16 @@ enum CourtType {
   BADMINTON
 }
 
-type CreateGiveaway {
-  giveaway: Giveaway
-}
-
-type CreateUser {
-  user: User
-}
-
 scalar DateTime
 
-type EnterGiveaway {
-  giveawayInstance: GiveawayInstance
+enum DayOfWeekEnum {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }
 
 type Equipment {
@@ -144,11 +142,11 @@ type Gym {
 }
 
 type Mutation {
-  createGiveaway(name: String!): CreateGiveaway
-  createUser(email: String!, name: String!, netId: String!): CreateUser
-  enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
-  setWorkoutGoals(userId: Int!, workoutGoal: [String]!): SetWorkoutGoals
-  logWorkout(userId: Int!, workoutTime: DateTime!): logWorkout
+  createGiveaway(name: String!): Giveaway
+  createUser(email: String!, name: String!, netId: String!): User
+  enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
+  setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
+  logWorkout(userId: Int!, workoutTime: DateTime!): Workout
 }
 
 type OpenHours {
@@ -181,11 +179,8 @@ type Query {
   getAllGyms: [Gym]
   getUsersByGiveawayId(id: Int): [User]
   getWeeklyWorkoutDays(id: Int): [String]
+  getWorkoutsById(id: Int): [Workout]
   activities: [Activity]
-}
-
-type SetWorkoutGoals {
-  user: User
 }
 
 type User {
@@ -193,8 +188,7 @@ type User {
   email: String!
   netId: String!
   name: String!
-  totalWorkouts: Int
-  workoutGoal: [String]
+  workoutGoal: [DayOfWeekEnum]
   giveaways: [Giveaway]
 }
 
@@ -202,8 +196,4 @@ type Workout {
   id: ID!
   workoutTime: DateTime!
   userId: Int!
-}
-
-type logWorkout {
-  workout: Workout
 }
