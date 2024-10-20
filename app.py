@@ -1,4 +1,5 @@
 import logging
+from src.utils.constants import SERVICE_ACCOUNT_PATH
 import sentry_sdk
 from flask import Flask, render_template
 from flask_apscheduler import APScheduler
@@ -14,10 +15,18 @@ from src.scrapers.sp_hours_scraper import fetch_sp_facility
 from src.scrapers.equipment_scraper import scrape_equipment
 from src.scrapers.class_scraper import fetch_classes
 from src.scrapers.activities_scraper import fetch_activity
+from src.utils.messaging import send_workout_reminders
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
 from flasgger import Swagger
+import firebase_admin
+from firebase_admin import credentials
 
+if SERVICE_ACCOUNT_PATH:
+    cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+    firebase_admin.initialize_app(cred)
+else:
+    raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
 
 sentry_sdk.init(
     dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
@@ -85,6 +94,14 @@ def scrape_classes():
     logging.info("Scraping classes from group-fitness-classes...")
 
     fetch_classes(10)
+
+
+# Send workout reminders
+@scheduler.task("interval", id="scrape_classes", seconds=60)
+def scrape_classes():
+    logging.info("Sending workout reminders...")
+    
+    send_workout_reminders()
 
 
 # Create database and fill it with data

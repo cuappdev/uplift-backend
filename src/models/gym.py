@@ -35,6 +35,7 @@ class Gym(Base):
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     name = Column(String, nullable=False)
+    capacity_reminders = relationship("CapacityReminder")
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")

@@ -4,6 +4,7 @@ from collections import namedtuple
 from datetime import datetime
 from src.database import db_session
 from src.models.capacity import Capacity
+from src.utils.messaging import send_capacity_reminder
 from src.utils.constants import (
     C2C_URL,
     CAPACITY_MARKER_COUNTS,
@@ -46,8 +47,53 @@ def fetch_capacities():
             else float(capacity_data.percent.replace(CAPACITY_MARKER_PERCENT, "")) / 100
         )
 
+        target_gyms = [
+            "HELENNEWMANFITNESSCENTER",
+            "NOYESFITNESSCENTER",
+            "TEAGLEDOWNFITNESSCENTER",
+            "TEAGLEUPFITNESSCENTER",
+            "TONIMORRISONFITNESSCENTER"
+        ]
+
+        last_percent = Capacity.query.filter_by(facility_id=facility_id).first()
+        if last_percent:
+            last_percent = last_percent.percent
+        else:
+            last_percent = 0
+
+        topic_name = capacity_data.name.replace(" ", "").upper()
+
+        if topic_name in target_gyms:
+            check_and_send_capacity_reminders(topic_name, percent, last_percent)
+
         # Add to sheets
         add_single_capacity(count, facility_id, percent, updated)
+
+
+def check_and_send_capacity_reminders(facility_name, current_percent, last_percent):
+    """
+    Check user reminders and send notifications to topic if the current capacity
+    dips below the relevant thresholds.
+
+    Parameters:
+        - `facility_name`: The name of the facility.
+        - `current_percent`: The current capacity percentage.
+        - `last_percent`: The capacity percentage from the last scrape.
+    """
+    current_percent_int = int(current_percent * 100)  # Convert to integer percentage
+    last_percent_int = int(last_percent * 100)
+
+    current_day_name = datetime.now().strftime("%A").upper()
+    
+    # Check if the current percent crosses below any threshold from the last percent
+    for percent in range(last_percent_int, current_percent_int - 1, -1):
+        print("last percent")
+        print(last_percent_int)
+        print("current percent")
+        print(current_percent_int)
+        topic_name = f"{facility_name}_{current_day_name}_{percent}"
+        print(topic_name)
+        send_capacity_reminder(topic_name, facility_name, current_percent)
 
 
 def add_single_capacity(count, facility_id, percent, updated):

@@ -38,6 +38,14 @@ type Capacity {
   updated: Int!
 }
 
+type CapacityReminder {
+  id: ID!
+  userId: Int!
+  gymId: Int!
+  capacityThreshold: Int!
+  daysOfWeek: [DayOfWeekEnum]!
+}
+
 type Class {
   id: ID!
   name: String!
@@ -68,6 +76,16 @@ enum CourtType {
 scalar DateTime
 
 enum DayOfWeekEnum {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum DayOfWeekGraphQLEnum {
   MONDAY
   TUESDAY
   WEDNESDAY
@@ -139,6 +157,7 @@ type Gym {
   facilities: [Facility]
   hours: [OpenHours]
   classes: [ClassInstance]
+  capacityReminders: [CapacityReminder]
 }
 
 type Mutation {
@@ -188,8 +207,10 @@ type User {
   email: String!
   netId: String!
   name: String!
-  workoutGoal: [DayOfWeekEnum]
+  workoutGoal: [DayOfWeekGraphQLEnum]
+  fcmToken: String
   giveaways: [Giveaway]
+  capacityReminders: [CapacityReminder]
 }
 
 type Workout {

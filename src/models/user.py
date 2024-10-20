@@ -1,18 +1,8 @@
-from sqlalchemy import Column, Integer, String, ARRAY
+from sqlalchemy import Column, Integer, String, ARRAY, ForeignKey
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
-from enum import Enum
-
-
-class DayOfWeekEnum(Enum):
-    MONDAY = "Monday"
-    TUESDAY = "Tuesday"
-    WEDNESDAY = "Wednesday"
-    THURSDAY = "Thursday"
-    FRIDAY = "Friday"
-    SATURDAY = "Saturday"
-    SUNDAY = "Sunday"
+from src.models.enums import DayOfWeekEnum
 
 
 class User(Base):
@@ -36,4 +26,5 @@ class User(Base):
     net_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
     workout_goal = Column(ARRAY(SQLAEnum(DayOfWeekEnum)), nullable=True)
-    # instagram = Column(String, nullable=True)
+    fcm_token = Column(String, nullable=True)
+    capacity_reminders = relationship("CapacityReminder")

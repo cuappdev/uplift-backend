@@ -1,8 +1,11 @@
 import graphene
+from src.models.enums import DayOfWeekGraphQLEnum
 from datetime import datetime, timedelta
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
+from src.models.capacity_reminder import CapacityReminder as CapacityReminderModel
+from src.models.workout_reminder import WorkoutReminder as WorkoutReminderModel
 from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
@@ -12,7 +15,6 @@ from src.models.activity import Activity as ActivityModel, Price as PriceModel
 from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
 from src.models.user import User as UserModel
-from src.models.user import DayOfWeekEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
@@ -114,6 +116,22 @@ class Capacity(SQLAlchemyObjectType):
         model = CapacityModel
 
 
+# MARK: - Capacity Reminder
+
+
+class CapacityReminder(SQLAlchemyObjectType):
+    class Meta:
+        model = CapacityReminderModel
+
+
+# MARK: - Capacity Reminder
+
+
+class WorkoutReminder(SQLAlchemyObjectType):
+    class Meta:
+        model = WorkoutReminderModel
+
+
 # MARK: - Price
 
 
@@ -176,10 +194,7 @@ class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
 
-
-class UserInput(graphene.InputObjectType):
-    net_id = graphene.String(required=True)
-    giveaway_id = graphene.Int(required=True)
+    workout_goal = graphene.List(DayOfWeekGraphQLEnum)
 
 
 # MARK: - Giveaway
@@ -355,7 +370,7 @@ class SetWorkoutGoals(graphene.Mutation):
         for day in workout_goal:
             try:
                 # Convert string to enum
-                validated_workout_goal.append(DayOfWeekEnum[day.upper()])
+                validated_workout_goal.append(DayOfWeekGraphQLEnum[day.upper()].value)
             except KeyError:
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
