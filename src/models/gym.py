@@ -29,6 +29,7 @@ class Gym(Base):
     facilities = relationship("Facility")
     hours = relationship("OpenHours")
     classes = relationship("ClassInstance", back_populates="gym")
+    reports = relationship("Report", back_populates="gym")
     image_url = Column(String, nullable=True)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)

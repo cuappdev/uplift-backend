@@ -69,6 +69,10 @@ type CreateGiveaway {
   giveaway: Giveaway
 }
 
+type CreateReport {
+  report: Report
+}
+
 type CreateUser {
   user: User
 }
@@ -141,12 +145,14 @@ type Gym {
   facilities: [Facility]
   hours: [OpenHours]
   classes: [ClassInstance]
+  reports: [Report]
 }
 
 type Mutation {
   createGiveaway(name: String!): CreateGiveaway
   createUser(instagram: String, netId: String!): CreateUser
   enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
+  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!, userId: Int!): CreateReport
 }
 
 type OpenHours {
@@ -181,9 +187,29 @@ type Query {
   activities: [Activity]
 }
 
+type Report {
+  id: ID!
+  createdAt: DateTime!
+  description: String!
+  gymId: Int!
+  issue: ReportType!
+  userId: Int!
+  gym: Gym
+  user: User
+}
+
+enum ReportType {
+  INACCURATE_EQUIPMENT
+  INCORRECT_HOURS
+  INACCURATE_DESCRIPTION
+  WAIT_TIMES_NOT_UPDATED
+  OTHER
+}
+
 type User {
   id: ID!
   instagram: String
   netId: String!
   giveaways: [Giveaway]
+  reports: [Report]
 }
