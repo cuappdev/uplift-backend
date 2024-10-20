@@ -189,11 +189,11 @@ type Query {
 
 type Report {
   id: ID!
-  userId: Int!
-  issue: ReportType!
-  description: String!
   createdAt: DateTime!
+  description: String!
   gymId: Int!
+  issue: ReportType!
+  userId: Int!
   gym: Gym
   user: User
 }

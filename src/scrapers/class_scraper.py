@@ -66,7 +66,7 @@ def fetch_classes(num_pages):
             try:
                 gym_class = db_session.query(Class).filter(Class.name == class_name).first()
                 if gym_class is None:
-                    raise Exception()
+                    raise Exception("Gym class is none, creating new gym class")
             except Exception:
                 gym_class = create_group_class(class_href)
             class_instance.class_id = gym_class.id

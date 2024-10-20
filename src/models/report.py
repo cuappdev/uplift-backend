@@ -4,11 +4,11 @@ from src.database import Base
 import enum
 
 class ReportType(enum.Enum):
-    inaccurate_equipment = 0
-    incorrect_hours = 1
-    inaccurate_description = 2
-    wait_times_not_updated = 3
-    other = 4
+    INACCURATE_EQUIPMENT = 0
+    INCORRECT_HOURS = 1
+    INACCURATE_DESCRIPTION = 2
+    WAIT_TIMES_NOT_UPDATED = 3
+    OTHER = 4
 
 class Report(Base):
     """
@@ -26,11 +26,11 @@ class Report(Base):
     __tablename__ = "report"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    issue = Column(Enum(ReportType), nullable=False)  # Discrete options (enumerate)
-    description = Column(String, nullable=False)  # Text input
     created_at = Column(DateTime, nullable=False)  # Timestamp for user submission
+    description = Column(String, nullable=False)  # Text input
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)  # One to many relationship with gym
+    issue = Column(Enum(ReportType), nullable=False)  # Discrete options (enumerate)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     # Make relationship with gym and user
     gym = relationship("Gym", back_populates="reports")
     user = relationship("User", back_populates="reports")
