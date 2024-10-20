@@ -1,9 +1,11 @@
 import logging
-from src.utils.constants import SERVICE_ACCOUNT_PATH
+from src.utils.constants import SERVICE_ACCOUNT_PATH, JWT_SECRET_KEY
 import sentry_sdk
 from flask import Flask, render_template
 from flask_apscheduler import APScheduler
 from flask_graphql import GraphQLView
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
@@ -21,6 +23,7 @@ from src.models.openhours import OpenHours
 from flasgger import Swagger
 import firebase_admin
 from firebase_admin import credentials
+
 
 if SERVICE_ACCOUNT_PATH:
     cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
@@ -41,8 +44,12 @@ sentry_sdk.init(
 
 app = Flask(__name__)
 app.debug = True
+bcrypt = Bcrypt()
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
+
+app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
+jwt = JWTManager(app)
 
 # Scheduler
 scheduler = APScheduler()

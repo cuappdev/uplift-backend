@@ -1,8 +1,10 @@
 import graphene
-from src.models.enums import DayOfWeekGraphQLEnum
+from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
+from functools import wraps
 from datetime import datetime, timedelta
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
+from src.models.enums import DayOfWeekGraphQLEnum
 from src.models.capacity import Capacity as CapacityModel
 from src.models.capacity_reminder import CapacityReminder as CapacityReminderModel
 from src.models.workout_reminder import WorkoutReminder as WorkoutReminderModel
@@ -20,6 +22,12 @@ from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
 from src.database import db_session
 
+def jwt_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        verify_jwt_in_request()
+        return f(*args, **kwargs)
+    return decorated_function
 
 # MARK: - Gym
 
@@ -246,6 +254,7 @@ class Query(graphene.ObjectType):
         users = [User.get_query(info).filter(UserModel.id == entry.user_id).first() for entry in entries]
         return users
 
+    @jwt_required
     def resolve_get_workouts_by_id(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -253,6 +262,7 @@ class Query(graphene.ObjectType):
         workouts = Workout.get_query(info).filter(WorkoutModel.user_id == user.id).all()
         return workouts
 
+    @jwt_required
     def resolve_get_weekly_workout_days(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -300,6 +310,22 @@ class CreateUser(graphene.Mutation):
         return new_user
 
 
+class LoginUser(graphene.Mutation):
+    class Arguments:
+        net_id = graphene.String(required=True)
+
+    token = graphene.String()
+
+    def mutate(self, info, net_id):
+        user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+        if not user:
+            return GraphQLError("No user with those credentials. Please create an account and try again.")
+
+        # Generate JWT token
+        token = create_access_token(identity=user.id)
+        return LoginUser(token=token)
+    
+
 class EnterGiveaway(graphene.Mutation):
     class Arguments:
         user_net_id = graphene.String(required=True)
@@ -307,6 +333,7 @@ class EnterGiveaway(graphene.Mutation):
 
     Output = GiveawayInstance
 
+    @jwt_required
     def mutate(self, info, user_net_id, giveaway_id):
         # Check if NetID and Giveaway ID exists
         user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
@@ -360,6 +387,7 @@ class SetWorkoutGoals(graphene.Mutation):
 
     Output = User
 
+    @jwt_required
     def mutate(self, info, user_id, workout_goal):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -388,6 +416,7 @@ class logWorkout(graphene.Mutation):
 
     Output = Workout
 
+    @jwt_required()
     def mutate(self, info, workout_time, user_id):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -406,6 +435,7 @@ class Mutation(graphene.ObjectType):
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
+    login_user = LoginUser.Field(description="Login an existing user.")
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

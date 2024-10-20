@@ -43,7 +43,7 @@ MarkupSafe==2.1.1
 marshmallow==3.0.0rc4
 marshmallow-sqlalchemy==0.16.2
 nodeenv==1.8.0
-pandas==2.1.4
+pandas==2.2.3
 parso==0.8.3
 platformdirs==3.10.0
 pre-commit==1.18.3

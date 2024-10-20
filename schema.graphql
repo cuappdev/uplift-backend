@@ -160,12 +160,17 @@ type Gym {
   capacityReminders: [CapacityReminder]
 }
 
+type LoginUser {
+  token: String
+}
+
 type Mutation {
   createGiveaway(name: String!): Giveaway
   createUser(email: String!, name: String!, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
+  loginUser(netId: String!): LoginUser
 }
 
 type OpenHours {
