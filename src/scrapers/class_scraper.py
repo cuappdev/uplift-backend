@@ -62,13 +62,17 @@ def fetch_classes(num_pages):
             row_elems = row.find_all("td")
             class_instance = ClassInstance()
             class_name = row_elems[0].a.text
-            class_href = row_elems[0].a["href"]
+            class_href = row_elems[0].a["href"].replace("/recreation/", "", 1)
             try:
                 gym_class = db_session.query(Class).filter(Class.name == class_name).first()
                 if gym_class is None:
                     raise Exception("Gym class is none, creating new gym class")
             except Exception:
                 gym_class = create_group_class(class_href)
+
+            if gym_class is None or not gym_class.id:
+                 raise Exception(f"Failed to create or retrieve gym class from {BASE_URL + class_href}")
+            
             class_instance.class_id = gym_class.id
             date_string = row_elems[1].text.strip()
             if "Today" in date_string:
