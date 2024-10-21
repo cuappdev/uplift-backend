@@ -1,14 +1,6 @@
 from src.database import Base
-from sqlalchemy import (
-    Table,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    Boolean,
-)
-from sqlalchemy.orm import relationship
+from sqlalchemy import Table, Column, DateTime, ForeignKey, Integer, String, Boolean
+from sqlalchemy.orm import backref, relationship
 
 classes_to_gyms = Table(
     "classes_to_gyms",
@@ -28,8 +20,8 @@ class Class(Base):
     __tablename__ = "class"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(), nullable=False)
-    description = Column(String(), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
     class_instances = relationship("ClassInstance", back_populates="class_")
 
     def __init__(self, **kwargs):
