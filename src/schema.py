@@ -16,6 +16,7 @@ from src.models.user import DayOfWeekEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
+from src.models.report import Report as ReportModel
 from src.database import db_session
 
 
@@ -190,7 +191,7 @@ class Giveaway(SQLAlchemyObjectType):
         model = GiveawayModel
 
 
-# MARK: - Giveaway
+# MARK: - Giveaway Instance
 
 
 class GiveawayInstance(SQLAlchemyObjectType):
@@ -260,6 +261,24 @@ class Query(graphene.ObjectType):
 
         return list(workout_days_set)
 
+
+# MARK: - Report
+
+class Report(SQLAlchemyObjectType):
+    class Meta:
+        model = ReportModel
+
+    gym = graphene.Field(lambda: Gym)
+    user = graphene.Field(lambda: User)
+
+    def resolve_gym(self, info):
+        query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
+        return query
+
+    def resolve_user(self, info):
+        query = User.get_query(info).filter(UserModel.id == self.user_id).first()
+        return query
+      
 
 # MARK: - Mutation
 
@@ -384,6 +403,34 @@ class logWorkout(graphene.Mutation):
         db_session.commit()
         return workout
 
+class CreateReport(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.Int(required=True)
+        issue = graphene.String(required=True)
+        description = graphene.String(required=True)
+        created_at = graphene.DateTime(required=True)
+        gym_id = graphene.Int(required=True)
+
+    report = graphene.Field(Report)
+
+    def mutate(self, info, description, user_id, issue, created_at, gym_id):
+        # Check if user exists
+        user = User.get_query(info).filter(UserModel.id == user_id).first()
+        if not user:
+            raise GraphQLError("User with given ID does not exist.")
+        # Check if gym exists
+        gym = Gym.get_query(info).filter(GymModel.id == gym_id).first()
+        if not gym:
+            raise GraphQLError("Gym with given ID does not exist.")
+        # Check if issue is a valid enumeration
+        if issue not in ["INACCURATE_EQUIPMENT", "INCORRECT_HOURS", "INACCURATE_DESCRIPTION", "WAIT_TIMES_NOT_UPDATED", "OTHER"]:
+            raise GraphQLError("Issue is not a valid enumeration.")
+        report = ReportModel(description=description, user_id=user_id, issue=issue,
+                             created_at=created_at, gym_id=gym_id)
+        db_session.add(report)
+        db_session.commit()
+        return CreateReport(report=report)
+
 
 class Mutation(graphene.ObjectType):
     create_giveaway = CreateGiveaway.Field(description="Creates a new giveaway.")
@@ -391,6 +438,7 @@ class Mutation(graphene.ObjectType):
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
+    create_report = CreateReport.Field(description="Creates a new report.")
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

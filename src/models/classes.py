@@ -30,7 +30,11 @@ class Class(Base):
         self.description = kwargs.get("description")
 
     def serialize(self):
-        return {"id": self.id, "name": self.name, "description": self.description}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+        }
 
 
 class ClassInstance(Base):

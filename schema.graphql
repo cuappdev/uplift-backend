@@ -65,6 +65,18 @@ enum CourtType {
   BADMINTON
 }
 
+type CreateGiveaway {
+  giveaway: Giveaway
+}
+
+type CreateReport {
+  report: Report
+}
+
+type CreateUser {
+  user: User
+}
+
 scalar DateTime
 
 enum DayOfWeekEnum {
@@ -139,6 +151,7 @@ type Gym {
   facilities: [Facility]
   hours: [OpenHours]
   classes: [ClassInstance]
+  reports: [Report]
 }
 
 type Mutation {
@@ -183,6 +196,25 @@ type Query {
   activities: [Activity]
 }
 
+type Report {
+  id: ID!
+  createdAt: DateTime!
+  description: String!
+  gymId: Int!
+  issue: ReportType!
+  userId: Int!
+  gym: Gym
+  user: User
+}
+
+enum ReportType {
+  INACCURATE_EQUIPMENT
+  INCORRECT_HOURS
+  INACCURATE_DESCRIPTION
+  WAIT_TIMES_NOT_UPDATED
+  OTHER
+}
+
 type User {
   id: ID!
   email: String!
@@ -190,6 +222,7 @@ type User {
   name: String!
   workoutGoal: [DayOfWeekEnum]
   giveaways: [Giveaway]
+  reports: [Report]
 }
 
 type Workout {

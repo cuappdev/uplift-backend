@@ -84,6 +84,7 @@ def scrape_capacities():
 def scrape_classes():
     logging.info("Scraping classes from group-fitness-classes...")
 
+
     fetch_classes(10)
 
 

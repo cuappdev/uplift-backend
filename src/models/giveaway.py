@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, String
+from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 from src.database import Base
-from src.models.user import User
 
 
 class Giveaway(Base):

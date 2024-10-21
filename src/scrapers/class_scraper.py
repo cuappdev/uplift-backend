@@ -1,17 +1,11 @@
 from datetime import datetime
 from src.database import db_session
-import time as t
-import datetime as dt
-import random
 from bs4 import BeautifulSoup
-import re
 import requests
 from src.utils.utils import get_gym_id
 from src.utils.constants import GYMS, BASE_URL, CLASSES_PATH
 from src.models.classes import Class, ClassInstance
-from src.models.openhours import OpenHours
 
-from src.models.facility import Facility
 
 """
 Create a group class from a class page
@@ -20,6 +14,8 @@ Params:
 Returns:
     Class Object created
 """
+
+
 def create_group_class(class_href):
     page = requests.get(BASE_URL + class_href).text
     soup = BeautifulSoup(page, "lxml")
@@ -49,6 +45,8 @@ Params:
 Returns:
   dict of ClassInstance objects
 """
+
+
 def fetch_classes(num_pages):
     classes = {}
     db_session.query(ClassInstance).delete()
@@ -67,8 +65,9 @@ def fetch_classes(num_pages):
             class_href = row_elems[0].a["href"]
             try:
                 gym_class = db_session.query(Class).filter(Class.name == class_name).first()
-                assert gym_class is not None
-            except AssertionError:
+                if gym_class is None:
+                    raise Exception("Gym class is none, creating new gym class")
+            except Exception:
                 gym_class = create_group_class(class_href)
             class_instance.class_id = gym_class.id
             date_string = row_elems[1].text.strip()
@@ -78,7 +77,7 @@ def fetch_classes(num_pages):
             # special handling for time (cancelled)
 
             time_str = row_elems[3].string.replace("\n", "").strip()
-            if time_str != "" and time_str != 'Canceled':
+            if time_str != "" and time_str != "Canceled":
                 class_instance.is_canceled = False
                 time_strs = time_str.split(" - ")
                 start_time_string = time_strs[0].strip()
@@ -93,7 +92,7 @@ def fetch_classes(num_pages):
 
             try:
                 class_instance.instructor = row_elems[4].a.string
-            except:
+            except Exception:
                 class_instance.instructor = ""
             try:
                 location = row_elems[5].a.string
@@ -106,7 +105,7 @@ def fetch_classes(num_pages):
                             gym_id = get_gym_id(gym)
                             class_instance.gym_id = gym_id
                         break
-            except:
+            except Exception:
                 gym_class.location = ""
             db_session.add(class_instance)
             db_session.commit()
