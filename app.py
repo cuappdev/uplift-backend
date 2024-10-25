@@ -1,6 +1,6 @@
 import logging
 import sentry_sdk
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template
 from flask_apscheduler import APScheduler
 from flask_graphql import GraphQLView
 from graphene import Schema
@@ -16,6 +16,8 @@ from src.scrapers.class_scraper import fetch_classes
 from src.scrapers.activities_scraper import fetch_activity
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
+from flasgger import Swagger
+
 
 sentry_sdk.init(
     dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
@@ -31,6 +33,7 @@ sentry_sdk.init(
 app = Flask(__name__)
 app.debug = True
 schema = Schema(query=Query, mutation=Mutation)
+swagger = Swagger(app)
 
 # Scheduler
 scheduler = APScheduler()
@@ -81,15 +84,8 @@ def scrape_capacities():
 def scrape_classes():
     logging.info("Scraping classes from group-fitness-classes...")
 
-    fetch_classes(3)
 
-
-# Scrape classes every hour
-@scheduler.task("interval", id="scrape_classes", seconds=3600)
-def scrape_classes():
-    logging.info("Scraping classes from group-fitness-classes...")
-
-    fetch_classes(3)
+    fetch_classes(10)
 
 
 # Create database and fill it with data
@@ -108,4 +104,4 @@ with open("schema.graphql", "w+") as schema_file:
     schema_file.close()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="127.0.0.1", port=5000)

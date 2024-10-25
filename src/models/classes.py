@@ -1,16 +1,5 @@
-import datetime
 from src.database import Base
-from sqlalchemy import (
-    Table,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    Float,
-    String,
-    Boolean,
-    func,
-)
+from sqlalchemy import Table, Column, DateTime, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import backref, relationship
 
 classes_to_gyms = Table(
@@ -31,8 +20,8 @@ class Class(Base):
     __tablename__ = "class"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(), nullable=False)
-    description = Column(String(), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
     class_instances = relationship("ClassInstance", back_populates="class_")
 
     def __init__(self, **kwargs):
@@ -46,7 +35,7 @@ class Class(Base):
             "name": self.name,
             "description": self.description,
         }
-    
+
 
 class ClassInstance(Base):
     __tablename__ = "class_instance"
@@ -86,5 +75,3 @@ class ClassInstance(Base):
             "start_time": self.start_time,
             "end_time": self.end_time,
         }
-
-

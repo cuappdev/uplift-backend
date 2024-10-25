@@ -69,14 +69,24 @@ type CreateGiveaway {
   giveaway: Giveaway
 }
 
+type CreateReport {
+  report: Report
+}
+
 type CreateUser {
   user: User
 }
 
 scalar DateTime
 
-type EnterGiveaway {
-  giveawayInstance: GiveawayInstance
+enum DayOfWeekEnum {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }
 
 type Equipment {
@@ -141,12 +151,15 @@ type Gym {
   facilities: [Facility]
   hours: [OpenHours]
   classes: [ClassInstance]
+  reports: [Report]
 }
 
 type Mutation {
-  createGiveaway(name: String!): CreateGiveaway
-  createUser(instagram: String, netId: String!): CreateUser
-  enterGiveaway(giveawayId: Int!, userNetId: String!): EnterGiveaway
+  createGiveaway(name: String!): Giveaway
+  createUser(email: String!, name: String!, netId: String!): User
+  enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
+  setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
+  logWorkout(userId: Int!, workoutTime: DateTime!): Workout
 }
 
 type OpenHours {
@@ -178,12 +191,42 @@ enum PriceType {
 type Query {
   getAllGyms: [Gym]
   getUsersByGiveawayId(id: Int): [User]
+  getWeeklyWorkoutDays(id: Int): [String]
+  getWorkoutsById(id: Int): [Workout]
   activities: [Activity]
+}
+
+type Report {
+  id: ID!
+  createdAt: DateTime!
+  description: String!
+  gymId: Int!
+  issue: ReportType!
+  userId: Int!
+  gym: Gym
+  user: User
+}
+
+enum ReportType {
+  INACCURATE_EQUIPMENT
+  INCORRECT_HOURS
+  INACCURATE_DESCRIPTION
+  WAIT_TIMES_NOT_UPDATED
+  OTHER
 }
 
 type User {
   id: ID!
-  instagram: String
+  email: String!
   netId: String!
+  name: String!
+  workoutGoal: [DayOfWeekEnum]
   giveaways: [Giveaway]
+  reports: [Report]
+}
+
+type Workout {
+  id: ID!
+  workoutTime: DateTime!
+  userId: Int!
 }
