@@ -71,8 +71,8 @@ def fetch_classes(num_pages):
                 gym_class = create_group_class(class_href)
 
             if gym_class is None or not gym_class.id:
-                 raise Exception(f"Failed to create or retrieve gym class from {BASE_URL + class_href}")
-            
+                raise Exception(f"Failed to create or retrieve gym class from {BASE_URL + class_href}")
+
             class_instance.class_id = gym_class.id
             date_string = row_elems[1].text.strip()
             if "Today" in date_string:

@@ -65,16 +65,8 @@ enum CourtType {
   BADMINTON
 }
 
-type CreateGiveaway {
-  giveaway: Giveaway
-}
-
 type CreateReport {
   report: Report
-}
-
-type CreateUser {
-  user: User
 }
 
 scalar DateTime
@@ -92,20 +84,26 @@ enum DayOfWeekEnum {
 type Equipment {
   id: ID!
   name: String!
-  equipmentType: EquipmentType!
+  categories: [EquipmentType]!
+  cleanName: String!
   facilityId: Int!
   quantity: Int
   accessibility: AccessibilityType
 }
 
 enum EquipmentType {
-  CARDIO
-  RACKS_AND_BENCHES
-  SELECTORIZED
-  MULTI_CABLE
-  FREE_WEIGHTS
+  ABDOMINALS
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  HAMSTRINGS
+  QUADS
+  GLUTES
+  CALVES
   MISCELLANEOUS
-  PLATE_LOADED
+  CARDIO
 }
 
 type Facility {
@@ -160,6 +158,7 @@ type Mutation {
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
+  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!, userId: Int!): CreateReport
 }
 
 type OpenHours {
