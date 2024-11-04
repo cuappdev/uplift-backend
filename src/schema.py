@@ -206,6 +206,22 @@ class Workout(SQLAlchemyObjectType):
     class Meta:
         model = WorkoutModel
 
+# MARK: - Report
+
+class Report(SQLAlchemyObjectType):
+    class Meta:
+        model = ReportModel
+
+    gym = graphene.Field(lambda: Gym)
+    user = graphene.Field(lambda: User)
+
+    def resolve_gym(self, info):
+        query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
+        return query
+
+    def resolve_user(self, info):
+        query = User.get_query(info).filter(UserModel.id == self.user_id).first()
+        return query
 
 # MARK: - Query
 
@@ -218,6 +234,7 @@ class Query(graphene.ObjectType):
     )
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
+    get_all_reports = graphene.List(Report, description="Get all reports.")
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -261,24 +278,10 @@ class Query(graphene.ObjectType):
 
         return list(workout_days_set)
 
-
-# MARK: - Report
-
-class Report(SQLAlchemyObjectType):
-    class Meta:
-        model = ReportModel
-
-    gym = graphene.Field(lambda: Gym)
-    user = graphene.Field(lambda: User)
-
-    def resolve_gym(self, info):
-        query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
+    def resolve_get_all_reports(self, info):
+        query = ReportModel.query.all()
         return query
 
-    def resolve_user(self, info):
-        query = User.get_query(info).filter(UserModel.id == self.user_id).first()
-        return query
-      
 
 # MARK: - Mutation
 

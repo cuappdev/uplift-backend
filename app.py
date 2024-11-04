@@ -6,6 +6,8 @@ from flask_graphql import GraphQLView
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
+from src.database import Base as db
+from flask_migrate import Migrate
 from src.schema import Query, Mutation
 from src.scrapers.capacities_scraper import fetch_capacities
 from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
@@ -17,6 +19,7 @@ from src.scrapers.activities_scraper import fetch_activity
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
 from flasgger import Swagger
+import os
 
 
 sentry_sdk.init(
@@ -32,6 +35,11 @@ sentry_sdk.init(
 
 app = Flask(__name__)
 app.debug = True
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.environ.get('DB_USERNAME')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('DB_HOST')}:{os.environ.get('DB_PORT')}/{os.environ.get('DB_NAME')}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Initialize migrations
+migrate = Migrate(app, db)
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
 
@@ -83,7 +91,6 @@ def scrape_capacities():
 @scheduler.task("interval", id="scrape_classes", seconds=3600)
 def scrape_classes():
     logging.info("Scraping classes from group-fitness-classes...")
-
 
     fetch_classes(10)
 

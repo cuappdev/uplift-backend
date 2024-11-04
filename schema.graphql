@@ -193,6 +193,7 @@ type Query {
   getWeeklyWorkoutDays(id: Int): [String]
   getWorkoutsById(id: Int): [Workout]
   activities: [Activity]
+  getAllReports: [Report]
 }
 
 type Report {
@@ -216,10 +217,11 @@ enum ReportType {
 
 type User {
   id: ID!
-  email: String!
+  email: String
   netId: String!
   name: String!
   workoutGoal: [DayOfWeekEnum]
+  newColumn: String
   giveaways: [Giveaway]
   reports: [Report]
 }
