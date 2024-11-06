@@ -1,326 +1,326 @@
 {
     "GRIPR Sandbag 2kg-10kg": {
         "clean_name": "GRIPR Sandbag 2kg-10kg",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Power Lift Multi-Racks": {
         "clean_name": "Power Lift Multi-Racks",
-        "label": ["Hamstrings", "Glutes", "Calves"]
+        "label": ["HAMSTRINGS", "GLUTES", "CALVES"]
     },
     "Stability Disks": {
         "clean_name": "Stability Disks",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Expresso Upright Bike": {
         "clean_name": "Expresso Upright Bike",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Precor Treadmills": {
         "clean_name": "Treadmills",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Power Lift Half Racks": {
         "clean_name": "Power Lift Half Racks",
-        "label": ["Hamstrings", "Glutes", "Calves"]
+        "label": ["HAMSTRINGS", "GLUTES", "CALVES"]
     },
     "Power Lift Adjustable Benches": {
         "clean_name": "Power Lift Adjustable Benches",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Precor Glute Extension": {
         "clean_name": "Glute Extension",
-        "label": ["Glutes"]
+        "label": ["GLUTES"]
     },
     "Plyometric Boxes": {
         "clean_name": "Plyometric Boxes",
-        "label": ["Quads", "Glutes"]
+        "label": ["QUADS", "GLUTES"]
     },
     "Matrix Recumbent Bike": {
         "clean_name": "Matrix Recumbent Bike",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Medicine Balls 1kg-5kg": {
         "clean_name": "Medicine Balls 1kg-5kg",
-        "label": ["Glutes", "Back", "Abdominals", "Shoulders"]
+        "label": ["GLUTES", "BACK", "ABDOMINALS", "SHOULDERS"]
     },
     "Power Lift Multi-Rack Benches": {
         "clean_name": "Power Lift Multi-Rack Benches",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Power Lift Leg Press": {
         "clean_name": "Power Lift Leg Press",
-        "label": ["Quads", "Glutes", "Calves"]
+        "label": ["QUADS", "GLUTES", "CALVES"]
     },
     "Dumbbells 3lbs-70lbs": {
         "clean_name": "Dumbbells 3lbs-70lbs",
-        "label": ["Triceps", "Biceps", "Shoulders", "Chest", "Back"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST", "BACK"]
     },
     "Medicine Balls 4kg-7kg": {
         "clean_name": "Medicine Balls 4kg-7kg",
-        "label": ["Glutes", "Back", "Abdominals", "Shoulders"]
+        "label": ["GLUTES", "BACK", "ABDOMINALS", "SHOULDERS"]
     },
     "Precor Pulldown": {
         "clean_name": "Pulldown",
-        "label": ["Back", "Biceps"]
+        "label": ["BACK", "BICEPS"]
     },
     "Bulgarian Bags 5kg-17kg": {
         "clean_name": "Bulgarian Bags 5kg-17kg",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Dumbbells 3lbs-100lbs": {
         "clean_name": "Dumbbells 3lbs-100lbs",
-        "label": ["Triceps", "Biceps", "Shoulders", "Chest", "Back"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST", "BACK"]
     },
     "Precor Recumbent Bike": {
         "clean_name": "Recumbent Bike",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Precor Seated Low Row": {
         "clean_name": "Seated Low Row",
-        "label": ["Back", "Biceps"]
+        "label": ["BACK", "BICEPS"]
     },
     "Precor Seated Leg Curl": {
         "clean_name": "Seated Leg Curl",
-        "label": ["Hamstrings"]
+        "label": ["HAMSTRINGS"]
     },
     "Bar Pads": {
         "clean_name": "Bar Pads",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "GRIPR Sandbag 2kg-16kg": {
         "clean_name": "GRIPR Sandbag 2kg-16kg",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Precor Shoulder Press": {
         "clean_name": "Shoulder Press",
-        "label": ["Shoulders", "Triceps"]
+        "label": ["SHOULDERS", "TRICEPS"]
     },
     "Barbells 35lbs": {
         "clean_name": "Barbells 35lbs",
-        "label": ["Triceps", "Biceps", "Shoulders", "Chest", "Back"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST", "BACK"]
     },
     "AB Wheels": {
         "clean_name": "AB Wheels",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Precor Tri Pushdown": {
         "clean_name": "Tri Pushdown",
-        "label": ["Triceps"]
+        "label": ["TRICEPS"]
     },
     "Matrix Upright Spin Bike": {
         "clean_name": "Matrix Upright Spin Bike",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Hex Trap Bar": {
         "clean_name": "Hex Trap Bar",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Precor Leg Extension": {
         "clean_name": "Leg Extension",
-        "label": ["Quads"]
+        "label": ["QUADS"]
     },
     "Precor Rear Delt/Pec Fly": {
         "clean_name": "Rear Delt/Pec Fly",
-        "label": ["Chest", "Shoulders", "Back"]
+        "label": ["CHEST", "SHOULDERS", "BACK"]
     },
     "Precor Treadmill": {
         "clean_name": "Treadmill",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Slam Balls 5kg-15kg": {
         "clean_name": "Slam Balls 5kg-15kg",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Precor Hi/Lo Pulleys": {
         "clean_name": "Hi/Lo Pulleys",
-        "label": ["Triceps", "Biceps", "Shoulders", "Chest"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST"]
     },
     "Matrix Climb Mill": {
         "clean_name": "Matrix Climb Mill",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Plyo Boxes": {
         "clean_name": "Plyo Boxes",
-        "label": ["Quads", "Glutes"]
+        "label": ["QUADS", "GLUTES"]
     },
     "Matrix Treadmill": {
         "clean_name": "Matrix Treadmill",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Core Bags 5kg-25kg": {
         "clean_name": "Core Bags 5kg-25kg",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Matrix Power Racks": {
         "clean_name": "Matrix Power Racks",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Matrix Rowing Ergometer": {
         "clean_name": "Matrix Rowing Ergometer",
-        "label": ["Cardio", "Back"]
+        "label": ["CARDIO", "BACK"]
     },
     "360 Multi-Trainer": {
         "clean_name": "360 Multi-Trainer",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Precor Seated Row": {
         "clean_name": "Seated Row",
-        "label": ["Back", "Biceps"]
+        "label": ["BACK", "BICEPS"]
     },
     "EZ Curl Bar": {
         "clean_name": "EZ Curl Bar",
-        "label": ["Biceps", "Triceps"]
+        "label": ["BICEPS", "TRICEPS"]
     },
     "Precor Incline Lever Row": {
         "clean_name": "Incline Lever Row",
-        "label": ["Back", "Biceps"]
+        "label": ["BACK", "BICEPS"]
     },
     "Stretch Bands": {
         "clean_name": "Stretch Bands",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "BOSU Ball": {
         "clean_name": "BOSU Ball",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Precor Elliptical": {
         "clean_name": "Elliptical",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "C2 Rowing Ergometer": {
         "clean_name": "C2 Rowing Ergometer",
-        "label": ["Cardio", "Back"]
+        "label": ["CARDIO", "BACK"]
     },
     "GRIPR Sandbag 2kg-12kg": {
         "clean_name": "GRIPR Sandbag 2kg-12kg",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Precor Inner/Outer Thigh": {
         "clean_name": "Inner/Outer Thigh",
-        "label": ["Glutes"]
+        "label": ["GLUTES"]
     },
     "Stability Balls": {
         "clean_name": "Stability Balls",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Precor Preacher Curl": {
         "clean_name": "Preacher Curl",
-        "label": ["Biceps"]
+        "label": ["BICEPS"]
     },
     "SciFit Total Body Bike (wheelchair accessible)": {
         "clean_name": "SciFit Total Body Bike (wheelchair accessible)",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Foam Rollers": {
         "clean_name": "Foam Rollers",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
-    "Precor Back Extension": {
-        "clean_name": "Back Extension",
-        "label": ["Back", "Abdominals"]
+    "Precor BACK Extension": {
+        "clean_name": "BACK Extension",
+        "label": ["BACK", "ABDOMINALS"]
     },
     "Precor AMT": {
         "clean_name": "AMT",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Precor Upright Bike": {
         "clean_name": "Upright Bike",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Precor Rotary Torso": {
         "clean_name": "Rotary Torso",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Precor Tricep Pushdown": {
         "clean_name": "Tricep Pushdown",
-        "label": ["Triceps"]
+        "label": ["TRICEPS"]
     },
     "Power Lift Bench Press": {
         "clean_name": "Power Lift Bench Press",
-        "label": ["Chest", "Triceps", "Shoulders"]
+        "label": ["CHEST", "TRICEPS", "SHOULDERS"]
     },
     "Power Lift Glute Ham Raise": {
         "clean_name": "Power Lift Glute Ham Raise",
-        "label": ["Hamstrings", "Glutes"]
+        "label": ["HAMSTRINGS", "GLUTES"]
     },
     "Precor AMTs": {
         "clean_name": "AMTs",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Precor Ellipticals": {
         "clean_name": "Ellipticals",
-        "label": ["Cardio"]
+        "label": ["CARDIO"]
     },
     "Precor Chin/Dip Assist": {
         "clean_name": "Chin/Dip Assist",
-        "label": ["Back", "Chest", "Triceps"]
+        "label": ["BACK", "CHEST", "TRICEPS"]
     },
     "Power Lift Bench Presses": {
         "clean_name": "Power Lift Bench Presses",
-        "label": ["Chest", "Triceps", "Shoulders"]
+        "label": ["CHEST", "TRICEPS", "SHOULDERS"]
     },
     "Power Lift Prone Leg Curl": {
         "clean_name": "Power Lift Prone Leg Curl",
-        "label": ["Hamstrings"]
+        "label": ["HAMSTRINGS"]
     },
-    "Precor Chest Press": {
-        "clean_name": "Chest Press",
-        "label": ["Chest", "Triceps", "Shoulders"]
+    "Precor CHEST Press": {
+        "clean_name": "CHEST Press",
+        "label": ["CHEST", "TRICEPS", "SHOULDERS"]
     },
     "Soft TIYR (tire) 60kg": {
         "clean_name": "Soft TIYR (tire) 60kg",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Precor Calf Press": {
         "clean_name": "Calf Press",
-        "label": ["Calves"]
+        "label": ["CALVES"]
     },
     "Power Lift Leg Extension": {
         "clean_name": "Power Lift Leg Extension",
-        "label": ["Quads"]
+        "label": ["QUADS"]
     },
     "Power Lift Half Racks & Platforms": {
         "clean_name": "Power Lift Half Racks & Platforms",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Slam Balls": {
         "clean_name": "Slam Balls",
-        "label": ["Abdominals"]
+        "label": ["ABDOMINALS"]
     },
     "Precor Hi/Lo Pulley": {
         "clean_name": "Hi/Lo Pulley",
-        "label": ["Miscellaneous"]
+        "label": ["MISCELLANEOUS"]
     },
     "Precor Leg Press": {
         "clean_name": "Leg Press",
-        "label": ["Quads", "Glutes", "Calves"]
+        "label": ["QUADS", "GLUTES", "CALVES"]
     },
     "Kettlebells 8kg-32kg": {
         "clean_name": "Kettlebells 8kg-32kg",
-        "label": ["Abdominals", "Glutes", "Biceps", "Back"]
+        "label": ["ABDOMINALS", "GLUTES", "BICEPS", "BACK"]
     },
     "Medicine Balls 1kg-10kg": {
         "clean_name": "Medicine Balls 1kg-10kg",
-        "label": ["Glutes", "Back", "Abdominals", "Shoulders"]
+        "label": ["GLUTES", "BACK", "ABDOMINALS", "SHOULDERS"]
     },
     "Precor Standing Leg Curl": {
         "clean_name": "Standing Leg Curl",
-        "label": ["Hamstrings"]
+        "label": ["HAMSTRINGS"]
     },
     "Dumbbells 3lbs-125lbs": {
         "clean_name": "Dumbbells 3lbs-125lbs",
-        "label": ["Triceps", "Biceps", "Shoulders", "Chest", "Back"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST", "BACK"]
     },
     "Precor Lat Pulldown": {
         "clean_name": "Lat Pulldown",
-        "label": ["Back", "Biceps"]
+        "label": ["BACK", "BICEPS"]
     },
     "Barbells 45lbs": {
         "clean_name": "Barbells 45lbs",
-        "label": ["Triceps", "Biceps", "Shoulders", "Chest", "Back"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST", "BACK"]
     },
     "Marpo Rope Trainer": {
         "clean_name": "Marpo Rope Trainer",
-        "label": ["Triceps", "Biceps", "Shoulders", "Chest", "Back"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST", "BACK"]
     }
 }

@@ -18,9 +18,8 @@ from src.scrapers.class_scraper import fetch_classes
 from src.scrapers.activities_scraper import fetch_activity
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
+from src.database import db_url, db_user, db_password, db_name, db_host, db_port
 from flasgger import Swagger
-import os
-
 
 sentry_sdk.init(
     dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
@@ -36,10 +35,16 @@ sentry_sdk.init(
 app = Flask(__name__)
 app.debug = True
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.environ.get('DB_USERNAME')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('DB_HOST')}:{os.environ.get('DB_PORT')}/{os.environ.get('DB_NAME')}"
+# Verify all required variables are present
+if not all([db_user, db_password, db_name, db_host, db_port]):
+    raise ValueError(
+        "Missing required database configuration. "
+        "Please ensure all database environment variables are set."
+    )
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# Initialize migrations
-migrate = Migrate(app, db)
+
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
 
@@ -98,6 +103,7 @@ def scrape_classes():
 # Create database and fill it with data
 init_db()
 create_gym_table()
+
 scrape_classes()
 scrape_hours()
 scrape_capacities()
@@ -105,6 +111,7 @@ scrape_equipment()
 
 logging.info("Scraping activities from sheets...")
 fetch_activity()
+
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
     schema_file.write(schema_printer.print_schema(schema))

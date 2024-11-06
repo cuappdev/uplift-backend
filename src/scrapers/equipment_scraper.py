@@ -2,22 +2,25 @@ from bs4 import BeautifulSoup
 import requests
 import json
 from src.database import db_session
-from src.models.equipment import Equipment, EquipmentType, AccessibilityType
+from src.models.equipment import Equipment, MuscleGroup, AccessibilityType
 from src.utils.utils import get_facility_id
 from src.utils.constants import HNH_DETAILS, NOYES_DETAILS, TEAGLE_DOWN_DETAILS, TEAGLE_UP_DETAILS, MORRISON_DETAILS
 
 equip_pages = [HNH_DETAILS, NOYES_DETAILS, TEAGLE_DOWN_DETAILS, TEAGLE_UP_DETAILS, MORRISON_DETAILS]
 
-file = open('src/utils/equipment_labels.json')
-data = json.load(file)
-file.close()
+try:
+    # Load equipment labels from JSON file
+    with open('src/utils/equipment_labels.json') as file:
+        data = json.load(file)
+except Exception as e:
+    raise RuntimeError(f"Failed to load equipment labels: {str(e)}")
 
 def categorize_equip(name):
     try:
         cats = data[name]["label"]
-        return [EquipmentType[cat.upper().replace(" ", "_")] for cat in cats]
+        return [MuscleGroup[cat.replace(" ", "_")] for cat in cats]
     except KeyError:
-        return []  # Return empty list if no categories found
+        return []  # Return empty list if no muscle groups found
 
 def get_clean_name(name):
     try:
@@ -47,7 +50,7 @@ def create_equip(equip, fit_center_id, fit_center):
         clean_name = get_clean_name(equip_obj)
         num_objs = None if num_objs == 0 else num_objs
         accessibility_option = None if "wheelchair" not in equip_obj else 1
-        categories = categorize_equip(equip_obj)
+        muscle_groups = categorize_equip(equip_obj)
 
         try:
             existing_equip = (
@@ -67,7 +70,7 @@ def create_equip(equip, fit_center_id, fit_center):
                 clean_name=clean_name,
                 quantity=num_objs,
                 accessibility=AccessibilityType.wheelchair if accessibility_option else None,
-                categories=categories,
+                muscle_groups=muscle_groups,
             )
 
             equip_db_objs.append(equip_db_obj)
@@ -93,20 +96,20 @@ def process_equip_page(page, fit_center):
         head = table.find("thead").find_all("tr")
         body = table.find("tbody").find_all("tr")
         for row in range(len(head)):
-            categories = head[row].find_all("th")
+            muscle_groups = head[row].find_all("th")
             equip = body[row].find_all("td")
-            if categories[0].text:
+            if muscle_groups[0].text:
                 create_equip(equip[0], fit_center_id, fit_center)
-            if categories[1].text:
+            if muscle_groups[1].text:
                 create_equip(equip[1], fit_center_id, fit_center)
     else:
         body = table.find_all("tr")
         for even_row in range(0, len(body), 2):
-            categories = body[even_row].find_all("th")
+            muscle_groups = body[even_row].find_all("th")
             equip = body[even_row + 1].find_all("td")
-            if categories[0].text:
+            if muscle_groups[0].text:
                 create_equip(equip[0], fit_center_id, fit_center)
-            if categories[1].text:
+            if muscle_groups[1].text:
                 create_equip(equip[1], fit_center_id, fit_center)
 
 

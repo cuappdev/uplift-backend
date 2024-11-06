@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from src.database import Base
 
 
-class EquipmentType(enum.Enum):
+class MuscleGroup(enum.Enum):
     ABDOMINALS = 1  # Core/Ab exercises
     CHEST = 2       # Chest exercises
     BACK = 3        # Back exercises
@@ -29,7 +29,7 @@ class Equipment(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    categories = Column(ARRAY(Enum(EquipmentType)), nullable=False)
+    muscle_groups = Column(ARRAY(Enum(MuscleGroup)), nullable=False)
     clean_name = Column(String, nullable=False)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
     quantity = Column(Integer, nullable=True)
@@ -38,7 +38,7 @@ class Equipment(Base):
 def __init__(self, **kwargs):
     self.id = kwargs.get("id")
     self.name = kwargs.get("name")
-    self.categories = kwargs.get("categories")
+    self.muscle_groups = kwargs.get("muscle_groups")
     self.facility_id = kwargs.get("facility_id")
     self.quantity = kwargs.get("quantity")
     self.accessibility = kwargs.get("accessibility")

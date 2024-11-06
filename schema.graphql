@@ -84,26 +84,11 @@ enum DayOfWeekEnum {
 type Equipment {
   id: ID!
   name: String!
-  categories: [EquipmentType]!
+  muscleGroups: [MuscleGroup]!
   cleanName: String!
   facilityId: Int!
   quantity: Int
   accessibility: AccessibilityType
-}
-
-enum EquipmentType {
-  ABDOMINALS
-  CHEST
-  BACK
-  SHOULDERS
-  BICEPS
-  TRICEPS
-  HAMSTRINGS
-  QUADS
-  GLUTES
-  CALVES
-  MISCELLANEOUS
-  CARDIO
 }
 
 type Facility {
@@ -150,6 +135,21 @@ type Gym {
   hours: [OpenHours]
   classes: [ClassInstance]
   reports: [Report]
+}
+
+enum MuscleGroup {
+  ABDOMINALS
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  HAMSTRINGS
+  QUADS
+  GLUTES
+  CALVES
+  MISCELLANEOUS
+  CARDIO
 }
 
 type Mutation {
