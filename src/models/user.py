@@ -37,4 +37,3 @@ class User(Base):
     net_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
     workout_goal = Column(ARRAY(SQLAEnum(DayOfWeekEnum)), nullable=True)
-    new_column = Column(String, nullable=True)
