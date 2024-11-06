@@ -6,6 +6,8 @@ from flask_graphql import GraphQLView
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
+from src.database import Base as db
+from flask_migrate import Migrate
 from src.schema import Query, Mutation
 from src.scrapers.capacities_scraper import fetch_capacities
 from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
@@ -16,8 +18,8 @@ from src.scrapers.class_scraper import fetch_classes
 from src.scrapers.activities_scraper import fetch_activity
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
+from src.database import db_url, db_user, db_password, db_name, db_host, db_port
 from flasgger import Swagger
-
 
 sentry_sdk.init(
     dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
@@ -32,6 +34,17 @@ sentry_sdk.init(
 
 app = Flask(__name__)
 app.debug = True
+
+# Verify all required variables are present
+if not all([db_user, db_password, db_name, db_host, db_port]):
+    raise ValueError(
+        "Missing required database configuration. "
+        "Please ensure all database environment variables are set."
+    )
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
 
@@ -84,13 +97,13 @@ def scrape_capacities():
 def scrape_classes():
     logging.info("Scraping classes from group-fitness-classes...")
 
-
     fetch_classes(10)
 
 
 # Create database and fill it with data
 init_db()
 create_gym_table()
+
 scrape_classes()
 scrape_hours()
 scrape_capacities()
@@ -98,6 +111,7 @@ scrape_equipment()
 
 logging.info("Scraping activities from sheets...")
 fetch_activity()
+
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
     schema_file.write(schema_printer.print_schema(schema))

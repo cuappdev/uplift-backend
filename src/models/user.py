@@ -31,7 +31,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=True)
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
     reports = relationship("Report", back_populates="user")
     net_id = Column(String, nullable=False)
