@@ -45,6 +45,8 @@ if not all([db_user, db_password, db_name, db_host, db_port]):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+migrate = Migrate(app, db)
+
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
 
