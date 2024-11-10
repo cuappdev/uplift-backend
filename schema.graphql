@@ -158,13 +158,7 @@ type Mutation {
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
-  createReport(
-    createdAt: DateTime!
-    description: String!
-    gymId: Int!
-    issue: String!
-    userId: Int!
-  ): CreateReport
+  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!, userId: Int!): CreateReport
 }
 
 type OpenHours {
