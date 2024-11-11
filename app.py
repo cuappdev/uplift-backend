@@ -37,7 +37,7 @@ if not all([db_user, db_password, db_name, db_host, db_port]):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+migrate = Migrate(app, db)
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
 
@@ -69,6 +69,7 @@ with open("schema.graphql", "w+") as schema_file:
     schema_file.close()
 
 if __name__ == "__main__":
+    print("Starting app...")
     from src.scrapers.capacities_scraper import fetch_capacities
     from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
     from src.scrapers.scraper_helpers import clean_past_hours
