@@ -24,6 +24,7 @@ class User(Base):
         - `email`                                 The user's email address.
         - `giveaways`                             (nullable) The list of giveaways a user is entered into.
         - `net_id`                                The user's Net ID.
+        - `reports`                               The list of reports a user has submitted.
         - `name`                                  The user's name.
         - `workout_goal`                          The days of the week the user has set as their personal goal.
     """
