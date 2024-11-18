@@ -9,8 +9,6 @@ from src.database import db_session, init_db
 from src.database import Base as db
 from flask_migrate import Migrate
 from src.schema import Query, Mutation
-from src.utils.utils import create_gym_table
-from src.models.openhours import OpenHours
 from src.database import db_url, db_user, db_password, db_name, db_host, db_port
 from flasgger import Swagger
 
@@ -77,6 +75,8 @@ if __name__ == "__main__":
     from src.scrapers.equipment_scraper import scrape_equipment
     from src.scrapers.class_scraper import fetch_classes
     from src.scrapers.activities_scraper import fetch_activity
+    from src.utils.utils import create_gym_table
+    from src.models.openhours import OpenHours
     # Scrape hours every 15 minutes
 
     @scheduler.task("interval", id="scrape_hours", seconds=900)
