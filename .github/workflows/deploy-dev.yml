@@ -27,6 +27,13 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: cornellappdev/uplift-dev:${{ steps.vars.outputs.sha_short }}
+          build-args: |
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_HOST=postgres
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            FLASK_ENV=development
       - name: Remote SSH and Deploy
         uses: appleboy/ssh-action@master
         env:
