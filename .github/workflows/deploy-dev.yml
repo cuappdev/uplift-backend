@@ -45,6 +45,17 @@ jobs:
             sudo systemctl stop nginx
             sudo systemctl restart nginx
             docker stack deploy -c docker-compose.yml the-stack --with-registry-auth
-            sleep 30s
-            docker exec $(docker ps -q -f name=the-stack_web) flask db upgrade
+            sleep 60s
+            attempt=1
+            max_attempts=5
+            until docker exec $(docker ps -q -f name=the-stack_web) flask db upgrade || [ $attempt -eq $max_attempts ]
+            do
+                echo "Migration attempt $attempt failed. Retrying..."
+                sleep 15
+                attempt=$((attempt + 1))
+            done
+            if [ $attempt -eq $max_attempts ]; then
+                echo "Migration failed after $max_attempts attempts"
+                exit 1
+            fi
             yes | docker system prune -a
