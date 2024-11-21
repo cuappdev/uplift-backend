@@ -46,8 +46,8 @@ jobs:
             sudo systemctl restart nginx
             docker stack deploy -c docker-compose.yml the-stack --with-registry-auth
             sleep 60s
+            docker exec $(docker ps -q -f name=the-stack_web) psql $DB_URL -c "DELETE FROM alembic_version;"
             docker exec $(docker ps -q -f name=the-stack_web) flask db stamp head
-            docker exec $(docker ps -q -f name=the-stack_web) flask db current
             attempt=1
             max_attempts=5
             until docker exec $(docker ps -q -f name=the-stack_web) flask db upgrade || [ $attempt -eq $max_attempts ]
