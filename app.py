@@ -1,34 +1,40 @@
 import logging
+import os
 import sentry_sdk
 from flask import Flask, render_template
-from flask_apscheduler import APScheduler
-from flask_graphql import GraphQLView
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
 from src.database import Base as db
-from src.scrapers.capacities_scraper import fetch_capacities
-from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
-from src.scrapers.scraper_helpers import clean_past_hours
-from src.scrapers.sp_hours_scraper import fetch_sp_facility
-from src.scrapers.equipment_scraper import scrape_equipment
-from src.scrapers.class_scraper import fetch_classes
-from src.scrapers.activities_scraper import fetch_activity
-from src.utils.utils import create_gym_table
+from src.database import db_url, db_user, db_password, db_name, db_host, db_port
 from src.models.openhours import OpenHours
 from flask_migrate import Migrate
 from src.schema import Query, Mutation
-from src.database import db_url, db_user, db_password, db_name, db_host, db_port
 from flasgger import Swagger
+from flask_graphql import GraphQLView
+
+# Check if we're in migration mode with error handling
+try:
+    FLASK_MIGRATE = os.getenv('FLASK_MIGRATE', 'false').lower() == 'true'
+except Exception as e:
+    logging.warning(f"Error reading FLASK_MIGRATE environment variable: {e}. Defaulting to false.")
+    FLASK_MIGRATE = False
+
+# Only import scraping-related modules if not in migration mode
+if not FLASK_MIGRATE:
+    from flask_apscheduler import APScheduler
+    from src.scrapers.capacities_scraper import fetch_capacities
+    from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
+    from src.scrapers.scraper_helpers import clean_past_hours
+    from src.scrapers.sp_hours_scraper import fetch_sp_facility
+    from src.scrapers.equipment_scraper import scrape_equipment
+    from src.scrapers.class_scraper import fetch_classes
+    from src.scrapers.activities_scraper import fetch_activity
+    from src.utils.utils import create_gym_table
 
 sentry_sdk.init(
     dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for tracing.
     traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
     profiles_sample_rate=1.0,
 )
 
@@ -48,68 +54,87 @@ migrate = Migrate(app, db)
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
 
-# Scheduler
-scheduler = APScheduler()
-scheduler.init_app(app)
-scheduler.start()
+def should_run_initial_scrape():
+    """
+    Check if we should run initial scraping:
+    - Not in migration mode
+    - Running in the main process (not Flask reloader)
+    Added because flask will automatically run the app twice in debug mode, 
+    causing us to call the api twice in succession causing a timeout from the google api.
+    """
+    is_main_process = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    return not FLASK_MIGRATE and is_main_process
+
+# Initialize scheduler only if not in migration mode
+if not FLASK_MIGRATE:
+    scheduler = APScheduler()
+    if should_run_initial_scrape():
+        scheduler.init_app(app)
+        scheduler.start()
 
 # Logging
 logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
-
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
 app.add_url_rule("/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True))
-
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db_session.remove()
 
+# Only define scheduler tasks if not in migration mode
+if not FLASK_MIGRATE:
+    # Scrape hours every 15 minutes
+    @scheduler.task("interval", id="scrape_hours", seconds=900)
+    def scrape_hours():
+        try:
+            logging.info("Scraping hours from sheets...")
+            # Clear hours
+            db_session.query(OpenHours).delete()
+            fetch_reg_facility()
+            fetch_reg_building()
+            fetch_sp_facility()
+            clean_past_hours()
+        except Exception as e:
+            logging.error(f"Error in scrape_hours: {e}")
 
-# Scrape hours every 15 minutes
+    # Scrape capacities every 10 minutes
+    @scheduler.task("interval", id="scrape_capacities", seconds=600)
+    def scrape_capacities():
+        try:
+            logging.info("Scraping capacities from C2C...")
+            fetch_capacities()
+        except Exception as e:
+            logging.error(f"Error in scrape_capacities: {e}")
 
-@scheduler.task("interval", id="scrape_hours", seconds=900)
-def scrape_hours():
-    logging.info("Scraping hours from sheets...")
+    # Scrape classes every hour
+    @scheduler.task("interval", id="scrape_classes", seconds=3600)
+    def scrape_classes():
+        try:
+            logging.info("Scraping classes from group-fitness-classes...")
+            fetch_classes(10)
+        except Exception as e:
+            logging.error(f"Error in scrape_classes: {e}")
 
-    # Clear hours
-    db_session.query(OpenHours).delete()
-
-    fetch_reg_facility()
-    fetch_reg_building()
-    fetch_sp_facility()
-    clean_past_hours()
-
-# Scrape capacities every 10 minutes
-
-@scheduler.task("interval", id="scrape_capacities", seconds=600)
-def scrape_capacities():
-    logging.info("Scraping capacities from C2C...")
-
-    fetch_capacities()
-
-# Scrape classes every hour
-
-@scheduler.task("interval", id="scrape_classes", seconds=3600)
-def scrape_classes():
-    logging.info("Scraping classes from group-fitness-classes...")
-
-    fetch_classes(10)
-
-# Create database and fill it with data
+# Create database
 init_db()
-create_gym_table()
 
-scrape_classes()
-scrape_hours()
-scrape_capacities()
-scrape_equipment()
-logging.info("Scraping activities from sheets...")
-fetch_activity()
+# Run initial scraping only in main process and not in migration mode
+if should_run_initial_scrape():
+    logging.info("Running initial scraping...")
+    try:
+        create_gym_table()
+        scrape_classes()
+        scrape_hours()
+        scrape_capacities()
+        scrape_equipment()
+        logging.info("Scraping activities from sheets...")
+        fetch_activity()
+    except Exception as e:
+        logging.error(f"Error during initial scraping: {e}")
 
 # Create schema.graphql
 with open("schema.graphql", "w+") as schema_file:
