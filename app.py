@@ -58,17 +58,22 @@ def should_run_initial_scrape():
     """
     Check if we should run initial scraping:
     - Not in migration mode
-    - Running in the main process (not Flask reloader)
-    Added because flask will automatically run the app twice in debug mode, 
-    causing us to call the api twice in succession causing a timeout from the google api.
+    - Either in production (no WERKZEUG_RUN_MAIN) or in the main Werkzeug process
     """
-    is_main_process = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    is_development = app.debug
+    if is_development:
+        # In development, only run in main Werkzeug process
+        is_main_process = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    else:
+        # In production (Gunicorn), always consider it main process
+        is_main_process = True
+
     return not FLASK_MIGRATE and is_main_process
 
 # Initialize scheduler only if not in migration mode
 if not FLASK_MIGRATE:
     scheduler = APScheduler()
-    if should_run_initial_scrape():
+    if should_run_initial_scrape():  # Only start scheduler in main process
         scheduler.init_app(app)
         scheduler.start()
 
@@ -87,7 +92,6 @@ def shutdown_session(exception=None):
 
 # Only define scheduler tasks if not in migration mode
 if not FLASK_MIGRATE:
-    # Scrape hours every 15 minutes
     @scheduler.task("interval", id="scrape_hours", seconds=900)
     def scrape_hours():
         try:
@@ -101,7 +105,6 @@ if not FLASK_MIGRATE:
         except Exception as e:
             logging.error(f"Error in scrape_hours: {e}")
 
-    # Scrape capacities every 10 minutes
     @scheduler.task("interval", id="scrape_capacities", seconds=600)
     def scrape_capacities():
         try:
@@ -110,7 +113,6 @@ if not FLASK_MIGRATE:
         except Exception as e:
             logging.error(f"Error in scrape_capacities: {e}")
 
-    # Scrape classes every hour
     @scheduler.task("interval", id="scrape_classes", seconds=3600)
     def scrape_classes():
         try:
