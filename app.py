@@ -58,9 +58,16 @@ def should_run_initial_scrape():
     """
     Check if we should run initial scraping:
     - Not in migration mode
-    - Either in production (no WERKZEUG_RUN_MAIN) or in the main Werkzeug process
+    - Only in the main process (Werkzeug or Gunicorn)
     """
-    return not FLASK_MIGRATE and os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    # If in migration mode, don't run initial scraping
+    if FLASK_MIGRATE:
+        return False
+    # Check if we're in the main process
+    werkzeug_var = os.environ.get('WERKZEUG_RUN_MAIN')
+    # Logic: if in local, then werkzeug_var exists: so only run when true to prevent double running
+    # If in Gunicorn, then werkzeug_var is None, so then it will also run
+    return werkzeug_var is None or werkzeug_var == 'true'
 
 # Initialize scheduler only if not in migration mode
 if not FLASK_MIGRATE:
