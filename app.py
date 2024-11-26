@@ -60,15 +60,7 @@ def should_run_initial_scrape():
     - Not in migration mode
     - Either in production (no WERKZEUG_RUN_MAIN) or in the main Werkzeug process
     """
-    is_development = app.debug
-    if is_development:
-        # In development, only run in main Werkzeug process
-        is_main_process = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
-    else:
-        # In production (Gunicorn), always consider it main process
-        is_main_process = True
-
-    return not FLASK_MIGRATE and is_main_process
+    return not FLASK_MIGRATE and os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
 
 # Initialize scheduler only if not in migration mode
 if not FLASK_MIGRATE:
