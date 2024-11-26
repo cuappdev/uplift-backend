@@ -84,7 +84,7 @@ def shutdown_session(exception=None):
 
 # Only define scheduler tasks if not in migration mode
 if not FLASK_MIGRATE:
-    # Scrape capacities every 15 minutes
+    # Scrape hours every 15 minutes
     @scheduler.task("interval", id="scrape_hours", seconds=900)
     def scrape_hours():
         try:
@@ -107,7 +107,7 @@ if not FLASK_MIGRATE:
         except Exception as e:
             logging.error(f"Error in scrape_capacities: {e}")
 
-    # Scrape capacities every hour
+    # Scrape classes every hour
     @scheduler.task("interval", id="scrape_classes", seconds=3600)
     def scrape_classes():
         try:
