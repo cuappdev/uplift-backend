@@ -4,6 +4,8 @@ from collections import namedtuple
 from datetime import datetime
 from src.database import db_session
 from src.models.capacity import Capacity
+from src.models.hourly_average_capacity import HourlyAverageCapacity
+from src.models.enums import DayOfWeekEnum
 from src.utils.messaging import send_capacity_reminder
 from src.utils.constants import (
     C2C_URL,
@@ -20,6 +22,7 @@ def fetch_capacities():
     """
     Fetch capacities for all facilities from Connect2Concepts.
     """
+    global scrape_count, scrape_hour
     headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"}
     html = requests.get(C2C_URL, headers=headers)
     soup = BeautifulSoup(html.text, "html.parser")
@@ -68,6 +71,7 @@ def fetch_capacities():
 
         # Add to sheets
         add_single_capacity(count, facility_id, percent, updated)
+        
 
 
 def check_and_send_capacity_reminders(facility_name, current_percent, last_percent):
@@ -87,13 +91,44 @@ def check_and_send_capacity_reminders(facility_name, current_percent, last_perce
     
     # Check if the current percent crosses below any threshold from the last percent
     for percent in range(last_percent_int, current_percent_int - 1, -1):
-        print("last percent")
-        print(last_percent_int)
-        print("current percent")
-        print(current_percent_int)
+        # print("last percent")
+        # print(last_percent_int)
+        # print("current percent")
+        # print(current_percent_int)
         topic_name = f"{facility_name}_{current_day_name}_{percent}"
-        print(topic_name)
+        # print(topic_name)
         send_capacity_reminder(topic_name, facility_name, current_percent)
+
+
+# This function will run every hour to update hourly capacity
+def update_hourly_capacity(curDay, curHour):
+    """
+    Update hourly average capacity every hour based on collected data.
+    """
+    currentCapacities = db_session.query(Capacity).all()
+
+    for capacity in currentCapacities:
+        try:
+            hourly_average_capacity = db_session.query(HourlyAverageCapacity).filter(HourlyAverageCapacity.facility_id == capacity.facility_id, HourlyAverageCapacity.day_of_week == DayOfWeekEnum[curDay].value, HourlyAverageCapacity.hour_of_day == curHour).first()
+
+            if hourly_average_capacity is not None:
+                hourly_average_capacity.update_hourly_average(capacity.percent)
+            else:
+                print("No hourly capacity, creating new entry")
+                hourly_average_capacity = HourlyAverageCapacity(
+                    count=1,
+                    facility_id=capacity.facility_id,
+                    average_percent=capacity.percent,
+                    hour_of_day=curHour,
+                    day_of_week=DayOfWeekEnum[curDay].value,
+                    history=[capacity.percent]
+                )
+
+            db_session.merge(hourly_average_capacity)
+            db_session.commit()
+
+        except Exception as e:
+            print(f"Error updating hourly average: {e}")
 
 
 def add_single_capacity(count, facility_id, percent, updated):

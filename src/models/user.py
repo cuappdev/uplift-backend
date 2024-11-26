@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ARRAY, ForeignKey
+from sqlalchemy import Column, Integer, String, ARRAY, ForeignKey, Enum
 from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
@@ -25,6 +25,6 @@ class User(Base):
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
     net_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    workout_goal = Column(ARRAY(SQLAEnum(DayOfWeekEnum)), nullable=True)
-    fcm_token = Column(String, nullable=True)
+    workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)
+    fcm_token = Column(String, nullable=False)
     capacity_reminders = relationship("CapacityReminder")

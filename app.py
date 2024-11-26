@@ -1,16 +1,17 @@
 import logging
+from datetime import datetime
 from src.utils.constants import SERVICE_ACCOUNT_PATH, JWT_SECRET_KEY
 import sentry_sdk
 from flask import Flask, render_template
 from flask_apscheduler import APScheduler
 from flask_graphql import GraphQLView
-from flask_bcrypt import Bcrypt
+# from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
 from src.schema import Query, Mutation
-from src.scrapers.capacities_scraper import fetch_capacities
+from src.scrapers.capacities_scraper import fetch_capacities, update_hourly_capacity
 from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
 from src.scrapers.scraper_helpers import clean_past_hours
 from src.scrapers.sp_hours_scraper import fetch_sp_facility
@@ -21,15 +22,64 @@ from src.utils.messaging import send_workout_reminders
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
 from flasgger import Swagger
+# from src.utils.firebase_config import initialize_firebase
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, messaging
 
 
-if SERVICE_ACCOUNT_PATH:
-    cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
-    firebase_admin.initialize_app(cred)
-else:
-    raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
+# if SERVICE_ACCOUNT_PATH:
+#     cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+#     firebase_admin.initialize_app(cred)
+# else:
+#     raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
+
+# logging.info("Firebase app initialized successfully:", firebase_app.name)
+# except Exception as e:
+#     print("Error initializing Firebase:", e)
+#     raise
+
+
+def initialize_firebase():
+    if not firebase_admin._apps:
+        if SERVICE_ACCOUNT_PATH:
+            cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+            firebase_app = firebase_admin.initialize_app(cred)
+        else:
+            raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
+    else:
+        firebase_app = firebase_admin.get_app()
+    logging.info("Firebase app created...")
+    return firebase_app
+
+def send_notification():
+    # Replace with your iOS device's FCM registration token
+    registration_token = 'fUMWE_YmMU1IryBkt4gXdC:APA91bHlZIlLXOixsPMTu2_8F1u0FqzOzS_GxhvrcOLeNn7DFg-5qaIGEJ2zCpwrJxTk1Jo6_gaGC7LyjrBgfIB3Q6PjcrQqdB7j4rN28TkDKi9DTPneACU'
+
+    # Define the notification payload
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title="Hello, iOS!",
+            body="This is a test notification sent from Python backend.",
+        ),
+        token=registration_token,
+        data={  # Optional custom data
+            'customKey': 'customValue'
+        },
+        apns=messaging.APNSConfig(
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(
+                    sound="default"  # Play the default sound
+                )
+            )
+        )
+    )
+
+    try:
+        # Send the message and get the response
+        response = messaging.send(message)
+        print("Successfully sent message:", response)
+    except Exception as e:
+        print("Error sending message:", e)
 
 sentry_sdk.init(
     dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
@@ -44,7 +94,7 @@ sentry_sdk.init(
 
 app = Flask(__name__)
 app.debug = True
-bcrypt = Bcrypt()
+# bcrypt = Bcrypt()
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
 
@@ -59,6 +109,8 @@ scheduler.start()
 # Logging
 logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
 
+firebase_app = initialize_firebase()
+# send_notification()
 
 @app.route("/")
 def index():
@@ -101,14 +153,22 @@ def scrape_classes():
     logging.info("Scraping classes from group-fitness-classes...")
 
     fetch_classes(10)
-
-
-# Send workout reminders
-@scheduler.task("interval", id="scrape_classes", seconds=60)
-def scrape_classes():
-    logging.info("Sending workout reminders...")
     
+#Send workout reminders every morning at 9:00 AM
+@scheduler.task('cron', id='send_reminders', hour=9, minute=0)
+def scheduled_job():
+    logging.info("Sending workout reminders...")
     send_workout_reminders()
+
+#Update hourly average capacity every hour
+@scheduler.task('cron', id='update_capacity', minute="*")
+def scheduled_job():
+    current_time = datetime.now()
+    current_day = current_time.strftime("%A").upper()
+    current_hour = current_time.hour
+    
+    logging.info(f"Updating hourly average capacity for {current_day}, hour {current_hour}...")
+    update_hourly_capacity(current_day, current_hour)
 
 
 # Create database and fill it with data

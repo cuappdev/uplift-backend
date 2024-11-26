@@ -8,7 +8,7 @@ from src.models.user import DayOfWeekEnum  # Ensure the DayOfWeekEnum is importe
 
 def send_capacity_reminder(topic_name, facility_id, current_percent):
     """
-    Send a reminder notification to the user.
+    Send a capacity reminder to the user.
 
     Parameters:
         - `topic_name`: The topic to send the notification to.
@@ -32,43 +32,75 @@ def send_capacity_reminder(topic_name, facility_id, current_percent):
 
 def send_workout_reminders():
     """
-    Check for scheduled workout reminders and send notifications to users
-    whose reminders match the current day and time.
+    Check for scheduled workout reminders and send notifications to users 
+    whose reminders match the current day.
     """
-    current_time = datetime.now().time()
-    
-    # Get the current weekday name
-    current_day_name = datetime.now().strftime("%A")
+    current_date = datetime.now().date()
+    current_day_name = datetime.now().strftime("%A").upper()
 
-    # Query for workout reminders that match the current day
     reminders = (
         db_session.query(WorkoutReminder)
-        .join(User)  # Fetch both the reminder and the user in a single query
         .filter(
-            WorkoutReminder.reminder_time == current_time,
-            WorkoutReminder.days_of_week.contains([DayOfWeekEnum[current_day_name.upper()]])
+            WorkoutReminder.is_active == True,
+            WorkoutReminder.days_of_week.contains([DayOfWeekEnum[current_day_name]])
         )
         .all()
     )
 
     for reminder in reminders:
-        user = reminder.user
-
-        if user and user.fcm_token:
-            # Prepare the notification message
-            message = messaging.Message(
-                notification=messaging.Notification(
-                    title="Workout Reminder",
-                    body="It's time to workout! Don't forget to hit the gym today!"
-                ),
-                token=user.fcm_token  # Use the FCM token for the user
+        if reminder.user and reminder.user.fcm_token:  # Access user directly via relationship
+            # Format scheduled time to send in the payload
+            scheduled_time = f"{current_date} {reminder.reminder_time}"
+            payload = messaging.Message(
+                data={
+                    "title": "Workout Reminder",
+                    "message": "Don't forget to hit the gym today!",
+                    "scheduledTime": scheduled_time
+                },
+                token=reminder.user.fcm_token  # Use the user's FCM token directly
             )
 
             try:
-                # Send the message
-                response = messaging.send(message)
-                logging.info(f'Successfully sent message to user ID {user.id}: {response}')
+                response = messaging.send(payload)
+                print(f'Successfully sent notification for reminder {reminder.id}, response: {response}')
             except Exception as e:
-                logging.error(f'Error sending message to user ID {user.id}: {e}')
-        else:
-            logging.warning(f'No FCM token found for user ID {user.id}. Reminder not sent.')
+                print(f'Error sending notification for reminder {reminder.id}: {e}')
+        print(f'Invalid user or no FCM token.')
+
+    # current_time = datetime.now().time()
+    
+    # # Get the current weekday name
+    # current_day_name = datetime.now().strftime("%A")
+
+    # # Query for workout reminders that match the current day
+    # reminders = (
+    #     db_session.query(WorkoutReminder)
+    #     .join(User)  # Fetch both the reminder and the user in a single query
+    #     .filter(
+    #         WorkoutReminder.reminder_time == current_time,
+    #         WorkoutReminder.days_of_week.contains([DayOfWeekEnum[current_day_name.upper()]])
+    #     )
+    #     .all()
+    # )
+
+    # for reminder in reminders:
+    #     user = reminder.user
+
+    #     if user and user.fcm_token:
+    #         # Prepare the notification message
+    #         message = messaging.Message(
+    #             notification=messaging.Notification(
+    #                 title="Workout Reminder",
+    #                 body="It's time to workout! Don't forget to hit the gym today!"
+    #             ),
+    #             token=user.fcm_token  # Use the FCM token for the user
+    #         )
+
+    #         try:
+    #             # Send the message
+    #             response = messaging.send(message)
+    #             logging.info(f'Successfully sent message to user ID {user.id}: {response}')
+    #         except Exception as e:
+    #             logging.error(f'Error sending message to user ID {user.id}: {e}')
+    #     else:
+    #         logging.warning(f'No FCM token found for user ID {user.id}. Reminder not sent.')

@@ -41,9 +41,18 @@ type Capacity {
 type CapacityReminder {
   id: ID!
   userId: Int!
-  gymId: Int!
+  gyms: [CapacityReminderGym]!
   capacityThreshold: Int!
   daysOfWeek: [DayOfWeekEnum]!
+  isActive: Boolean
+}
+
+enum CapacityReminderGym {
+  TEAGLEUP
+  TEAGLEDOWN
+  HELENNEWMAN
+  TONIMORRISON
+  NOYES
 }
 
 type Class {
@@ -157,7 +166,16 @@ type Gym {
   facilities: [Facility]
   hours: [OpenHours]
   classes: [ClassInstance]
-  capacityReminders: [CapacityReminder]
+}
+
+type HourlyAverageCapacity {
+  id: ID!
+  count: Int!
+  facilityId: Int!
+  averagePercent: Float!
+  hourOfDay: Int!
+  dayOfWeek: [DayOfWeekGraphQLEnum]
+  history: [Float]!
 }
 
 type LoginUser {
@@ -166,11 +184,17 @@ type LoginUser {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(email: String!, name: String!, netId: String!): User
+  createUser(email: String!, fcmToken: String!, name: String!, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
   loginUser(netId: String!): LoginUser
+  createWorkoutReminder(daysOfWeek: [String]!, reminderTime: Time!, userId: Int!): WorkoutReminder
+  toggleWorkoutReminder(reminderId: Int!): WorkoutReminder
+  deleteWorkoutReminder(reminderId: Int!): WorkoutReminder
+  createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, userId: Int!): CapacityReminder
+  toggleCapacityReminder(reminderId: Int!): CapacityReminder
+  deleteCapacityReminder(reminderId: Int!): CapacityReminder
 }
 
 type OpenHours {
@@ -202,10 +226,14 @@ enum PriceType {
 type Query {
   getAllGyms: [Gym]
   getUsersByGiveawayId(id: Int): [User]
+  getUserByNetId(netId: String): [User]
   getWeeklyWorkoutDays(id: Int): [String]
   getWorkoutsById(id: Int): [Workout]
+  getAverageHourlyCapacities: [HourlyAverageCapacity]
   activities: [Activity]
 }
+
+scalar Time
 
 type User {
   id: ID!
@@ -213,7 +241,7 @@ type User {
   netId: String!
   name: String!
   workoutGoal: [DayOfWeekGraphQLEnum]
-  fcmToken: String
+  fcmToken: String!
   giveaways: [Giveaway]
   capacityReminders: [CapacityReminder]
 }
@@ -222,4 +250,12 @@ type Workout {
   id: ID!
   workoutTime: DateTime!
   userId: Int!
+}
+
+type WorkoutReminder {
+  id: ID!
+  userId: Int!
+  daysOfWeek: [DayOfWeekGraphQLEnum]
+  reminderTime: String!
+  isActive: Boolean
 }
