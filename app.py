@@ -58,17 +58,21 @@ def should_run_initial_scrape():
     """
     Check if we should run initial scraping:
     - Not in migration mode
-    - Running in the main process (not Flask reloader)
-    Added because flask will automatically run the app twice in debug mode, 
-    causing us to call the api twice in succession causing a timeout from the google api.
+    - Only in the main process (Werkzeug or Gunicorn)
     """
-    is_main_process = os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
-    return not FLASK_MIGRATE and is_main_process
+    # If in migration mode, don't run initial scraping
+    if FLASK_MIGRATE:
+        return False
+    # Check if we're in the main process
+    werkzeug_var = os.environ.get('WERKZEUG_RUN_MAIN')
+    # Logic: if in local, then werkzeug_var exists: so only run when true to prevent double running
+    # If in Gunicorn, then werkzeug_var is None, so then it will also run
+    return werkzeug_var is None or werkzeug_var == 'true'
 
 # Initialize scheduler only if not in migration mode
 if not FLASK_MIGRATE:
     scheduler = APScheduler()
-    if should_run_initial_scrape():
+    if should_run_initial_scrape():  # Only start scheduler in main process
         scheduler.init_app(app)
         scheduler.start()
 
