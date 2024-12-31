@@ -170,11 +170,10 @@ type Gym {
 
 type HourlyAverageCapacity {
   id: ID!
-  count: Int!
   facilityId: Int!
   averagePercent: Float!
   hourOfDay: Int!
-  dayOfWeek: [DayOfWeekGraphQLEnum]
+  dayOfWeek: DayOfWeekGraphQLEnum
   history: [Float]!
 }
 
@@ -229,7 +228,7 @@ type Query {
   getUserByNetId(netId: String): [User]
   getWeeklyWorkoutDays(id: Int): [String]
   getWorkoutsById(id: Int): [Workout]
-  getAverageHourlyCapacities: [HourlyAverageCapacity]
+  getAverageHourlyCapacities(facilityId: Int): [HourlyAverageCapacity]
   activities: [Activity]
 }
 

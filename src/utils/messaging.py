@@ -6,7 +6,7 @@ from src.models.workout_reminder import WorkoutReminder
 from src.models.user import User
 from src.models.user import DayOfWeekEnum  # Ensure the DayOfWeekEnum is imported
 
-def send_capacity_reminder(topic_name, facility_id, current_percent):
+def send_capacity_reminder(topic_name, facility_name, readable_name, current_percent):
     """
     Send a capacity reminder to the user.
 
@@ -18,7 +18,7 @@ def send_capacity_reminder(topic_name, facility_id, current_percent):
     message = messaging.Message(
         notification=messaging.Notification(
             title="Gym Capacity Update",
-            body=f"The capacity for gym {facility_id} is now at {current_percent * 100:.1f}%.",
+            body=f"The capacity for {facility_name} is now below {current_percent}%.",
         ),
         topic=topic_name,
     )

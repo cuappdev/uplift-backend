@@ -21,22 +21,12 @@ from src.scrapers.activities_scraper import fetch_activity
 from src.utils.messaging import send_workout_reminders
 from src.utils.utils import create_gym_table
 from src.models.openhours import OpenHours
+from src.models.workout_reminder import WorkoutReminder
+from src.models.user import User as UserModel
+from src.models.enums import DayOfWeekEnum
 from flasgger import Swagger
-# from src.utils.firebase_config import initialize_firebase
 import firebase_admin
 from firebase_admin import credentials, messaging
-
-
-# if SERVICE_ACCOUNT_PATH:
-#     cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
-#     firebase_admin.initialize_app(cred)
-# else:
-#     raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
-
-# logging.info("Firebase app initialized successfully:", firebase_app.name)
-# except Exception as e:
-#     print("Error initializing Firebase:", e)
-#     raise
 
 
 def initialize_firebase():
@@ -55,31 +45,45 @@ def send_notification():
     # Replace with your iOS device's FCM registration token
     registration_token = 'fUMWE_YmMU1IryBkt4gXdC:APA91bHlZIlLXOixsPMTu2_8F1u0FqzOzS_GxhvrcOLeNn7DFg-5qaIGEJ2zCpwrJxTk1Jo6_gaGC7LyjrBgfIB3Q6PjcrQqdB7j4rN28TkDKi9DTPneACU'
 
-    # Define the notification payload
-    message = messaging.Message(
-        notification=messaging.Notification(
-            title="Hello, iOS!",
-            body="This is a test notification sent from Python backend.",
-        ),
-        token=registration_token,
-        data={  # Optional custom data
-            'customKey': 'customValue'
-        },
-        apns=messaging.APNSConfig(
-            payload=messaging.APNSPayload(
-                aps=messaging.Aps(
-                    sound="default"  # Play the default sound
-                )
-            )
+    current_date = datetime.now().date()
+    current_day_name = datetime.now().strftime("%A").upper()
+
+    reminders = (
+        db_session.query(WorkoutReminder)
+        .filter(
+            WorkoutReminder.is_active == True,
+            WorkoutReminder.days_of_week.contains([DayOfWeekEnum[current_day_name]])
         )
+        .all()
     )
 
-    try:
-        # Send the message and get the response
-        response = messaging.send(message)
-        print("Successfully sent message:", response)
-    except Exception as e:
-        print("Error sending message:", e)
+    print("HELLOOO!!!")
+    print(reminders)
+
+    for reminder in reminders:
+        user = db_session.query(UserModel).filter_by(id=reminder.user_id).first()
+        print("HELLOOO")
+        print(user.id)
+        if user and user.fcm_token:  # Access user directly via relationship
+            # Format scheduled time to send in the payload
+            scheduled_time = f"{current_date} {reminder.reminder_time}"
+            payload = messaging.Message(
+                data={
+                    "title": "Workout Reminder",
+                    "message": "Don't forget to hit the gym today!",
+                    "scheduledTime": scheduled_time
+                },
+                token=user.fcm_token  # Use the user's FCM token directly
+            )
+
+            print("HELLOOO!!!")
+            print(payload.data)
+
+            try:
+                response = messaging.send(payload)
+                print(f'Successfully sent notification for reminder {reminder.id}, response: {response}')
+            except Exception as e:
+                print(f'Error sending notification for reminder {reminder.id}: {e}')
 
 sentry_sdk.init(
     dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
@@ -110,7 +114,7 @@ scheduler.start()
 logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
 
 firebase_app = initialize_firebase()
-# send_notification()
+send_notification()
 
 @app.route("/")
 def index():

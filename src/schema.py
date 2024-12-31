@@ -233,7 +233,7 @@ class HourlyAverageCapacity(SQLAlchemyObjectType):
     class Meta:
         model = HourlyAverageCapacityModel
 
-    day_of_week = graphene.List(DayOfWeekGraphQLEnum)
+    day_of_week = graphene.Field(DayOfWeekGraphQLEnum)
 
 
 # MARK: - Capacity Reminder
@@ -266,7 +266,7 @@ class Query(graphene.ObjectType):
     )
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     get_average_hourly_capacities = graphene.List(
-        HourlyAverageCapacity, description="Get all facility hourly average capacities."
+        HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
     activities = graphene.List(Activity)
 
@@ -278,8 +278,8 @@ class Query(graphene.ObjectType):
         query = Activity.get_query(info)
         return query.all()
 
-    def resolve_get_average_hourly_capacities(self, info):
-        query = HourlyAverageCapacity.get_query(info)
+    def resolve_get_average_hourly_capacities(self, info, facility_id):
+        query = HourlyAverageCapacity.get_query(info).filter(HourlyAverageCapacityModel.facility_id == facility_id)
         return query.all()
 
     def resolve_get_users_by_giveaway_id(self, info, id):
@@ -301,7 +301,7 @@ class Query(graphene.ObjectType):
         workouts = Workout.get_query(info).filter(WorkoutModel.user_id == user.id).all()
         return workouts
 
-    # @jwt_required
+    @jwt_required
     def resolve_get_weekly_workout_days(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -373,7 +373,7 @@ class EnterGiveaway(graphene.Mutation):
 
     Output = GiveawayInstance
 
-    # @jwt_required
+    @jwt_required
     def mutate(self, info, user_net_id, giveaway_id):
         # Check if NetID and Giveaway ID exists
         user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
@@ -427,7 +427,7 @@ class SetWorkoutGoals(graphene.Mutation):
 
     Output = User
 
-    # @jwt_required
+    @jwt_required
     def mutate(self, info, user_id, workout_goal):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -456,7 +456,7 @@ class logWorkout(graphene.Mutation):
 
     Output = Workout
 
-    # @jwt_required()
+    @jwt_required
     def mutate(self, info, workout_time, user_id):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -475,7 +475,7 @@ class CreateWorkoutReminder(graphene.Mutation):
         reminder_time = graphene.Time(required=True)
         days_of_week = graphene.List(graphene.String, required=True)
 
-    Output = WorkoutReminder  # Set the return type to WorkoutReminder
+    Output = WorkoutReminder
 
     def mutate(self, info, user_id, reminder_time, days_of_week):
         # Validate user existence
@@ -491,7 +491,6 @@ class CreateWorkoutReminder(graphene.Mutation):
             except KeyError:
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
-        # Create a new workout reminder
         try:
             reminder = WorkoutReminderModel(
                 user_id=user_id, reminder_time=reminder_time, days_of_week=validated_workout_days
@@ -502,7 +501,6 @@ class CreateWorkoutReminder(graphene.Mutation):
             db_session.rollback()
             raise GraphQLError(f"Error creating workout reminder: {str(e)}")
 
-        # Return the created reminder
         return reminder
 
 
@@ -569,16 +567,25 @@ class CreateCapacityReminder(graphene.Mutation):
                 valid_gyms.append(CapacityReminderGymGraphQLEnum[gym].value)
             except KeyError:
                 raise GraphQLError(f"Invalid gym: {gym}")
+        
+        # Subscribe to Firebase topics for each gym and day
+        for gym in valid_gyms:
+            for day in validated_workout_days:
+                topic_name = f"{gym}_{day}_{capacity_percent}"
+                try:
+                    messaging.subscribe_to_topic(user.fcm_token, topic_name)
+                except Exception as error:
+                    raise GraphQLError(f"Error subscribing to topic for {topic_name}: {error}")
 
-            reminder = CapacityReminderModel(
-                user_id=user_id,
-                gyms=valid_gyms,
-                capacity_threshold=capacity_percent,
-                days_of_week=validated_workout_days,
-            )
-            db_session.add(reminder)
-            db_session.commit()
-            print(reminder.gyms)
+        reminder = CapacityReminderModel(
+            user_id=user_id,
+            gyms=valid_gyms,
+            capacity_threshold=capacity_percent,
+            days_of_week=validated_workout_days,
+        )
+        db_session.add(reminder)
+        db_session.commit()
+        print(reminder.gyms)
 
         return reminder
 

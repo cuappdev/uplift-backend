@@ -54,61 +54,64 @@ def fetch_classes(num_pages):
     db_session.query(ClassInstance).delete()
     db_session.commit()
     for i in range(num_pages):
-        page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
-        soup = BeautifulSoup(page, "lxml")
-        if len(soup.find_all("table")) == 1:
-            continue
-        schedule = soup.find_all("table")[1]  # first table is irrelevant
-        data = schedule.find_all("tr")[1:]  # first row is header
-        for row in data:
-            row_elems = row.find_all("td")
-            class_instance = ClassInstance()
-            class_name = row_elems[0].a.text
-            class_href = row_elems[0].a["href"]
-            try:
-                gym_class = db_session.query(Class).filter(Class.name == class_name).first()
-                assert gym_class is not None
-            except AssertionError:
-                gym_class = create_group_class(class_href)
-            class_instance.class_id = gym_class.id
-            date_string = row_elems[1].text.strip()
-            if "Today" in date_string:
-                date_string = datetime.strftime(datetime.now(), "%m/%d/%Y")
+        try:
+            page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
+            soup = BeautifulSoup(page, "lxml")
+            if len(soup.find_all("table")) == 1:
+                continue
+            schedule = soup.find_all("table")[1]  # first table is irrelevant
+            data = schedule.find_all("tr")[1:]  # first row is header
+            for row in data:
+                row_elems = row.find_all("td")
+                class_instance = ClassInstance()
+                class_name = row_elems[0].a.text
+                class_href = row_elems[0].a["href"]
+                try:
+                    gym_class = db_session.query(Class).filter(Class.name == class_name).first()
+                    assert gym_class is not None
+                except AssertionError:
+                    gym_class = create_group_class(class_href)
+                class_instance.class_id = gym_class.id
+                date_string = row_elems[1].text.strip()
+                if "Today" in date_string:
+                    date_string = datetime.strftime(datetime.now(), "%m/%d/%Y")
 
-            # special handling for time (cancelled)
+                # special handling for time (cancelled)
 
-            time_str = row_elems[3].string.replace("\n", "").strip()
-            if time_str != "" and time_str != 'Canceled':
-                class_instance.is_canceled = False
-                time_strs = time_str.split(" - ")
-                start_time_string = time_strs[0].strip()
-                end_time_string = time_strs[1].strip()
+                time_str = row_elems[3].string.replace("\n", "").strip()
+                if time_str != "" and time_str != 'Canceled':
+                    class_instance.is_canceled = False
+                    time_strs = time_str.split(" - ")
+                    start_time_string = time_strs[0].strip()
+                    end_time_string = time_strs[1].strip()
 
-                class_instance.start_time = datetime.strptime(f"{date_string} {start_time_string}", "%m/%d/%Y %I:%M%p")
-                class_instance.end_time = datetime.strptime(f"{date_string} {end_time_string}", "%m/%d/%Y %I:%M%p")
-                if class_instance.end_time < datetime.now():
-                    continue
-            else:
-                class_instance.isCanceled = True
+                    class_instance.start_time = datetime.strptime(f"{date_string} {start_time_string}", "%m/%d/%Y %I:%M%p")
+                    class_instance.end_time = datetime.strptime(f"{date_string} {end_time_string}", "%m/%d/%Y %I:%M%p")
+                    if class_instance.end_time < datetime.now():
+                        continue
+                else:
+                    class_instance.isCanceled = True
 
-            try:
-                class_instance.instructor = row_elems[4].a.string
-            except:
-                class_instance.instructor = ""
-            try:
-                location = row_elems[5].a.string
-                class_instance.location = location
-                for gym in GYMS:
-                    if gym in location:
-                        if gym == "Virtual":
-                            class_instance.isVirtual = True
-                        else:
-                            gym_id = get_gym_id(gym)
-                            class_instance.gym_id = gym_id
-                        break
-            except:
-                gym_class.location = ""
-            db_session.add(class_instance)
-            db_session.commit()
-            classes[class_instance.id] = class_instance
+                try:
+                    class_instance.instructor = row_elems[4].a.string
+                except:
+                    class_instance.instructor = ""
+                try:
+                    location = row_elems[5].a.string
+                    class_instance.location = location
+                    for gym in GYMS:
+                        if gym in location:
+                            if gym == "Virtual":
+                                class_instance.isVirtual = True
+                            else:
+                                gym_id = get_gym_id(gym)
+                                class_instance.gym_id = gym_id
+                            break
+                except:
+                    gym_class.location = ""
+                db_session.add(class_instance)
+                db_session.commit()
+                classes[class_instance.id] = class_instance
+        except:
+            print("Page is none.")
     return classes
