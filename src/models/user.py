@@ -23,6 +23,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String, nullable=False)
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
+    reports = relationship("Report", back_populates="user")
     net_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
     workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)

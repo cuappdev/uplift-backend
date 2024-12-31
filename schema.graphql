@@ -82,6 +82,18 @@ enum CourtType {
   BADMINTON
 }
 
+type CreateGiveaway {
+  giveaway: Giveaway
+}
+
+type CreateReport {
+  report: Report
+}
+
+type CreateUser {
+  user: User
+}
+
 scalar DateTime
 
 enum DayOfWeekEnum {
@@ -232,6 +244,25 @@ type Query {
   activities: [Activity]
 }
 
+type Report {
+  id: ID!
+  createdAt: DateTime!
+  description: String!
+  gymId: Int!
+  issue: ReportType!
+  userId: Int!
+  gym: Gym
+  user: User
+}
+
+enum ReportType {
+  INACCURATE_EQUIPMENT
+  INCORRECT_HOURS
+  INACCURATE_DESCRIPTION
+  WAIT_TIMES_NOT_UPDATED
+  OTHER
+}
+
 scalar Time
 
 type User {
@@ -243,6 +274,7 @@ type User {
   fcmToken: String!
   giveaways: [Giveaway]
   capacityReminders: [CapacityReminder]
+  reports: [Report]
 }
 
 type Workout {

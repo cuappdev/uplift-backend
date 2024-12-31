@@ -156,6 +156,7 @@ def scrape_capacities():
 def scrape_classes():
     logging.info("Scraping classes from group-fitness-classes...")
 
+
     fetch_classes(10)
     
 #Send workout reminders every morning at 9:00 AM

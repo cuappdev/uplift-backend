@@ -1,17 +1,11 @@
 from datetime import datetime
 from src.database import db_session
-import time as t
-import datetime as dt
-import random
 from bs4 import BeautifulSoup
-import re
 import requests
 from src.utils.utils import get_gym_id
 from src.utils.constants import GYMS, BASE_URL, CLASSES_PATH
 from src.models.classes import Class, ClassInstance
-from src.models.openhours import OpenHours
 
-from src.models.facility import Facility
 
 """
 Create a group class from a class page
@@ -20,6 +14,8 @@ Params:
 Returns:
     Class Object created
 """
+
+
 def create_group_class(class_href):
     page = requests.get(BASE_URL + class_href).text
     soup = BeautifulSoup(page, "lxml")
@@ -49,6 +45,8 @@ Params:
 Returns:
   dict of ClassInstance objects
 """
+
+
 def fetch_classes(num_pages):
     classes = {}
     db_session.query(ClassInstance).delete()
