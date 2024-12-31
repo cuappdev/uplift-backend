@@ -14,6 +14,7 @@ class User(Base):
         - `email`                                 The user's email address.
         - `giveaways`                             (nullable) The list of giveaways a user is entered into.
         - `net_id`                                The user's Net ID.
+        - `reports`                               The list of reports a user has submitted.
         - `name`                                  The user's name.
         - `workout_goal`                          The days of the week the user has set as their personal goal.
     """
@@ -21,7 +22,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=True)
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
     reports = relationship("Report", back_populates="user")
     net_id = Column(String, nullable=False)

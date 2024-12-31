@@ -52,27 +52,31 @@ def fetch_classes(num_pages):
     db_session.query(ClassInstance).delete()
     db_session.commit()
     for i in range(num_pages):
-        try:
-            page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
-            soup = BeautifulSoup(page, "lxml")
-            if len(soup.find_all("table")) == 1:
-                continue
-            schedule = soup.find_all("table")[1]  # first table is irrelevant
-            data = schedule.find_all("tr")[1:]  # first row is header
-            for row in data:
-                row_elems = row.find_all("td")
-                class_instance = ClassInstance()
-                class_name = row_elems[0].a.text
-                class_href = row_elems[0].a["href"]
-                try:
-                    gym_class = db_session.query(Class).filter(Class.name == class_name).first()
-                    assert gym_class is not None
-                except AssertionError:
-                    gym_class = create_group_class(class_href)
-                class_instance.class_id = gym_class.id
-                date_string = row_elems[1].text.strip()
-                if "Today" in date_string:
-                    date_string = datetime.strftime(datetime.now(), "%m/%d/%Y")
+        page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
+        soup = BeautifulSoup(page, "lxml")
+        if len(soup.find_all("table")) == 1:
+            continue
+        schedule = soup.find_all("table")[1]  # first table is irrelevant
+        data = schedule.find_all("tr")[1:]  # first row is header
+        for row in data:
+            row_elems = row.find_all("td")
+            class_instance = ClassInstance()
+            class_name = row_elems[0].a.text
+            class_href = row_elems[0].a["href"].replace("/recreation/", "", 1)
+            try:
+                gym_class = db_session.query(Class).filter(Class.name == class_name).first()
+                if gym_class is None:
+                    raise Exception("Gym class is none, creating new gym class")
+            except Exception:
+                gym_class = create_group_class(class_href)
+
+            if gym_class is None or not gym_class.id:
+                raise Exception(f"Failed to create or retrieve gym class from {BASE_URL + class_href}")
+
+            class_instance.class_id = gym_class.id
+            date_string = row_elems[1].text.strip()
+            if "Today" in date_string:
+                date_string = datetime.strftime(datetime.now(), "%m/%d/%Y")
 
                 # special handling for time (cancelled)
 

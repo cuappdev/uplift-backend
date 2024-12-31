@@ -39,11 +39,25 @@ jobs:
             touch tags
             source tags
             export IMAGE_TAG=${{ steps.vars.outputs.sha_short }}
-            echo "export IMAGE_TAG=${IMAGE_TAG}" > tags
             cd docker-compose
             docker stack rm the-stack
             sleep 20s
             sudo systemctl stop nginx
             sudo systemctl restart nginx
             docker stack deploy -c docker-compose.yml the-stack --with-registry-auth
+            sleep 60s
+            docker exec $(docker ps -q -f name=the-stack_web) psql $DB_URL -c "DELETE FROM alembic_version;"
+            docker exec $(docker ps -q -f name=the-stack_web) /bin/sh -c "FLASK_MIGRATE=true flask db stamp head"
+            attempt=1
+            max_attempts=3
+            until docker exec $(docker ps -q -f name=the-stack_web) /bin/sh -c "FLASK_MIGRATE=true flask db upgrade" || [ $attempt -eq $max_attempts ]
+            do
+                echo "Migration attempt $attempt failed. Retrying..."
+                sleep 15
+                attempt=$((attempt + 1))
+            done
+            if [ $attempt -eq $max_attempts ]; then
+                echo "Migration failed after $max_attempts attempts"
+                exit 1
+            fi
             yes | docker system prune -a

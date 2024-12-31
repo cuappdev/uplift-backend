@@ -82,16 +82,8 @@ enum CourtType {
   BADMINTON
 }
 
-type CreateGiveaway {
-  giveaway: Giveaway
-}
-
 type CreateReport {
   report: Report
-}
-
-type CreateUser {
-  user: User
 }
 
 scalar DateTime
@@ -119,20 +111,11 @@ enum DayOfWeekGraphQLEnum {
 type Equipment {
   id: ID!
   name: String!
-  equipmentType: EquipmentType!
+  muscleGroups: [MuscleGroup]!
+  cleanName: String!
   facilityId: Int!
   quantity: Int
   accessibility: AccessibilityType
-}
-
-enum EquipmentType {
-  CARDIO
-  RACKS_AND_BENCHES
-  SELECTORIZED
-  MULTI_CABLE
-  FREE_WEIGHTS
-  MISCELLANEOUS
-  PLATE_LOADED
 }
 
 type Facility {
@@ -178,6 +161,7 @@ type Gym {
   facilities: [Facility]
   hours: [OpenHours]
   classes: [ClassInstance]
+  reports: [Report]
 }
 
 type HourlyAverageCapacity {
@@ -193,12 +177,43 @@ type LoginUser {
   token: String
 }
 
+enum MuscleGroup {
+  ABDOMINALS
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  HAMSTRINGS
+  QUADS
+  GLUTES
+  CALVES
+  MISCELLANEOUS
+  CARDIO
+}
+
+enum MuscleGroup {
+  ABDOMINALS
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  HAMSTRINGS
+  QUADS
+  GLUTES
+  CALVES
+  MISCELLANEOUS
+  CARDIO
+}
+
 type Mutation {
   createGiveaway(name: String!): Giveaway
   createUser(email: String!, fcmToken: String!, name: String!, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
+  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!, userId: Int!): CreateReport
   loginUser(netId: String!): LoginUser
   createWorkoutReminder(daysOfWeek: [String]!, reminderTime: Time!, userId: Int!): WorkoutReminder
   toggleWorkoutReminder(reminderId: Int!): WorkoutReminder
@@ -242,6 +257,7 @@ type Query {
   getWorkoutsById(id: Int): [Workout]
   getAverageHourlyCapacities(facilityId: Int): [HourlyAverageCapacity]
   activities: [Activity]
+  getAllReports: [Report]
 }
 
 type Report {
@@ -267,7 +283,7 @@ scalar Time
 
 type User {
   id: ID!
-  email: String!
+  email: String
   netId: String!
   name: String!
   workoutGoal: [DayOfWeekGraphQLEnum]
