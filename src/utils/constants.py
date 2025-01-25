@@ -6,8 +6,10 @@ ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplif
 # Base URL for Cornell Recreation Website
 BASE_URL = "https://scl.cornell.edu/recreation/"
 
-# The path for capacities
+# The old path for capacities
 C2C_URL = "https://connect2concepts.com/connect2/?type=bar&key=355de24d-d0e4-4262-ae97-bc0c78b92839&loc_status=false"
+# The new path for capacities
+CRC_URL_NEW = "https://goboardapi.azurewebsites.net/api/FacilityCount/GetCountsByAccount?AccountAPIKey=355de24d-d0e4-4262-ae97-bc0c78b92839"
 
 # The marker for counts in the HTML
 CAPACITY_MARKER_COUNTS = "Last Count: "
