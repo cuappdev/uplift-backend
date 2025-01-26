@@ -110,6 +110,8 @@ SECONDS_IN_DAY = 86400
 # Path to service account key for scraping sheets
 SERVICE_ACCOUNT_PATH = os.environ["GOOGLE_SERVICE_ACCOUNT_PATH"]
 
+JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]
+
 # Worksheet name for capacities
 SHEET_CAPACITIES = "Capacities"
 
