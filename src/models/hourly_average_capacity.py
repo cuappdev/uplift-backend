@@ -15,7 +15,7 @@ class HourlyAverageCapacity(Base):
         - `average_percent`     Average percent capacity of the facility, represented as a float between 0.0 and 1.0
         - `hour_of_day`         The hour of the day this average is recorded for, in 24-hour format.
         - `day_of_week`         The day of the week this average is recorded for
-        - `history`             (nullable) Stores previous capacity data for this hour from the past 30 days.
+        - `history`             Stores previous capacity data for this hour from (up to) the past 30 days.
     """
 
     __tablename__ = "hourly_average_capacity"
@@ -31,8 +31,11 @@ class HourlyAverageCapacity(Base):
         new_capacity = Decimal(current_percent).quantize(Decimal('0.01'))
 
         if len(self.history) >= 30:
-            self.history = self.history[-30:]    # Keep 30 newest records
-        
-        self.average_percent = (self.average_percent * len(self.history)-1 + current_percent) / len(self.history)
+            self.history = self.history[-29:]    # Keep 29 newest records
 
         self.history = self.history + [new_capacity] if self.history else [new_capacity]
+        
+        total = 0
+        for capacity in self.history:
+            total += capacity
+        self.average_percent = total / len(self.history)

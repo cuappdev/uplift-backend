@@ -297,6 +297,9 @@ class Query(graphene.ObjectType):
         return query.all()
 
     def resolve_get_average_hourly_capacities(self, info, facility_id):
+        valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
+        if facility_id not in valid_facility_ids:
+            raise GraphQLError("Invalid facility ID.")
         query = HourlyAverageCapacity.get_query(info).filter(HourlyAverageCapacityModel.facility_id == facility_id)
         return query.all()
 
@@ -601,6 +604,9 @@ class CreateCapacityReminder(graphene.Mutation):
         user = db_session.query(UserModel).filter_by(id=user_id).first()
         if not user:
             raise GraphQLError("User not found.")
+        
+        if capacity_percent < 0:
+            raise GraphQLError("Capacity percent must be a non-negative integer.")
 
         # Validate days of the week
         validated_workout_days = []

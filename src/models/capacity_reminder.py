@@ -5,6 +5,18 @@ from src.models.enums import DayOfWeekEnum, CapacityReminderGym
 from src.database import Base
 
 class CapacityReminder(Base):
+    """
+    A capacity reminder for an Uplift user.
+
+    Attributes:
+        - `id`                                    The ID of the capacity reminder.
+        - `user_id`                               The ID of the user who owns this reminder.
+        - `gyms`                                  The list of gyms the user wants to monitor for capacity.
+        - `capacity_threshold`                    Notify user when gym capacity dips below this percentage.
+        - `days_of_week`                          The days of the week when the reminder is active.
+        - `is_active`                             Whether the reminder is currently active (default is True).
+    """
+    
     __tablename__ = "capacity_reminder"
 
     id = Column(Integer, primary_key=True)

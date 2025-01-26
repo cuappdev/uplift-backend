@@ -192,21 +192,6 @@ enum MuscleGroup {
   CARDIO
 }
 
-enum MuscleGroup {
-  ABDOMINALS
-  CHEST
-  BACK
-  SHOULDERS
-  BICEPS
-  TRICEPS
-  HAMSTRINGS
-  QUADS
-  GLUTES
-  CALVES
-  MISCELLANEOUS
-  CARDIO
-}
-
 type Mutation {
   createGiveaway(name: String!): Giveaway
   createUser(email: String!, fcmToken: String!, name: String!, netId: String!): User
@@ -289,8 +274,9 @@ type User {
   workoutGoal: [DayOfWeekGraphQLEnum]
   fcmToken: String!
   giveaways: [Giveaway]
-  capacityReminders: [CapacityReminder]
   reports: [Report]
+  capacityReminders: [CapacityReminder]
+  workoutReminders: [WorkoutReminder]
 }
 
 type Workout {

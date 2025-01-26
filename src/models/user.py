@@ -30,3 +30,4 @@ class User(Base):
     workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)
     fcm_token = Column(String, nullable=False)
     capacity_reminders = relationship("CapacityReminder")
+    workout_reminders = relationship("WorkoutReminder")

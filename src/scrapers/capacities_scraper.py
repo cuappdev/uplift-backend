@@ -92,18 +92,11 @@ def check_and_send_capacity_reminders(facility_name, readable_name, current_perc
     current_day_name = datetime.now().strftime("%A").upper()
     print(f"{facility_name}_{current_day_name}")
 
-    print(current_percent_int)
-    print(last_percent_int)
     
     # Check if the current percent crosses below any threshold from the last percent
     if last_percent_int > current_percent_int:
         for percent in range(last_percent_int, current_percent_int - 1, -1):
-            # print("last percent")
-            print(last_percent_int)
-            # print("current percent")
-            print(current_percent_int)
             topic_name = f"{facility_name}_{current_day_name}_{percent}"
-            # print(topic_name)
             send_capacity_reminder(topic_name, readable_name, facility_name, current_percent_int)
 
 
