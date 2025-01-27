@@ -6,6 +6,7 @@ from src.database import db_session
 from src.models.capacity import Capacity
 from src.utils.constants import (
     C2C_URL,
+    CRC_URL_NEW,
     CAPACITY_MARKER_COUNTS,
     CAPACITY_MARKER_NAMES,
     CAPACITY_MARKER_UPDATED,
@@ -14,8 +15,8 @@ from src.utils.constants import (
 )
 from src.utils.utils import get_facility_id, unix_time
 
-
-def fetch_capacities():
+# Legacy scraper from old webpage using CRC_URL
+def fetch_capacities_old():
     """
     Fetch capacities for all facilities from Connect2Concepts.
     """
@@ -49,6 +50,44 @@ def fetch_capacities():
         # Add to sheets
         add_single_capacity(count, facility_id, percent, updated)
 
+# New scraper from new API using CRC_URL_NEW
+def fetch_capacities():
+    """Fetch capacities from the new JSON API endpoint."""
+    try:
+        headers = {
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"
+        }
+
+        response = requests.get(CRC_URL_NEW, headers=headers)
+        facilities = response.json()
+
+        for facility in facilities:
+            try:
+                facility_name = facility["LocationName"]
+
+                # Map API name to database name
+                if facility_name not in CAPACITY_MARKER_NAMES:
+                    print(f"Warning: No name mapping for facility: {facility_name}")
+                    continue
+
+                db_name = CAPACITY_MARKER_NAMES[facility_name]
+                facility_id = get_facility_id(db_name)
+
+                count = int(facility["LastCount"])
+                updated_str = facility["LastUpdatedDateAndTime"]
+                total_capacity = int(facility["TotalCapacity"])
+
+                percent = count / total_capacity if total_capacity > 0 else 0.0
+                updated = datetime.strptime(updated_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")
+
+                add_single_capacity(count, facility_id, percent, updated)
+
+            except Exception as e:
+                print(f"Error processing facility {facility.get('LocationName', 'unknown')}: {str(e)}")
+
+    except Exception as e:
+        print(f"Error fetching capacities: {str(e)}")
+        raise
 
 def add_single_capacity(count, facility_id, percent, updated):
     """
