@@ -4,6 +4,8 @@ from collections import namedtuple
 from datetime import datetime
 from src.database import db_session
 from src.models.capacity import Capacity
+from src.models.hourly_average_capacity import HourlyAverageCapacity
+from src.models.enums import DayOfWeekEnum
 from src.utils.constants import (
     C2C_URL,
     CRC_URL_NEW,
@@ -124,3 +126,34 @@ def get_capacity_datetime(time_str):
     format = "%m/%d/%Y %I:%M %p"
     time_obj = datetime.strptime(time_str, format)
     return time_obj
+
+
+def update_hourly_capacity(curDay, curHour):
+    print("running")
+    """
+    Update hourly average capacity every hour based on collected data.
+    """
+    currentCapacities = db_session.query(Capacity).all()
+
+    for capacity in currentCapacities:
+        try:
+            hourly_average_capacity = db_session.query(HourlyAverageCapacity).filter(HourlyAverageCapacity.facility_id == capacity.facility_id, HourlyAverageCapacity.day_of_week == DayOfWeekEnum[curDay].value, HourlyAverageCapacity.hour_of_day == curHour).first()
+
+            if hourly_average_capacity is not None:
+                print("updating average")
+                hourly_average_capacity.update_hourly_average(capacity.percent)
+            else:
+                print("No hourly capacity, creating new entry")
+                hourly_average_capacity = HourlyAverageCapacity(
+                    facility_id=capacity.facility_id,
+                    average_percent=capacity.percent,
+                    hour_of_day=curHour,
+                    day_of_week=DayOfWeekEnum[curDay].value,
+                    history=[capacity.percent]
+                )
+
+            db_session.merge(hourly_average_capacity)
+            db_session.commit()
+
+        except Exception as e:
+            print(f"Error updating hourly average: {e}")

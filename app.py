@@ -1,6 +1,7 @@
 import logging
 import os
 import sentry_sdk
+from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
 from graphql.utils import schema_printer
@@ -23,7 +24,7 @@ except Exception as e:
 # Only import scraping-related modules if not in migration mode
 if not FLASK_MIGRATE:
     from flask_apscheduler import APScheduler
-    from src.scrapers.capacities_scraper import fetch_capacities
+    from src.scrapers.capacities_scraper import fetch_capacities, update_hourly_capacity
     from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
     from src.scrapers.scraper_helpers import clean_past_hours
     from src.scrapers.sp_hours_scraper import fetch_sp_facility
@@ -122,6 +123,16 @@ if not FLASK_MIGRATE:
             fetch_classes(10)
         except Exception as e:
             logging.error(f"Error in scrape_classes: {e}")
+
+    # Update hourly average capacity every hour
+    @scheduler.task("cron", id="update_capacity", minute="*")
+    def scheduled_job():
+        current_time = datetime.now()
+        current_day = current_time.strftime("%A").upper()
+        current_hour = current_time.hour
+
+        logging.info(f"Updating hourly average capacity for {current_day}, hour {current_hour}...")
+        update_hourly_capacity(current_day, current_hour)
 
 # Create database
 init_db()
