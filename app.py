@@ -125,7 +125,7 @@ if not FLASK_MIGRATE:
             logging.error(f"Error in scrape_classes: {e}")
 
     # Update hourly average capacity every hour
-    @scheduler.task("cron", id="update_capacity", minute="*")
+    @scheduler.task("cron", id="update_capacity", hour="*")
     def scheduled_job():
         current_time = datetime.now()
         current_day = current_time.strftime("%A").upper()
