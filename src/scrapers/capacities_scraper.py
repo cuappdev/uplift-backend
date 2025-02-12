@@ -129,7 +129,6 @@ def get_capacity_datetime(time_str):
 
 
 def update_hourly_capacity(curDay, curHour):
-    print("running")
     """
     Update hourly average capacity every hour based on collected data.
     """
@@ -157,3 +156,4 @@ def update_hourly_capacity(curDay, curHour):
 
         except Exception as e:
             print(f"Error updating hourly average: {e}")
+            
