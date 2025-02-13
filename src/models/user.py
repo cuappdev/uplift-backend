@@ -27,6 +27,8 @@ class User(Base):
         - `reports`                               The list of reports a user has submitted.
         - `name`                                  The user's name.
         - `workout_goal`                          The days of the week the user has set as their personal goal.
+        - `active_streak`                         The number of weeks the user has met their personal goal.
+        - `workout_goal`                          The max number of weeks the user has met their personal goal.
     """
 
     __tablename__ = "users"
@@ -38,3 +40,5 @@ class User(Base):
     net_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
     workout_goal = Column(ARRAY(SQLAEnum(DayOfWeekEnum)), nullable=True)
+    active_streak = Column(Integer, nullable=True)
+    max_streak = Column(Integer, nullable=True)

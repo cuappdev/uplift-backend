@@ -176,6 +176,15 @@ class Activity(SQLAlchemyObjectType):
 class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
+        
+    current_streak = graphene.Int(description="The user's current workout streak in days.")
+    max_streak = graphene.Int(description="The user's maximum workout streak.")
+
+    def resolve_current_streak(self, info):
+        return self.current_streak
+
+    def resolve_max_streak(self, info):
+        return self.max_streak
 
 
 class UserInput(graphene.InputObjectType):
@@ -235,6 +244,8 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
+    get_workout_goals = graphene.List(graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID.")
+    get_user_streak = graphene.Field(graphene.JSONString, id=graphene.Int(required=True), description="Get the current and max workout streak of a user.")
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -281,6 +292,52 @@ class Query(graphene.ObjectType):
     def resolve_get_all_reports(self, info):
         query = ReportModel.query.all()
         return query
+    
+    def resolve_get_workout_goals(self, info, id):
+        user = User.get_query(info).filter(UserModel.id == id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        return [day.value for day in user.workout_goal] if user.workout_goal else []
+    
+    def resolve_get_user_streak(self, info, id):
+        user = User.get_query(info).filter(UserModel.id == id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        workouts = (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == user.id)
+            .order_by(WorkoutModel.workout_time.desc())
+            .all()
+        )
+
+        if not workouts:
+            return {"current_streak": 0, "max_streak": 0}
+
+        workout_dates = {workout.workout_time.date() for workout in workouts}
+        sorted_dates = sorted(workout_dates, reverse=True)
+
+        today = datetime.utcnow().date()
+        current_streak = 0
+        max_streak = 0
+        streak = 0
+        prev_date = None
+
+        for date in sorted_dates:
+            if prev_date and (prev_date - date).days > 1:
+                max_streak = max(max_streak, streak)
+                streak = 0
+
+            streak += 1
+            prev_date = date
+
+            if date == today or (date == today - timedelta(days=1) and current_streak == 0):
+                current_streak = streak
+
+        max_streak = max(max_streak, streak)
+
+        return {"current_streak": current_streak, "max_streak": max_streak}
 
 
 # MARK: - Mutation
