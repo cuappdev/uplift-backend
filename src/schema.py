@@ -213,14 +213,9 @@ class Report(SQLAlchemyObjectType):
         model = ReportModel
 
     gym = graphene.Field(lambda: Gym)
-    user = graphene.Field(lambda: User)
 
     def resolve_gym(self, info):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
-        return query
-
-    def resolve_user(self, info):
-        query = User.get_query(info).filter(UserModel.id == self.user_id).first()
         return query
 
 # MARK: - Query
@@ -408,7 +403,6 @@ class logWorkout(graphene.Mutation):
 
 class CreateReport(graphene.Mutation):
     class Arguments:
-        user_id = graphene.Int(required=True)
         issue = graphene.String(required=True)
         description = graphene.String(required=True)
         created_at = graphene.DateTime(required=True)
@@ -416,11 +410,7 @@ class CreateReport(graphene.Mutation):
 
     report = graphene.Field(Report)
 
-    def mutate(self, info, description, user_id, issue, created_at, gym_id):
-        # Check if user exists
-        user = User.get_query(info).filter(UserModel.id == user_id).first()
-        if not user:
-            raise GraphQLError("User with given ID does not exist.")
+    def mutate(self, info, description, issue, created_at, gym_id):
         # Check if gym exists
         gym = Gym.get_query(info).filter(GymModel.id == gym_id).first()
         if not gym:
@@ -428,7 +418,7 @@ class CreateReport(graphene.Mutation):
         # Check if issue is a valid enumeration
         if issue not in ["INACCURATE_EQUIPMENT", "INCORRECT_HOURS", "INACCURATE_DESCRIPTION", "WAIT_TIMES_NOT_UPDATED", "OTHER"]:
             raise GraphQLError("Issue is not a valid enumeration.")
-        report = ReportModel(description=description, user_id=user_id, issue=issue,
+        report = ReportModel(description=description, issue=issue,
                              created_at=created_at, gym_id=gym_id)
         db_session.add(report)
         db_session.commit()
