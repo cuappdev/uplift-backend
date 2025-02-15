@@ -49,6 +49,8 @@ def fetch_sp_facility():
                     clean_hours(date, get_facility_id(name))
                     if hours != MARKER_CLOSED:
                         parse_special_hours(hours, type, date, get_facility_id(name))
+                    else:
+                        add_special_facility_hours(date, date, get_facility_id(name))
 
 
 # MARK: Helpers
@@ -100,6 +102,8 @@ def add_special_facility_hours(start_time, end_time, facility_id, court_type=Non
     # Convert datetime objects to Unix
     start_unix = unix_time(start_time)
     end_unix = unix_time(end_time)
+    
+    print(f"Adding special hours: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}, is_special=True")
 
     # Create hours
     hrs = OpenHours(
@@ -115,3 +119,4 @@ def add_special_facility_hours(start_time, end_time, facility_id, court_type=Non
     # Add to database
     db_session.merge(hrs)
     db_session.commit()
+    print(f"Committed special hours for facility_id={facility_id}")
