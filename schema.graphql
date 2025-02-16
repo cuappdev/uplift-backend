@@ -137,6 +137,8 @@ type Gym {
   reports: [Report]
 }
 
+scalar JSONString
+
 enum MuscleGroup {
   ABDOMINALS
   CHEST
@@ -194,6 +196,8 @@ type Query {
   getWorkoutsById(id: Int): [Workout]
   activities: [Activity]
   getAllReports: [Report]
+  getWorkoutGoals(id: Int!): [String]
+  getUserStreak(id: Int!): JSONString
 }
 
 type Report {
@@ -221,8 +225,11 @@ type User {
   netId: String!
   name: String!
   workoutGoal: [DayOfWeekEnum]
+  activeStreak: Int
+  maxStreak: Int
   giveaways: [Giveaway]
   reports: [Report]
+  currentStreak: Int
 }
 
 type Workout {

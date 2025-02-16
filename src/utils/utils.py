@@ -7,6 +7,7 @@ from src.database import db_session
 from src.models.gym import Gym
 from src.models.facility import Facility, FacilityType
 from src.models.amenity import Amenity, AmenityType
+from src.models.workout import Workout
 from src.utils.constants import ASSET_BASE_URL, EASTERN_TIMEZONE
 
 
@@ -140,3 +141,54 @@ def get_facility_id(name):
     """
     facility = Facility.query.filter_by(name=name).first()
     return facility.id
+
+def calculate_streaks(user, workouts, workout_goal):
+    """
+    Calculate the current and maximum workout streaks for a user.
+
+    Parameters:
+        - `user`          The user object.
+        - `workouts`      The user's list of completed workouts.
+        - `workout_goal`  A list of goal days (e.g., ['Monday', 'Wednesday']).
+
+    Returns:
+        - Updates `user.current_streak` and `user.max_streak`.
+    """
+    if not workouts:
+        user.current_streak = 0
+        user.max_streak = user.max_streak or 0
+        return
+
+    # Convert goal days to set of weekday numbers (Monday=0, Sunday=6)
+    goal_days = {time.strptime(day, "%A").tm_wday for day in workout_goal}
+
+    # Filter workouts to only include those on goal days
+    valid_workouts = [w for w in workouts if w.workout_time.weekday() in goal_days]
+
+    # Sort by workout date
+    valid_workouts.sort(key=lambda x: x.workout_time)
+
+    current_streak = 1
+    max_streak = user.max_streak or 0
+
+    for i in range(1, len(valid_workouts)):
+        prev_day = valid_workouts[i - 1].workout_time
+        curr_day = valid_workouts[i].workout_time
+
+        # Find the next expected goal day
+        expected_next_day = prev_day + timedelta(days=1)
+        while expected_next_day.weekday() not in goal_days:
+            expected_next_day += timedelta(days=1)
+
+        # Check if current workout is on the expected next goal day
+        if curr_day.date() == expected_next_day.date():
+            current_streak += 1
+        else:
+            max_streak = max(max_streak, current_streak)
+            current_streak = 1
+
+    # Final update
+    max_streak = max(max_streak, current_streak)
+    user.current_streak = current_streak
+    user.max_streak = max_streak
+
