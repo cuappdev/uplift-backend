@@ -32,49 +32,38 @@ class MuscleGroup(PyEnum):
     CARDIO = 12
 
 def upgrade():
-    # Create new muscle_group enum type
-    muscle_group_enum = postgresql.ENUM(
-        'ABDOMINALS', 'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 'TRICEPS',
-        'HAMSTRINGS', 'QUADS', 'GLUTES', 'CALVES', 'MISCELLANEOUS', 'CARDIO',
-        name='musclegroup'
-    )
-    muscle_group_enum.create(op.get_bind())
+    # Get the connection and inspector
+    conn = op.get_bind()
+    inspector = Inspector.from_engine(conn)
 
-    # Add new columns first
-    op.add_column('equipment', sa.Column('clean_name', sa.String(), nullable=True))
-    op.add_column('equipment',
-                  sa.Column('muscle_groups', postgresql.ARRAY(muscle_group_enum), nullable=True)
-                  )
+    # Get the list of existing columns in the 'equipment' table
+    columns = [col["name"] for col in inspector.get_columns("equipment")]
 
-    # Update data: Set clean_name equal to name initially
+    # Check if 'clean_name' exists before adding it
+    if "clean_name" not in columns:
+        op.add_column('equipment', sa.Column('clean_name', sa.String(), nullable=True))
+
+    # Check if 'muscle_groups' exists before adding it
+    if "muscle_groups" not in columns:
+        muscle_group_enum = postgresql.ENUM(
+            'ABDOMINALS', 'CHEST', 'BACK', 'SHOULDERS', 'BICEPS', 'TRICEPS',
+            'HAMSTRINGS', 'QUADS', 'GLUTES', 'CALVES', 'MISCELLANEOUS', 'CARDIO',
+            name='musclegroup'
+        )
+        muscle_group_enum.create(op.get_bind())
+
+        op.add_column('equipment', sa.Column('muscle_groups', postgresql.ARRAY(muscle_group_enum), nullable=True))
+
+    # Continue with other operations, ensuring they're idempotent
     op.execute('UPDATE equipment SET clean_name = name')
 
-    # Convert equipment_type to muscle_groups based on mapping
-    op.execute("""
-    UPDATE equipment SET muscle_groups = CASE 
-        WHEN equipment_type = 'cardio' THEN ARRAY['CARDIO']::musclegroup[]
-        WHEN equipment_type = 'racks_and_benches' THEN ARRAY['CHEST', 'BACK', 'SHOULDERS']::musclegroup[]
-        WHEN equipment_type = 'selectorized' THEN ARRAY['MISCELLANEOUS']::musclegroup[]
-        WHEN equipment_type = 'multi_cable' THEN ARRAY['MISCELLANEOUS']::musclegroup[]
-        WHEN equipment_type = 'free_weights' THEN ARRAY['MISCELLANEOUS']::musclegroup[]
-        WHEN equipment_type = 'plate_loaded' THEN ARRAY['MISCELLANEOUS']::musclegroup[]
-        ELSE ARRAY['MISCELLANEOUS']::musclegroup[]
-    END
-    """)
+    # Additional logic for migrating data or altering columns as needed
+    op.alter_column('equipment', 'clean_name', existing_type=sa.String(), nullable=False)
+    op.alter_column('equipment', 'muscle_groups', existing_type=postgresql.ARRAY(muscle_group_enum), nullable=False)
 
-    # Make clean_name not nullable after updating data
-    op.alter_column('equipment', 'clean_name',
-                    existing_type=sa.String(),
-                    nullable=False)
-
-    # Make muscle_groups not nullable after data migration
-    op.alter_column('equipment', 'muscle_groups',
-                    existing_type=postgresql.ARRAY(muscle_group_enum),
-                    nullable=False)
-
-    # Drop the old equipment_type column and enum
-    op.drop_column('equipment', 'equipment_type')
-    op.execute('DROP TYPE equipmenttype')
+    if "equipment_type" in columns:
+        op.drop_column('equipment', 'equipment_type')
+        op.execute('DROP TYPE equipmenttype')
 
 def downgrade():
     # Create old equipment_type enum

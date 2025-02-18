@@ -4,6 +4,9 @@ from collections import namedtuple
 from datetime import datetime
 from src.database import db_session
 from src.models.capacity import Capacity
+from src.models.hourly_average_capacity import HourlyAverageCapacity
+from src.models.enums import DayOfWeekEnum, CapacityReminderGym
+from src.utils.messaging import send_capacity_reminder
 from src.utils.constants import (
     C2C_URL,
     CRC_URL_NEW,
@@ -47,8 +50,85 @@ def fetch_capacities_old():
             else float(capacity_data.percent.replace(CAPACITY_MARKER_PERCENT, "")) / 100
         )
 
+        gym_mapping = {
+            "HELENNEWMAN": CapacityReminderGym.HELENNEWMAN,
+            "NOYESFITNESSCENTER": CapacityReminderGym.NOYES,
+            "TEAGLEDOWNFITNESSCENTER": CapacityReminderGym.TEAGLEDOWN,
+            "TEAGLEUPFITNESSCENTER": CapacityReminderGym.TEAGLEUP,
+            "TONIMORRISONFITNESSCENTER": CapacityReminderGym.TONIMORRISON,
+        }
+
+        last_percent = Capacity.query.filter_by(facility_id=facility_id).first()
+        if last_percent:
+            last_percent = last_percent.percent
+        else:
+            last_percent = 0
+
+        topic_name = capacity_data.name.replace(" ", "").upper()
+        # topic_name = topic_name[:-13]
+
+        print(topic_name)
+
+        if topic_name in gym_mapping:
+            check_and_send_capacity_reminders(gym_mapping[topic_name].name, gym_mapping[topic_name].value, percent, last_percent)
+
         # Add to sheets
         add_single_capacity(count, facility_id, percent, updated)
+        
+
+
+def check_and_send_capacity_reminders(facility_name, readable_name, current_percent, last_percent):
+    """
+    Check user reminders and send notifications to topic if the current capacity
+    dips below the relevant thresholds.
+
+    Parameters:
+        - `facility_name`: The name of the facility.
+        - `current_percent`: The current capacity percentage.
+        - `last_percent`: The capacity percentage from the last scrape.
+    """
+    current_percent_int = int(current_percent * 100)  # Convert to integer percentage
+    last_percent_int = int(last_percent * 100)
+
+    current_day_name = datetime.now().strftime("%A").upper()
+    print(f"{facility_name}_{current_day_name}")
+
+    
+    # Check if the current percent crosses below any threshold from the last percent
+    if last_percent_int > current_percent_int:
+        for percent in range(last_percent_int, current_percent_int - 1, -1):
+            topic_name = f"{facility_name}_{current_day_name}_{percent}"
+            send_capacity_reminder(topic_name, readable_name, facility_name, current_percent_int)
+
+
+# This function will run every hour to update hourly capacity
+def update_hourly_capacity(curDay, curHour):
+    """
+    Update hourly average capacity every hour based on collected data.
+    """
+    currentCapacities = db_session.query(Capacity).all()
+
+    for capacity in currentCapacities:
+        try:
+            hourly_average_capacity = db_session.query(HourlyAverageCapacity).filter(HourlyAverageCapacity.facility_id == capacity.facility_id, HourlyAverageCapacity.day_of_week == DayOfWeekEnum[curDay].value, HourlyAverageCapacity.hour_of_day == curHour).first()
+
+            if hourly_average_capacity is not None:
+                hourly_average_capacity.update_hourly_average(capacity.percent)
+            else:
+                print("No hourly capacity, creating new entry")
+                hourly_average_capacity = HourlyAverageCapacity(
+                    facility_id=capacity.facility_id,
+                    average_percent=capacity.percent,
+                    hour_of_day=curHour,
+                    day_of_week=DayOfWeekEnum[curDay].value,
+                    history=[capacity.percent]
+                )
+
+            db_session.merge(hourly_average_capacity)
+            db_session.commit()
+
+        except Exception as e:
+            print(f"Error updating hourly average: {e}")
 
 # New scraper from new API using CRC_URL_NEW
 def fetch_capacities():
