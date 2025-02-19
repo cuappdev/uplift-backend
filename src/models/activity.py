@@ -74,7 +74,7 @@ class Price(Base):
 
     id = Column(Integer, primary_key=True)
     activity_id = Column(Integer, ForeignKey("activity.id"), nullable=False)
-    cost = Column(Float, nullable=-False)
+    cost = Column(Float, nullable=False)
     name = Column(String, nullable=False)
     rate = Column(String)
     type = Column(Enum(PriceType), nullable=False)
