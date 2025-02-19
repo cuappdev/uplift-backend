@@ -16,7 +16,6 @@ class Report(Base):
 
     Attributes:
         - `id`              The ID of the report.
-        - `user_id`         The ID of the user who created the report.
         - `issue`           The issue reported (discrete options).
         - `description`     The description of the report.
         - `created_at`      The date and time the report was created.
@@ -30,7 +29,5 @@ class Report(Base):
     description = Column(String, nullable=False)  # Text input
     gym_id = Column(Integer, ForeignKey("gym.id"), nullable=False)  # One to many relationship with gym
     issue = Column(Enum(ReportType), nullable=False)  # Discrete options (enumerate)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     # Make relationship with gym and user
     gym = relationship("Gym", back_populates="reports")
-    user = relationship("User", back_populates="reports")

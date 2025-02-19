@@ -158,7 +158,7 @@ type Mutation {
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
-  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!, userId: Int!): CreateReport
+  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
 }
 
 type OpenHours {
@@ -202,9 +202,7 @@ type Report {
   description: String!
   gymId: Int!
   issue: ReportType!
-  userId: Int!
   gym: Gym
-  user: User
 }
 
 enum ReportType {
@@ -222,7 +220,6 @@ type User {
   name: String!
   workoutGoal: [DayOfWeekEnum]
   giveaways: [Giveaway]
-  reports: [Report]
 }
 
 type Workout {
