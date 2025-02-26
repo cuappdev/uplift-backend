@@ -71,7 +71,7 @@ type CreateReport {
 
 scalar DateTime
 
-enum DayOfWeekEnum {
+enum DayOfWeekGraphQLEnum {
   MONDAY
   TUESDAY
   WEDNESDAY
@@ -138,6 +138,14 @@ type Gym {
 }
 
 scalar JSONString
+type HourlyAverageCapacity {
+  id: ID!
+  facilityId: Int!
+  averagePercent: Float!
+  hourOfDay: Int!
+  dayOfWeek: DayOfWeekGraphQLEnum
+  history: [Float]!
+}
 
 enum MuscleGroup {
   ABDOMINALS
@@ -160,7 +168,7 @@ type Mutation {
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
-  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!, userId: Int!): CreateReport
+  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
 }
 
 type OpenHours {
@@ -191,6 +199,7 @@ enum PriceType {
 
 type Query {
   getAllGyms: [Gym]
+  getUserByNetId(netId: String): [User]
   getUsersByGiveawayId(id: Int): [User]
   getWeeklyWorkoutDays(id: Int): [String]
   getWorkoutsById(id: Int): [Workout]
@@ -198,6 +207,7 @@ type Query {
   getAllReports: [Report]
   getWorkoutGoals(id: Int!): [String]
   getUserStreak(id: Int!): JSONString
+  getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
 }
 
 type Report {
@@ -206,9 +216,7 @@ type Report {
   description: String!
   gymId: Int!
   issue: ReportType!
-  userId: Int!
   gym: Gym
-  user: User
 }
 
 enum ReportType {
@@ -224,12 +232,10 @@ type User {
   email: String
   netId: String!
   name: String!
-  workoutGoal: [DayOfWeekEnum]
+  workoutGoal: [DayOfWeekGraphQLEnum]
+  giveaways: [Giveaway]
   activeStreak: Int
   maxStreak: Int
-  giveaways: [Giveaway]
-  reports: [Report]
-  currentStreak: Int
 }
 
 type Workout {

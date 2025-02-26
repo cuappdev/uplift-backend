@@ -1,6 +1,7 @@
 import logging
 import os
 import sentry_sdk
+from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
 from graphql.utils import schema_printer
@@ -15,7 +16,7 @@ from flask_graphql import GraphQLView
 
 # Check if we're in migration mode with error handling
 try:
-    FLASK_MIGRATE = os.getenv('FLASK_MIGRATE', 'false').lower() == 'true'
+    FLASK_MIGRATE = os.getenv("FLASK_MIGRATE", "false").lower() == "true"
 except Exception as e:
     logging.warning(f"Error reading FLASK_MIGRATE environment variable: {e}. Defaulting to false.")
     FLASK_MIGRATE = False
@@ -23,7 +24,7 @@ except Exception as e:
 # Only import scraping-related modules if not in migration mode
 if not FLASK_MIGRATE:
     from flask_apscheduler import APScheduler
-    from src.scrapers.capacities_scraper import fetch_capacities
+    from src.scrapers.capacities_scraper import fetch_capacities, update_hourly_capacity
     from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
     from src.scrapers.scraper_helpers import clean_past_hours
     from src.scrapers.sp_hours_scraper import fetch_sp_facility
@@ -44,15 +45,15 @@ app.debug = True
 # Verify all required variables are present
 if not all([db_user, db_password, db_name, db_host, db_port]):
     raise ValueError(
-        "Missing required database configuration. "
-        "Please ensure all database environment variables are set."
+        "Missing required database configuration. " "Please ensure all database environment variables are set."
     )
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 migrate = Migrate(app, db)
 schema = Schema(query=Query, mutation=Mutation)
 swagger = Swagger(app)
+
 
 def should_run_initial_scrape():
     """
@@ -64,10 +65,11 @@ def should_run_initial_scrape():
     if FLASK_MIGRATE:
         return False
     # Check if we're in the main process
-    werkzeug_var = os.environ.get('WERKZEUG_RUN_MAIN')
+    werkzeug_var = os.environ.get("WERKZEUG_RUN_MAIN")
     # Logic: if in local, then werkzeug_var exists: so only run when true to prevent double running
     # If in Gunicorn, then werkzeug_var is None, so then it will also run
-    return werkzeug_var is None or werkzeug_var == 'true'
+    return werkzeug_var is None or werkzeug_var == "true"
+
 
 # Initialize scheduler only if not in migration mode
 if not FLASK_MIGRATE:
@@ -79,15 +81,19 @@ if not FLASK_MIGRATE:
 # Logging
 logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
 
+
 app.add_url_rule("/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True))
+
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db_session.remove()
+
 
 # Only define scheduler tasks if not in migration mode
 if not FLASK_MIGRATE:
@@ -122,6 +128,20 @@ if not FLASK_MIGRATE:
             fetch_classes(10)
         except Exception as e:
             logging.error(f"Error in scrape_classes: {e}")
+
+    # Update hourly average capacity every hour
+    @scheduler.task("cron", id="update_capacity", hour="*")
+    def scheduled_job():
+        current_time = datetime.now()
+        current_day = current_time.strftime("%A").upper()
+        current_hour = current_time.hour
+
+        try:
+            logging.info(f"Updating hourly average capacity for {current_day}, hour {current_hour}...")
+            update_hourly_capacity(current_day, current_hour)
+        except Exception as e:
+            logging.error(f"Error updating hourly average capacity for {current_day}, hour {current_hour}: {e}")
+
 
 # Create database
 init_db()

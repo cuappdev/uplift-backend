@@ -289,7 +289,7 @@
     },
     "Precor Hi/Lo Pulley": {
         "clean_name": "Hi/Lo Pulley",
-        "label": ["MISCELLANEOUS"]
+        "label": ["TRICEPS", "BICEPS", "SHOULDERS", "CHEST"]
     },
     "Precor Leg Press": {
         "clean_name": "Leg Press",

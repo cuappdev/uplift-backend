@@ -12,11 +12,12 @@ from src.models.activity import Activity as ActivityModel, Price as PriceModel
 from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
 from src.models.user import User as UserModel
-from src.models.user import DayOfWeekEnum
+from src.models.enums import DayOfWeekGraphQLEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
+from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
 from src.database import db_session
 
 
@@ -115,6 +116,14 @@ class Capacity(SQLAlchemyObjectType):
         model = CapacityModel
 
 
+#MARK - Hourly Average Capacity
+class HourlyAverageCapacity(SQLAlchemyObjectType):
+    class Meta:
+        model = HourlyAverageCapacityModel
+
+    day_of_week = graphene.Field(DayOfWeekGraphQLEnum)
+
+
 # MARK: - Price
 
 
@@ -179,12 +188,7 @@ class User(SQLAlchemyObjectType):
         
     current_streak = graphene.Int(description="The user's current workout streak in days.")
     max_streak = graphene.Int(description="The user's maximum workout streak.")
-
-    def resolve_current_streak(self, info):
-        return self.current_streak
-
-    def resolve_max_streak(self, info):
-        return self.max_streak
+    workout_goal = graphene.List(DayOfWeekGraphQLEnum)
 
 
 class UserInput(graphene.InputObjectType):
@@ -222,14 +226,9 @@ class Report(SQLAlchemyObjectType):
         model = ReportModel
 
     gym = graphene.Field(lambda: Gym)
-    user = graphene.Field(lambda: User)
 
     def resolve_gym(self, info):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
-        return query
-
-    def resolve_user(self, info):
-        query = User.get_query(info).filter(UserModel.id == self.user_id).first()
         return query
 
 # MARK: - Query
@@ -237,6 +236,7 @@ class Report(SQLAlchemyObjectType):
 
 class Query(graphene.ObjectType):
     get_all_gyms = graphene.List(Gym, description="Get all gyms.")
+    get_user_by_net_id = graphene.List(User, net_id=graphene.String(), description="Get user by Net ID.")
     get_users_by_giveaway_id = graphene.List(User, id=graphene.Int(), description="Get all users given a giveaway ID.")
     get_weekly_workout_days = graphene.List(
         graphene.String, id=graphene.Int(), description="Get the days a user worked out for the current week."
@@ -244,8 +244,11 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID.")
-    get_user_streak = graphene.Field(graphene.JSONString, id=graphene.Int(required=True), description="Get the current and max workout streak of a user.")
+    get_workout_goals = graphene.List(graphene.String, user_id=graphene.Int(required=True), description="Get the workout goals of a user by ID.")
+    get_user_streak = graphene.Field(graphene.JSONString, user_id=graphene.Int(required=True), description="Get the current and max workout streak of a user.")
+    get_hourly_average_capacities_by_facility_id = graphene.List(
+        HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
+    )
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -254,6 +257,12 @@ class Query(graphene.ObjectType):
     def resolve_activities(self, info):
         query = Activity.get_query(info)
         return query.all()
+    
+    def resolve_get_user_by_net_id(self, info, net_id):
+        user = User.get_query(info).filter(UserModel.net_id == net_id).all()
+        if not user:
+            raise GraphQLError("User with the given Net ID does not exist.")
+        return user
 
     def resolve_get_users_by_giveaway_id(self, info, id):
         entries = GiveawayInstance.get_query(info).filter(GiveawayInstanceModel.giveaway_id == id).all()
@@ -338,7 +347,13 @@ class Query(graphene.ObjectType):
         max_streak = max(max_streak, streak)
 
         return {"current_streak": current_streak, "max_streak": max_streak}
-
+    
+    def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
+        valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
+        if facility_id not in valid_facility_ids:
+            raise GraphQLError("Invalid facility ID.")
+        query = HourlyAverageCapacity.get_query(info).filter(HourlyAverageCapacityModel.facility_id == facility_id)
+        return query.all()
 
 # MARK: - Mutation
 
@@ -434,7 +449,7 @@ class SetWorkoutGoals(graphene.Mutation):
         for day in workout_goal:
             try:
                 # Convert string to enum
-                validated_workout_goal.append(DayOfWeekEnum[day.upper()])
+                validated_workout_goal.append(DayOfWeekGraphQLEnum[day.upper()].value)
             except KeyError:
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
@@ -465,7 +480,6 @@ class logWorkout(graphene.Mutation):
 
 class CreateReport(graphene.Mutation):
     class Arguments:
-        user_id = graphene.Int(required=True)
         issue = graphene.String(required=True)
         description = graphene.String(required=True)
         created_at = graphene.DateTime(required=True)
@@ -473,11 +487,7 @@ class CreateReport(graphene.Mutation):
 
     report = graphene.Field(Report)
 
-    def mutate(self, info, description, user_id, issue, created_at, gym_id):
-        # Check if user exists
-        user = User.get_query(info).filter(UserModel.id == user_id).first()
-        if not user:
-            raise GraphQLError("User with given ID does not exist.")
+    def mutate(self, info, description, issue, created_at, gym_id):
         # Check if gym exists
         gym = Gym.get_query(info).filter(GymModel.id == gym_id).first()
         if not gym:
@@ -485,7 +495,7 @@ class CreateReport(graphene.Mutation):
         # Check if issue is a valid enumeration
         if issue not in ["INACCURATE_EQUIPMENT", "INCORRECT_HOURS", "INACCURATE_DESCRIPTION", "WAIT_TIMES_NOT_UPDATED", "OTHER"]:
             raise GraphQLError("Issue is not a valid enumeration.")
-        report = ReportModel(description=description, user_id=user_id, issue=issue,
+        report = ReportModel(description=description, issue=issue,
                              created_at=created_at, gym_id=gym_id)
         db_session.add(report)
         db_session.commit()
