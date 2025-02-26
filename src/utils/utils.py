@@ -152,10 +152,10 @@ def calculate_streaks(user, workouts, workout_goal):
         - `workout_goal`  A list of goal days (e.g., ['Monday', 'Wednesday']).
 
     Returns:
-        - Updates `user.current_streak` and `user.max_streak`.
+        - Updates `user.active_streak` and `user.max_streak`.
     """
     if not workouts:
-        user.current_streak = 0
+        user.active_streak = 0
         user.max_streak = user.max_streak or 0
         return
 
@@ -168,7 +168,7 @@ def calculate_streaks(user, workouts, workout_goal):
     # Sort by workout date
     valid_workouts.sort(key=lambda x: x.workout_time)
 
-    current_streak = 1
+    active_streak = 1
     max_streak = user.max_streak or 0
 
     for i in range(1, len(valid_workouts)):
@@ -182,13 +182,13 @@ def calculate_streaks(user, workouts, workout_goal):
 
         # Check if current workout is on the expected next goal day
         if curr_day.date() == expected_next_day.date():
-            current_streak += 1
+            active_streak += 1
         else:
-            max_streak = max(max_streak, current_streak)
-            current_streak = 1
+            max_streak = max(max_streak, active_streak)
+            active_streak = 1
 
     # Final update
-    max_streak = max(max_streak, current_streak)
-    user.current_streak = current_streak
+    max_streak = max(max_streak, active_streak)
+    user.active_streak = active_streak
     user.max_streak = max_streak
 

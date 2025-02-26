@@ -186,9 +186,9 @@ class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
         
-    current_streak = graphene.Int(description="The user's current workout streak in days.")
-    max_streak = graphene.Int(description="The user's maximum workout streak.")
-    workout_goal = graphene.List(DayOfWeekGraphQLEnum)
+    # current_streak = graphene.Int(description="The user's current workout streak in days.")
+    # max_streak = graphene.Int(description="The user's maximum workout streak.")
+    # workout_goal = graphene.List(DayOfWeekGraphQLEnum)
 
 
 class UserInput(graphene.InputObjectType):
@@ -244,8 +244,8 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(graphene.String, user_id=graphene.Int(required=True), description="Get the workout goals of a user by ID.")
-    get_user_streak = graphene.Field(graphene.JSONString, user_id=graphene.Int(required=True), description="Get the current and max workout streak of a user.")
+    get_workout_goals = graphene.List(graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID.")
+    get_user_streak = graphene.Field(graphene.JSONString, id=graphene.Int(required=True), description="Get the current and max workout streak of a user.")
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
@@ -322,13 +322,13 @@ class Query(graphene.ObjectType):
         )
 
         if not workouts:
-            return {"current_streak": 0, "max_streak": 0}
+            return {"active_streak": 0, "max_streak": 0}
 
         workout_dates = {workout.workout_time.date() for workout in workouts}
         sorted_dates = sorted(workout_dates, reverse=True)
 
         today = datetime.utcnow().date()
-        current_streak = 0
+        active_streak = 0
         max_streak = 0
         streak = 0
         prev_date = None
@@ -341,12 +341,12 @@ class Query(graphene.ObjectType):
             streak += 1
             prev_date = date
 
-            if date == today or (date == today - timedelta(days=1) and current_streak == 0):
-                current_streak = streak
+            if date == today or (date == today - timedelta(days=1) and active_streak == 0):
+                active_streak = streak
 
         max_streak = max(max_streak, streak)
 
-        return {"current_streak": current_streak, "max_streak": max_streak}
+        return {"active_streak": active_streak, "max_streak": max_streak}
     
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
