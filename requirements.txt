@@ -32,7 +32,6 @@ graphql-relay==0.4.5
 graphql-server-core==1.1.1
 greenlet==2.0.2
 gspread==5.12.3
-gunicorn==19.9.0
 identify==2.5.24
 idna==2.6
 importlib-metadata==6.7.0
