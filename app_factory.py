@@ -9,7 +9,6 @@ from flask_migrate import Migrate
 from src.schema import Query, Mutation
 from flasgger import Swagger
 from flask_graphql import GraphQLView
-import sentry_sdk
 
 # Set up logging at module level
 logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s",
@@ -28,14 +27,6 @@ def create_app(run_migrations=False):
         Configured Flask application
     """
     logger.info("Initializing application")
-
-    # Initialize Sentry
-    logger.info("Configuring Sentry")
-    sentry_sdk.init(
-        dsn="https://2a96f65cca45d8a7c3ffc3b878d4346b@o4507365244010496.ingest.us.sentry.io/4507850536386560",
-        traces_sample_rate=1.0,
-        profiles_sample_rate=1.0,
-    )
 
     # Create and configure Flask app
     app = Flask(__name__)
