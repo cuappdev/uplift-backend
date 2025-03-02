@@ -116,7 +116,7 @@ class Capacity(SQLAlchemyObjectType):
         model = CapacityModel
 
 
-#MARK - Hourly Average Capacity
+# MARK - Hourly Average Capacity
 class HourlyAverageCapacity(SQLAlchemyObjectType):
     class Meta:
         model = HourlyAverageCapacityModel
@@ -252,7 +252,7 @@ class Query(graphene.ObjectType):
     def resolve_activities(self, info):
         query = Activity.get_query(info)
         return query.all()
-    
+
     def resolve_get_user_by_net_id(self, info, net_id):
         user = User.get_query(info).filter(UserModel.net_id == net_id).all()
         if not user:
@@ -296,7 +296,7 @@ class Query(graphene.ObjectType):
     def resolve_get_all_reports(self, info):
         query = ReportModel.query.all()
         return query
-    
+
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
         if facility_id not in valid_facility_ids:
@@ -451,6 +451,20 @@ class CreateReport(graphene.Mutation):
         db_session.commit()
         return CreateReport(report=report)
 
+class DeleteUserById(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.Int(required=True)
+    Output = User
+
+    def mutate(self, info, user_id):
+        # Check if user exists
+        user = User.get_query(info).filter(UserModel.id == user_id).first()
+        if not user:
+            raise GraphQLError("User with given ID does not exist.")
+        db_session.delete(user)
+        db_session.commit()
+        return user
+
 
 class Mutation(graphene.ObjectType):
     create_giveaway = CreateGiveaway.Field(description="Creates a new giveaway.")
@@ -459,6 +473,7 @@ class Mutation(graphene.ObjectType):
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
     create_report = CreateReport.Field(description="Creates a new report.")
+    delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
