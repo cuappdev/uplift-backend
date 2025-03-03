@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
 from graphql.utils import schema_printer
@@ -11,10 +12,9 @@ from flasgger import Swagger
 from flask_graphql import GraphQLView
 
 # Set up logging at module level
-logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s",
-                    level=logging.INFO,
-                    datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
+
 
 def create_app(run_migrations=False):
     """
@@ -37,14 +37,13 @@ def create_app(run_migrations=False):
     if not all([db_user, db_password, db_name, db_host, db_port]):
         logger.error("Missing required database configuration variables")
         raise ValueError(
-            "Missing required database configuration. "
-            "Please ensure all database environment variables are set."
+            "Missing required database configuration. " "Please ensure all database environment variables are set."
         )
 
     # Configure database
     logger.info("Configuring database connection to %s:%s/%s", db_host, db_port, db_name)
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Set up extensions
     logger.info("Setting up Flask extensions")
@@ -85,11 +84,12 @@ def create_app(run_migrations=False):
     logger.info("Application initialization complete")
     return app
 
+
 def setup_scrapers(app):
     """Set up scrapers and scheduled tasks"""
     # Import scraper-related modules only when needed
     from flask_apscheduler import APScheduler
-    from src.scrapers.capacities_scraper import fetch_capacities
+    from src.scrapers.capacities_scraper import fetch_capacities, update_hourly_capacity
     from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
     from src.scrapers.scraper_helpers import clean_past_hours
     from src.scrapers.sp_hours_scraper import fetch_sp_facility
@@ -110,9 +110,9 @@ def setup_scrapers(app):
     # Scrape hours every 15 minutes
     @scheduler.task("interval", id="scrape_hours", seconds=900)
     def scrape_hours():
-        job = scheduler.get_job('scrape_hours')
-        next_run = job.next_run_time.strftime('%Y-%m-%d %H:%M:%S') if job and job.next_run_time else "Unknown"
-        logging.info("Running job \"scrape_hours (trigger: interval[0:15:00], next run at: %s EST)\"", next_run)
+        job = scheduler.get_job("scrape_hours")
+        next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
+        logging.info('Running job "scrape_hours (trigger: interval[0:15:00], next run at: %s EST)"', next_run)
         try:
             logging.info("Scraping hours from sheets...")
             # Clear hours
@@ -122,37 +122,53 @@ def setup_scrapers(app):
             fetch_sp_facility()
             clean_past_hours()
             logging.info(
-                "Job \"scrape_hours (trigger: interval[0:15:00], next run at: %s EST)\" executed successfully", next_run)
+                'Job "scrape_hours (trigger: interval[0:15:00], next run at: %s EST)" executed successfully', next_run
+            )
         except Exception as e:
             logging.error(f"Error in scrape_hours: {e}")
 
     # Scrape capacities every 10 minutes
     @scheduler.task("interval", id="scrape_capacities", seconds=600)
     def scrape_capacities():
-        job = scheduler.get_job('scrape_capacities')
-        next_run = job.next_run_time.strftime('%Y-%m-%d %H:%M:%S') if job and job.next_run_time else "Unknown"
-        logging.info("Running job \"scrape_capacities (trigger: interval[0:10:00], next run at: %s EST)\"", next_run)
+        job = scheduler.get_job("scrape_capacities")
+        next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
+        logging.info('Running job "scrape_capacities (trigger: interval[0:10:00], next run at: %s EST)"', next_run)
         try:
             logging.info("Scraping capacities from C2C...")
             fetch_capacities()
             logging.info(
-                "Job \"scrape_capacities (trigger: interval[0:10:00], next run at: %s EST)\" executed successfully", next_run)
+                'Job "scrape_capacities (trigger: interval[0:10:00], next run at: %s EST)" executed successfully',
+                next_run,
+            )
         except Exception as e:
             logging.error(f"Error in scrape_capacities: {e}")
 
     # Scrape classes every hour
     @scheduler.task("interval", id="scrape_classes", seconds=3600)
     def scrape_classes():
-        job = scheduler.get_job('scrape_classes')
-        next_run = job.next_run_time.strftime('%Y-%m-%d %H:%M:%S') if job and job.next_run_time else "Unknown"
-        logging.info("Running job \"scrape_classes (trigger: interval[1:00:00], next run at: %s EST)\"", next_run)
+        job = scheduler.get_job("scrape_classes")
+        next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
+        logging.info('Running job "scrape_classes (trigger: interval[1:00:00], next run at: %s EST)"', next_run)
         try:
             logging.info("Scraping classes from group-fitness-classes...")
             fetch_classes(10)
             logging.info(
-                "Job \"scrape_classes (trigger: interval[1:00:00], next run at: %s EST)\" executed successfully", next_run)
+                'Job "scrape_classes (trigger: interval[1:00:00], next run at: %s EST)" executed successfully', next_run
+            )
         except Exception as e:
             logging.error(f"Error in scrape_classes: {e}")
+
+    # Update hourly average capacity every hour
+    @scheduler.task("cron", id="update_capacity", hour="*")
+    def scheduled_job():
+        current_time = datetime.now()
+        current_day = current_time.strftime("%A").upper()
+        current_hour = current_time.hour
+        try:
+            logging.info(f"Updating hourly average capacity for {current_day}, hour {current_hour}...")
+            update_hourly_capacity(current_day, current_hour)
+        except Exception as e:
+            logging.error(f"Error updating hourly average capacity for {current_day}, hour {current_hour}: {e}")
 
     # We're now handling job execution logging within each task function
 
