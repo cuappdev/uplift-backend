@@ -180,6 +180,7 @@ type Mutation {
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
+  deleteUser(userId: Int!): User
 }
 
 type OpenHours {
