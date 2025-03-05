@@ -71,6 +71,16 @@ type CreateReport {
 
 scalar DateTime
 
+enum DayOfWeekEnum {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 enum DayOfWeekGraphQLEnum {
   MONDAY
   TUESDAY
@@ -146,6 +156,8 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
+scalar JSONString
+
 enum MuscleGroup {
   ABDOMINALS
   CHEST
@@ -205,6 +217,8 @@ type Query {
   getWorkoutsById(id: Int): [Workout]
   activities: [Activity]
   getAllReports: [Report]
+  getWorkoutGoals(id: Int!): [String]
+  getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
 }
 
@@ -230,7 +244,9 @@ type User {
   email: String
   netId: String!
   name: String!
-  workoutGoal: [DayOfWeekGraphQLEnum]
+  activeStreak: Int
+  maxStreak: Int
+  workoutGoal: [DayOfWeekEnum]
   giveaways: [Giveaway]
 }
 
