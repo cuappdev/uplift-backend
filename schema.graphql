@@ -71,16 +71,6 @@ type CreateReport {
 
 scalar DateTime
 
-enum DayOfWeekEnum {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
-}
-
 enum DayOfWeekGraphQLEnum {
   MONDAY
   TUESDAY
@@ -156,6 +146,8 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
+scalar JSONString
+
 type LoginUser {
   accessToken: String
   refreshToken: String
@@ -164,8 +156,6 @@ type LoginUser {
 type LogoutUser {
   success: Boolean
 }
-
-scalar JSONString
 
 enum MuscleGroup {
   ABDOMINALS
@@ -262,7 +252,7 @@ type User {
   name: String!
   activeStreak: Int
   maxStreak: Int
-  workoutGoal: [DayOfWeekEnum]
+  workoutGoal: [DayOfWeekGraphQLEnum]
   giveaways: [Giveaway]
 }
 

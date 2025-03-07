@@ -317,6 +317,7 @@ class Query(graphene.ObjectType):
         query = ReportModel.query.all()
         return query
     
+    @jwt_required()
     def resolve_get_workout_goals(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -324,6 +325,7 @@ class Query(graphene.ObjectType):
 
         return [day.value for day in user.workout_goal] if user.workout_goal else []
     
+    @jwt_required()
     def resolve_get_user_streak(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -370,6 +372,7 @@ class Query(graphene.ObjectType):
         query = HourlyAverageCapacity.get_query(info).filter(HourlyAverageCapacityModel.facility_id == facility_id)
         return query.all()
 
+
 # MARK: - Mutation
 
 
@@ -386,8 +389,8 @@ class LoginUser(graphene.Mutation):
             return GraphQLError("No user with those credentials. Please create an account and try again.")
 
         # Generate JWT token
-        access_token = create_access_token(identity=user.id)
-        refresh_token = create_refresh_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
 
         user.refresh_token = refresh_token
         db_session.commit()
