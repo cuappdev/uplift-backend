@@ -178,7 +178,7 @@ type Mutation {
   createUser(email: String!, name: String!, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
-  logWorkout(userId: Int!, workoutTime: DateTime!): Workout
+  logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
 }
@@ -254,4 +254,5 @@ type Workout {
   id: ID!
   workoutTime: DateTime!
   userId: Int!
+  facilityId: Int!
 }
