@@ -11,6 +11,7 @@ class Workout(Base):
         - `id`              The ID of user.
         - `workout_time`    The date and time of the workout.
         - `user_id`         The ID of the user who completed the workout.
+        - `facility_id`     The ID of the facility visited
     """
 
     __tablename__ = "workout"
@@ -18,3 +19,4 @@ class Workout(Base):
     id = Column(Integer, primary_key=True)
     workout_time = Column(DateTime(), nullable=False)  # should this be nullable?
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
