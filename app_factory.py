@@ -1,8 +1,11 @@
 import logging
+from datetime import timedelta, timezone
+from flask_jwt_extended import JWTManager
 from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
 from graphql.utils import schema_printer
+from src.utils.constants import JWT_SECRET_KEY
 from src.database import db_session, init_db
 from src.database import Base as db
 from src.database import db_url, db_user, db_password, db_name, db_host, db_port
@@ -10,6 +13,8 @@ from flask_migrate import Migrate
 from src.schema import Query, Mutation
 from flasgger import Swagger
 from flask_graphql import GraphQLView
+from src.models.token_blacklist import TokenBlocklist
+
 
 # Set up logging at module level
 logging.basicConfig(format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S")
@@ -50,6 +55,17 @@ def create_app(run_migrations=False):
     migrate = Migrate(app, db)
     schema = Schema(query=Query, mutation=Mutation)
     swagger = Swagger(app)
+
+    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
+
+    jwt = JWTManager(app)
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+        jti = jwt_payload["jti"]
+        return db_session.query(TokenBlocklist.id).filter_by(jti=jti).scalar() is not None
 
     # Configure routes
     logger.info("Configuring routes")
@@ -157,6 +173,13 @@ def setup_scrapers(app):
             )
         except Exception as e:
             logging.error(f"Error in scrape_classes: {e}")
+
+    @scheduler.task("interval", id="cleanup_expired_tokens", hours=24)
+    def cleanup_expired_tokens():
+        logger.info("Deleting expired tokens...")
+        now = datetime.now(timezone.utc)
+        db_session.query(TokenBlocklist).filter(TokenBlocklist.expires_at < now).delete()
+        db_session.commit()
 
     # Update hourly average capacity every hour
     @scheduler.task("cron", id="update_capacity", hour="*")
