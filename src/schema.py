@@ -390,7 +390,6 @@ class LoginUser(graphene.Mutation):
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
 
-        user.refresh_token = refresh_token
         db_session.commit()
 
         return LoginUser(access_token=access_token, refresh_token=refresh_token)
