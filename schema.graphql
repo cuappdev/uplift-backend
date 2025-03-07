@@ -146,6 +146,15 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
+type LoginUser {
+  accessToken: String
+  refreshToken: String
+}
+
+type LogoutUser {
+  success: Boolean
+}
+
 enum MuscleGroup {
   ABDOMINALS
   CHEST
@@ -167,6 +176,9 @@ type Mutation {
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(userId: Int!, workoutTime: DateTime!): Workout
+  loginUser(netId: String!): LoginUser
+  logoutUser: LogoutUser
+  refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
 }
@@ -206,6 +218,10 @@ type Query {
   activities: [Activity]
   getAllReports: [Report]
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
+}
+
+type RefreshAccessToken {
+  newAccessToken: String
 }
 
 type Report {

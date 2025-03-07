@@ -53,6 +53,9 @@ GYM_HOUR_BASE_URL = "https://scl.cornell.edu/recreation/cornell-fitness-centers"
 # The path for Helen Newman Fitness Center details
 HNH_DETAILS = "https://scl.cornell.edu/recreation/facility/helen-newman-fitness-center"
 
+# JWT secret key
+JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]
+
 # Marker in sheets for alternating between badminton and volleyball (HNH Fridays)
 MARKER_ALT = "(ALT)"
 
