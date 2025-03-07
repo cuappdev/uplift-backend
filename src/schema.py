@@ -1,13 +1,6 @@
 import graphene
 import os
-from flask_jwt_extended import (
-    create_access_token,
-    create_refresh_token,
-    verify_jwt_in_request,
-    get_jwt_identity,
-    get_jwt,
-    jwt_required,
-)
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, get_jwt, jwt_required
 from functools import wraps
 from datetime import datetime, timedelta, timezone
 from graphene_sqlalchemy import SQLAlchemyObjectType
@@ -30,7 +23,6 @@ from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
 from src.database import db_session
-from flask import current_app
 
 
 # MARK: - Gym
@@ -257,8 +249,14 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID.")
-    get_user_streak = graphene.Field(graphene.JSONString, id=graphene.Int(required=True), description="Get the current and max workout streak of a user.")
+    get_workout_goals = graphene.List(
+        graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID."
+    )
+    get_user_streak = graphene.Field(
+        graphene.JSONString,
+        id=graphene.Int(required=True),
+        description="Get the current and max workout streak of a user.",
+    )
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
@@ -316,7 +314,7 @@ class Query(graphene.ObjectType):
     def resolve_get_all_reports(self, info):
         query = ReportModel.query.all()
         return query
-    
+
     @jwt_required()
     def resolve_get_workout_goals(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
@@ -324,7 +322,7 @@ class Query(graphene.ObjectType):
             raise GraphQLError("User with the given ID does not exist.")
 
         return [day.value for day in user.workout_goal] if user.workout_goal else []
-    
+
     @jwt_required()
     def resolve_get_user_streak(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
@@ -364,7 +362,7 @@ class Query(graphene.ObjectType):
         max_streak = max(max_streak, streak)
 
         return {"active_streak": active_streak, "max_streak": max_streak}
-    
+
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
         if facility_id not in valid_facility_ids:
@@ -409,7 +407,6 @@ class RefreshAccessToken(graphene.Mutation):
         return RefreshAccessToken(new_access_token=new_access_token)
 
 
-# WHAT happens if a user tries to access this route if they are not logged in?
 class LogoutUser(graphene.Mutation):
     success = graphene.Boolean()
 

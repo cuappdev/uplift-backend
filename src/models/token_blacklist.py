@@ -1,9 +1,17 @@
-from sqlalchemy import Column, Float, String, Integer, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Integer, DateTime
 from src.database import Base
 
 
 class TokenBlocklist(Base):
+    """
+    Represents a JWT token that has been revoked (blacklisted).
+
+    Attributes:
+        - `id`          The primary key of the token record.
+        - `jti`         The unique identifier (JWT ID) of the token. Indexed for fast lookup.
+        - `expires_at`  The DateTime when the token expires.
+    """
+
     __tablename__ = "token_blacklist"
 
     id = Column(Integer, primary_key=True)

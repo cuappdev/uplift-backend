@@ -62,7 +62,6 @@ def create_app(run_migrations=False):
 
     jwt = JWTManager(app)
 
-
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
         jti = jwt_payload["jti"]
