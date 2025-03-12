@@ -249,14 +249,10 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(
-        graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID."
-    )
-    get_user_streak = graphene.Field(
-        graphene.JSONString,
-        id=graphene.Int(required=True),
-        description="Get the current and max workout streak of a user.",
-    )
+    get_workout_goals = graphene.List(graphene.String, id=graphene.Int(required=True),
+                                      description="Get the workout goals of a user by ID.")
+    get_user_streak = graphene.Field(graphene.JSONString, id=graphene.Int(
+        required=True), description="Get the current and max workout streak of a user.")
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
@@ -362,6 +358,7 @@ class Query(graphene.ObjectType):
         max_streak = max(max_streak, streak)
 
         return {"active_streak": active_streak, "max_streak": max_streak}
+
 
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
@@ -533,6 +530,7 @@ class logWorkout(graphene.Mutation):
     class Arguments:
         workout_time = graphene.DateTime(required=True)
         user_id = graphene.Int(required=True)
+        facility_id = graphene.Int(required=True)
 
     Output = Workout
 
@@ -541,8 +539,11 @@ class logWorkout(graphene.Mutation):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
+        facility = Facility.get_query(info).filter(FacilityModel.id == facility_id).first()
+        if not facility:
+            raise GraphQLError("Facility with given ID does not exist.")
 
-        workout = WorkoutModel(workout_time=workout_time, user_id=user.id)
+        workout = WorkoutModel(workout_time=workout_time, user_id=user.id, facility_id=facility.id)
 
         db_session.add(workout)
         db_session.commit()
