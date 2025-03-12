@@ -1,5 +1,8 @@
 import graphene
-from datetime import datetime, timedelta
+import os
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, get_jwt, jwt_required
+from functools import wraps
+from datetime import datetime, timedelta, timezone
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
@@ -11,6 +14,7 @@ from src.models.equipment import Equipment as EquipmentModel
 from src.models.activity import Activity as ActivityModel, Price as PriceModel
 from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
+from src.models.token_blacklist import TokenBlocklist
 from src.models.user import User as UserModel
 from src.models.enums import DayOfWeekGraphQLEnum
 from src.models.giveaway import Giveaway as GiveawayModel
@@ -186,6 +190,8 @@ class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
 
+    workout_goal = graphene.List(DayOfWeekGraphQLEnum)
+
 
 class UserInput(graphene.InputObjectType):
     net_id = graphene.String(required=True)
@@ -215,7 +221,9 @@ class Workout(SQLAlchemyObjectType):
     class Meta:
         model = WorkoutModel
 
+
 # MARK: - Report
+
 
 class Report(SQLAlchemyObjectType):
     class Meta:
@@ -226,6 +234,7 @@ class Report(SQLAlchemyObjectType):
     def resolve_gym(self, info):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
         return query
+
 
 # MARK: - Query
 
@@ -267,6 +276,7 @@ class Query(graphene.ObjectType):
         users = [User.get_query(info).filter(UserModel.id == entry.user_id).first() for entry in entries]
         return users
 
+    @jwt_required()
     def resolve_get_workouts_by_id(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -274,6 +284,7 @@ class Query(graphene.ObjectType):
         workouts = Workout.get_query(info).filter(WorkoutModel.user_id == user.id).all()
         return workouts
 
+    @jwt_required()
     def resolve_get_weekly_workout_days(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -300,6 +311,7 @@ class Query(graphene.ObjectType):
         query = ReportModel.query.all()
         return query
 
+    @jwt_required()
     def resolve_get_workout_goals(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -307,6 +319,7 @@ class Query(graphene.ObjectType):
 
         return [day.value for day in user.workout_goal] if user.workout_goal else []
 
+    @jwt_required()
     def resolve_get_user_streak(self, info, id):
         user = User.get_query(info).filter(UserModel.id == id).first()
         if not user:
@@ -346,6 +359,7 @@ class Query(graphene.ObjectType):
 
         return {"active_streak": active_streak, "max_streak": max_streak}
 
+
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
         if facility_id not in valid_facility_ids:
@@ -353,7 +367,59 @@ class Query(graphene.ObjectType):
         query = HourlyAverageCapacity.get_query(info).filter(HourlyAverageCapacityModel.facility_id == facility_id)
         return query.all()
 
+
 # MARK: - Mutation
+
+
+class LoginUser(graphene.Mutation):
+    class Arguments:
+        net_id = graphene.String(required=True)
+
+    access_token = graphene.String()
+    refresh_token = graphene.String()
+
+    def mutate(self, info, net_id):
+        user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+        if not user:
+            return GraphQLError("No user with those credentials. Please create an account and try again.")
+
+        # Generate JWT token
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
+
+        db_session.commit()
+
+        return LoginUser(access_token=access_token, refresh_token=refresh_token)
+
+
+class RefreshAccessToken(graphene.Mutation):
+    new_access_token = graphene.String()
+
+    @jwt_required(refresh=True)
+    def mutate(self, info):
+        identity = get_jwt_identity()
+
+        new_access_token = create_access_token(identity=identity)
+        return RefreshAccessToken(new_access_token=new_access_token)
+
+
+class LogoutUser(graphene.Mutation):
+    success = graphene.Boolean()
+
+    @jwt_required(verify_type=False)  # Allows both access and refresh tokens
+    def mutate(self, info):
+        token = get_jwt()
+        jti = token["jti"]  # Unique identifier for the token
+
+        # Get expiration time from JWT itself
+        expires_at = datetime.fromtimestamp(token["exp"], tz=timezone.utc)
+
+        # Store in blocklist
+        token = TokenBlocklist(jti=jti, expires_at=expires_at)
+        db_session.add(token)
+        db_session.commit()
+
+        return LogoutUser(success=True)
 
 
 class CreateUser(graphene.Mutation):
@@ -384,6 +450,7 @@ class EnterGiveaway(graphene.Mutation):
 
     Output = GiveawayInstance
 
+    @jwt_required()
     def mutate(self, info, user_net_id, giveaway_id):
         # Check if NetID and Giveaway ID exists
         user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
@@ -437,6 +504,7 @@ class SetWorkoutGoals(graphene.Mutation):
 
     Output = User
 
+    @jwt_required()
     def mutate(self, info, user_id, workout_goal):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -466,7 +534,8 @@ class logWorkout(graphene.Mutation):
 
     Output = Workout
 
-    def mutate(self, info, workout_time, user_id, facility_id):
+    @jwt_required()
+    def mutate(self, info, workout_time, user_id):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
@@ -479,6 +548,7 @@ class logWorkout(graphene.Mutation):
         db_session.add(workout)
         db_session.commit()
         return workout
+
 
 class CreateReport(graphene.Mutation):
     class Arguments:
@@ -495,17 +565,24 @@ class CreateReport(graphene.Mutation):
         if not gym:
             raise GraphQLError("Gym with given ID does not exist.")
         # Check if issue is a valid enumeration
-        if issue not in ["INACCURATE_EQUIPMENT", "INCORRECT_HOURS", "INACCURATE_DESCRIPTION", "WAIT_TIMES_NOT_UPDATED", "OTHER"]:
+        if issue not in [
+            "INACCURATE_EQUIPMENT",
+            "INCORRECT_HOURS",
+            "INACCURATE_DESCRIPTION",
+            "WAIT_TIMES_NOT_UPDATED",
+            "OTHER",
+        ]:
             raise GraphQLError("Issue is not a valid enumeration.")
-        report = ReportModel(description=description, issue=issue,
-                             created_at=created_at, gym_id=gym_id)
+        report = ReportModel(description=description, issue=issue, created_at=created_at, gym_id=gym_id)
         db_session.add(report)
         db_session.commit()
         return CreateReport(report=report)
 
+
 class DeleteUserById(graphene.Mutation):
     class Arguments:
         user_id = graphene.Int(required=True)
+
     Output = User
 
     def mutate(self, info, user_id):
@@ -524,6 +601,9 @@ class Mutation(graphene.ObjectType):
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
+    login_user = LoginUser.Field(description="Login a user.")
+    logout_user = LogoutUser.Field(description="Logs out a user.")
+    refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
 
