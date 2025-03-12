@@ -177,14 +177,10 @@ type Mutation {
   createUser(email: String!, name: String!, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
-<<<<<<< HEAD
-  logWorkout(userId: Int!, workoutTime: DateTime!): Workout
+  logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
   loginUser(netId: String!): LoginUser
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
-=======
-  logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
->>>>>>> f9a58592618c0a8743aeeaadf2753e083905cb66
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
 }
