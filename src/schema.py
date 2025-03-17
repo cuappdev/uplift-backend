@@ -23,7 +23,9 @@ from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
 from src.database import db_session
-
+import requests
+import json
+import os
 
 # MARK: - Gym
 
@@ -427,21 +429,87 @@ class CreateUser(graphene.Mutation):
         name = graphene.String(required=True)
         net_id = graphene.String(required=True)
         email = graphene.String(required=True)
+        encoded_image = graphene.String(required=False)
 
     Output = User
 
-    def mutate(self, info, name, net_id, email):
+    def mutate(self, info, name, net_id, email, encoded_image=None):
         # Check if a user with the given NetID already exists
         existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+        final_photo_url = None
         if existing_user:
             raise GraphQLError("NetID already exists.")
 
-        new_user = UserModel(name=name, net_id=net_id, email=email)
+        if encoded_image:
+            upload_url = os.getenv("DIGITAL_OCEAN_URL")
+            payload = {
+                "bucket": os.getenv("BUCKET_NAME"),
+                "image": encoded_image  # Base64-encoded image string
+            }
+            headers = {"Content-Type": "application/json"}
+            try:
+                response = requests.post(upload_url, json=payload, headers=headers)
+                response.raise_for_status()
+                json_response = response.json()
+                final_photo_url = json_response.get("data")
+                if not final_photo_url:
+                    raise GraphQLError("No URL returned from upload service.")
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed: {e}")
+                raise GraphQLError("Failed to upload photo.")
+
+        new_user = UserModel(name=name, net_id=net_id, email=email, encoded_image=final_photo_url)
         db_session.add(new_user)
         db_session.commit()
 
         return new_user
+    
+class EditUser(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=False)
+        net_id = graphene.String(required=True)
+        email = graphene.String(required=False)
+        encoded_image = graphene.String(required=False)
 
+    Output = User
+
+    def mutate(self, info, net_id, name=None, email=None, encoded_image=None):
+        existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+        if not existing_user:
+            raise GraphQLError("User with given net id does not exist.")
+        
+        if name is not None:
+            existing_user.name = name
+        if email is not None:
+            existing_user.email = email
+        if encoded_image is not None:
+            upload_url = os.getenv("DIGITAL_OCEAN_URL")  # Base URL for upload endpoint
+            if not upload_url:
+                raise GraphQLError("Upload URL not configured.")
+
+            payload = {
+                "bucket": os.getenv("BUCKET_NAME", "DEV_BUCKET"),
+                "image": encoded_image  # Base64-encoded image string
+            }
+            headers = {"Content-Type": "application/json"}
+            
+            print(f"Uploading image with payload: {payload}")
+            
+            try:
+                response = requests.post(upload_url, json=payload, headers=headers)
+                response.raise_for_status()
+                json_response = response.json()
+                print(f"Upload API response: {json_response}")
+                final_photo_url = json_response.get("data")
+                if not final_photo_url:
+                    raise GraphQLError("No URL returned from upload service.")
+                existing_user.encoded_image = final_photo_url
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed: {e}")
+                raise GraphQLError("Failed to upload photo.")
+
+        db_session.commit()
+        return existing_user
 
 class EnterGiveaway(graphene.Mutation):
     class Arguments:
@@ -598,6 +666,7 @@ class DeleteUserById(graphene.Mutation):
 class Mutation(graphene.ObjectType):
     create_giveaway = CreateGiveaway.Field(description="Creates a new giveaway.")
     create_user = CreateUser.Field(description="Creates a new user.")
+    edit_user = EditUser.Field(description="Edit a new user.")
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
