@@ -201,7 +201,8 @@ enum MuscleGroup {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(email: String!, name: String!, netId: String!): User
+  createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
+  editUser(email: String, encodedImage: String, name: String, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
@@ -283,6 +284,7 @@ type User {
   activeStreak: Int
   maxStreak: Int
   workoutGoal: [DayOfWeekGraphQLEnum]
+  encodedImage: String
   giveaways: [Giveaway]
 }
 
