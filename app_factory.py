@@ -1,11 +1,11 @@
 import logging
 from datetime import timedelta, timezone
 from flask_jwt_extended import JWTManager
+from src.utils.constants import SERVICE_ACCOUNT_PATH
 from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
 from graphql.utils import schema_printer
-from src.utils.constants import JWT_SECRET_KEY
 from src.database import db_session, init_db
 from src.database import Base as db
 from src.database import db_url, db_user, db_password, db_name, db_host, db_port
@@ -14,6 +14,20 @@ from src.schema import Query, Mutation
 from flasgger import Swagger
 from flask_graphql import GraphQLView
 from src.models.token_blacklist import TokenBlocklist
+import firebase_admin
+from firebase_admin import credentials
+
+def initialize_firebase():
+    if not firebase_admin._apps:
+        if SERVICE_ACCOUNT_PATH:
+            cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+            firebase_app = firebase_admin.initialize_app(cred)
+        else:
+            raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
+    else:
+        firebase_app = firebase_admin.get_app()
+    logging.info("Firebase app created...")
+    return firebase_app
 
 
 # Set up logging at module level
@@ -32,6 +46,7 @@ def create_app(run_migrations=False):
         Configured Flask application
     """
     logger.info("Initializing application")
+    initialize_firebase()
 
     # Create and configure Flask app
     app = Flask(__name__)
@@ -56,7 +71,6 @@ def create_app(run_migrations=False):
     schema = Schema(query=Query, mutation=Mutation)
     swagger = Swagger(app)
 
-    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 

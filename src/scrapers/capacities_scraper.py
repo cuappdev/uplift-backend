@@ -3,9 +3,10 @@ from bs4 import BeautifulSoup
 from collections import namedtuple
 from datetime import datetime
 from src.database import db_session
+from src.utils.messaging import send_capacity_reminder
 from src.models.capacity import Capacity
 from src.models.hourly_average_capacity import HourlyAverageCapacity
-from src.models.enums import DayOfWeekEnum
+from src.models.enums import DayOfWeekEnum, CapacityReminderGym
 from src.utils.constants import (
     C2C_URL,
     CRC_URL_NEW,
@@ -52,13 +53,12 @@ def fetch_capacities_old():
         # Add to sheets
         add_single_capacity(count, facility_id, percent, updated)
 
+
 # New scraper from new API using CRC_URL_NEW
 def fetch_capacities():
     """Fetch capacities from the new JSON API endpoint."""
     try:
-        headers = {
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"
-        }
+        headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"}
 
         response = requests.get(CRC_URL_NEW, headers=headers)
         facilities = response.json()
@@ -82,6 +82,26 @@ def fetch_capacities():
                 percent = count / total_capacity if total_capacity > 0 else 0.0
                 updated = datetime.strptime(updated_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")
 
+                gym_mapping = {
+                    "HNHFITNESSCENTER": CapacityReminderGym.HELENNEWMAN,
+                    "NOYESFITNESSCENTER": CapacityReminderGym.NOYES,
+                    "TEAGLEDOWNFITNESSCENTER": CapacityReminderGym.TEAGLEDOWN,
+                    "TEAGLEUPFITNESSCENTER": CapacityReminderGym.TEAGLEUP,
+                    "MORRISONFITNESSCENTER": CapacityReminderGym.TONIMORRISON,
+                }
+
+                last_percent = Capacity.query.filter_by(facility_id=facility_id).first()
+                if last_percent:
+                    last_percent = last_percent.percent
+                else:
+                    last_percent = 0
+
+                topic_name = db_name.replace(" ", "").upper()
+
+                if topic_name in gym_mapping:
+                    topic_enum = gym_mapping[topic_name]
+                    check_and_send_capacity_reminders(topic_enum.name, db_name, percent, last_percent)
+
                 add_single_capacity(count, facility_id, percent, updated)
 
             except Exception as e:
@@ -90,6 +110,7 @@ def fetch_capacities():
     except Exception as e:
         print(f"Error fetching capacities: {str(e)}")
         raise
+
 
 def add_single_capacity(count, facility_id, percent, updated):
     """
@@ -136,7 +157,15 @@ def update_hourly_capacity(curDay, curHour):
 
     for capacity in currentCapacities:
         try:
-            hourly_average_capacity = db_session.query(HourlyAverageCapacity).filter(HourlyAverageCapacity.facility_id == capacity.facility_id, HourlyAverageCapacity.day_of_week == DayOfWeekEnum[curDay].value, HourlyAverageCapacity.hour_of_day == curHour).first()
+            hourly_average_capacity = (
+                db_session.query(HourlyAverageCapacity)
+                .filter(
+                    HourlyAverageCapacity.facility_id == capacity.facility_id,
+                    HourlyAverageCapacity.day_of_week == DayOfWeekEnum[curDay].value,
+                    HourlyAverageCapacity.hour_of_day == curHour,
+                )
+                .first()
+            )
 
             if hourly_average_capacity is not None:
                 print("updating average")
@@ -148,7 +177,7 @@ def update_hourly_capacity(curDay, curHour):
                     average_percent=capacity.percent,
                     hour_of_day=curHour,
                     day_of_week=DayOfWeekEnum[curDay].value,
-                    history=[capacity.percent]
+                    history=[capacity.percent],
                 )
 
             db_session.merge(hourly_average_capacity)
@@ -156,4 +185,25 @@ def update_hourly_capacity(curDay, curHour):
 
         except Exception as e:
             print(f"Error updating hourly average: {e}")
-            
+
+
+def check_and_send_capacity_reminders(facility_name, readable_name, current_percent, last_percent):
+    """
+    Send notifications to topic if the current capacity dips below the relevant thresholds.
+    """
+
+    current_percent_int = int(current_percent * 100)  # Convert to integer percentage
+    last_percent_int = int(last_percent * 100)
+
+    current_day_name = datetime.now().strftime("%A").upper()
+
+    # Define threshold levels
+    thresholds = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+
+    # Find the lowest threshold that was crossed
+    crossed_thresholds = [p for p in thresholds if last_percent_int > p >= current_percent_int]
+
+    if crossed_thresholds:
+        lowest_threshold = min(crossed_thresholds)  # Get the lowest threshold crossed
+        topic_name = f"{facility_name}_{current_day_name}_{lowest_threshold}"
+        send_capacity_reminder(topic_name, readable_name, current_percent_int)
