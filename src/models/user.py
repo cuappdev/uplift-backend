@@ -17,6 +17,7 @@ class User(Base):
         - `active_streak`                         The number of consecutive weeks the user has met their personal goal.
         - `max_streak`                            The maximum number of consecutive weeks the user has met their personal goal.
         - `workout_goal`                          The max number of weeks the user has met their personal goal.
+        - `encoded_image`                         The profile picture URL of the user.
     """
 
     __tablename__ = "users"
@@ -29,3 +30,4 @@ class User(Base):
     active_streak = Column(Integer, nullable=True)
     max_streak = Column(Integer, nullable=True)
     workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)
+    encoded_image = Column(String, nullable=True)
