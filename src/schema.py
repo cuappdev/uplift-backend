@@ -244,6 +244,7 @@ class Report(SQLAlchemyObjectType):
 class Query(graphene.ObjectType):
     get_all_gyms = graphene.List(Gym, description="Get all gyms.")
     get_user_by_net_id = graphene.List(User, net_id=graphene.String(), description="Get user by Net ID.")
+    get_users_friends = graphene.List(User, id=graphene.Int(), description="Get all friends of a user by ID.")
     get_users_by_giveaway_id = graphene.List(User, id=graphene.Int(), description="Get all users given a giveaway ID.")
     get_weekly_workout_days = graphene.List(
         graphene.String, id=graphene.Int(), description="Get the days a user worked out for the current week."
@@ -272,6 +273,13 @@ class Query(graphene.ObjectType):
         if not user:
             raise GraphQLError("User with the given Net ID does not exist.")
         return user
+
+    def resolve_get_users_friends(self, info, id):
+        user = User.get_query(info).filter(UserModel.id == id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+        friends = user.get_friends()
+        return friends
 
     def resolve_get_users_by_giveaway_id(self, info, id):
         entries = GiveawayInstance.get_query(info).filter(GiveawayInstanceModel.giveaway_id == id).all()
@@ -360,7 +368,6 @@ class Query(graphene.ObjectType):
         max_streak = max(max_streak, streak)
 
         return {"active_streak": active_streak, "max_streak": max_streak}
-
 
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
@@ -463,7 +470,7 @@ class CreateUser(graphene.Mutation):
         db_session.commit()
 
         return new_user
-    
+
 class EditUser(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=False)
@@ -477,7 +484,7 @@ class EditUser(graphene.Mutation):
         existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
         if not existing_user:
             raise GraphQLError("User with given net id does not exist.")
-        
+
         if name is not None:
             existing_user.name = name
         if email is not None:
@@ -492,9 +499,9 @@ class EditUser(graphene.Mutation):
                 "image": encoded_image  # Base64-encoded image string
             }
             headers = {"Content-Type": "application/json"}
-            
+
             print(f"Uploading image with payload: {payload}")
-            
+
             try:
                 response = requests.post(upload_url, json=payload, headers=headers)
                 response.raise_for_status()
@@ -560,6 +567,51 @@ class CreateGiveaway(graphene.Mutation):
         db_session.commit()
         return giveaway
 
+class AddFriend(graphene.Mutation):
+    class Arguments:
+        user_net_id = graphene.String(required=True, description="The Net ID of the user.")
+        friend_net_id = graphene.String(required=True, description="The Net ID of the friend to add.")
+
+    Output = User
+
+    def mutate(self, info, user_net_id, friend_net_id):
+        user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
+        if not user:
+            raise GraphQLError("User with given NetID does not exist.")
+
+        friend = User.get_query(info).filter(UserModel.net_id == friend_net_id).first()
+        if not friend:
+            raise GraphQLError("Friend with given NetID does not exist.")
+
+        # Add friend
+        if friend not in user.friends:
+            user.add_friend(friend)
+
+        db_session.commit()
+        return user
+
+class RemoveFriend(graphene.Mutation):
+    class Arguments:
+        user_net_id = graphene.String(required=True, description="The Net ID of the user.")
+        friend_net_id = graphene.String(required=True, description="The Net ID of the friend to remove.")
+
+    Output = User
+
+    def mutate(self, info, user_net_id, friend_net_id):
+        user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
+        if not user:
+            raise GraphQLError("User with given NetID does not exist.")
+
+        friend = User.get_query(info).filter(UserModel.net_id == friend_net_id).first()
+        if not friend:
+            raise GraphQLError("Friend with given NetID does not exist.")
+
+        # Remove friend
+        if friend in user.friends:
+            user.remove_friend(friend)
+
+        db_session.commit()
+        return user
 
 class SetWorkoutGoals(graphene.Mutation):
     class Arguments:
@@ -675,6 +727,8 @@ class Mutation(graphene.ObjectType):
     refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
+    add_friend = AddFriend.Field(description="Adds a friend to a user.")
+    remove_friend = RemoveFriend.Field(description="Removes a friend from a user.")
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ARRAY, Enum
+from sqlalchemy import Column, Integer, String, ARRAY, Enum, Table, ForeignKey
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
 from src.models.enums import DayOfWeekEnum
@@ -22,6 +22,13 @@ class User(Base):
 
     __tablename__ = "users"
 
+    friendship = Table(
+        "friends",
+        Base.metadata,
+        Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+        Column("friend_id", Integer, ForeignKey("users.id"), primary_key=True),
+    )
+
     id = Column(Integer, primary_key=True)
     email = Column(String, nullable=True)
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
@@ -31,3 +38,32 @@ class User(Base):
     max_streak = Column(Integer, nullable=True)
     workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)
     encoded_image = Column(String, nullable=True)
+
+    friends = relationship(
+        'User',
+        secondary=friendship,
+        primaryjoin=(friendship.c.user_id == id),
+        secondaryjoin=(friendship.c.friend_id == id),
+        backref=backref('friended_by', lazy='dynamic'),
+        lazy='dynamic'
+    )
+
+    def add_friend(self, friend):
+        if friend not in self.friends:
+            self.friends.append(friend)
+
+    def remove_friend(self, friend):
+        if friend in self.friends:
+            self.friends.remove(friend)
+
+    def get_friends(self):
+        # Get direct friends (users this user has added)
+        direct_friends = self.friends.all()
+
+        # Get users who have added this user as a friend
+        reverse_friends = self.friended_by.all()
+
+        # Combine both lists and remove duplicates using set
+        all_friends = list(set(direct_friends + reverse_friends))
+
+        return all_friends
