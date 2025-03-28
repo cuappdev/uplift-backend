@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
+from src.models.capacity_reminder import CapacityReminder as CapacityReminderModel
 from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
@@ -16,7 +17,7 @@ from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
 from src.models.token_blacklist import TokenBlocklist
 from src.models.user import User as UserModel
-from src.models.enums import DayOfWeekGraphQLEnum
+from src.models.enums import DayOfWeekGraphQLEnum, CapacityReminderGymGraphQLEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
@@ -26,6 +27,7 @@ from src.database import db_session
 import requests
 import json
 import os
+from firebase_admin import messaging
 
 # MARK: - Gym
 
@@ -236,6 +238,14 @@ class Report(SQLAlchemyObjectType):
     def resolve_gym(self, info):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
         return query
+
+    
+# MARK: - Capacity Reminder
+
+
+class CapacityReminder(SQLAlchemyObjectType):
+    class Meta:
+        model = CapacityReminderModel
 
 
 # MARK: - Query
@@ -663,6 +673,119 @@ class DeleteUserById(graphene.Mutation):
         return user
 
 
+class CreateCapacityReminder(graphene.Mutation):
+    class Arguments:
+        fcm_token = graphene.String(required=True)
+        gyms = graphene.List(graphene.String, required=True)
+        days_of_week = graphene.List(graphene.String, required=True)
+        capacity_percent = graphene.Int(required=True)
+
+    Output = CapacityReminder
+
+    def mutate(self, info, fcm_token, days_of_week, gyms, capacity_percent):
+        if capacity_percent not in range(0, 91, 10):
+            raise GraphQLError("Capacity percent must be an interval of 10 from 0-90.")
+
+        # Validate days of the week
+        validated_workout_days = []
+        for day in days_of_week:
+            try:
+                validated_workout_days.append(DayOfWeekGraphQLEnum[day.upper()].value)
+            except KeyError:
+                raise GraphQLError(f"Invalid day of the week: {day}")
+
+        # Validate gyms
+        valid_gyms = []
+        for gym in gyms:
+            try:
+                valid_gyms.append(CapacityReminderGymGraphQLEnum[gym].value)
+            except KeyError:
+                raise GraphQLError(f"Invalid gym: {gym}")
+
+        # Subscribe to Firebase topics for each gym and day
+        for gym in valid_gyms:
+            for day in validated_workout_days:
+                topic_name = f"{gym}_{day}_{capacity_percent}"
+                try:
+                    messaging.subscribe_to_topic(fcm_token, topic_name)
+                except Exception as error:
+                    raise GraphQLError(f"Error subscribing to topic for {topic_name}: {error}")
+
+        reminder = CapacityReminderModel(
+            fcm_token=fcm_token,
+            gyms=valid_gyms,
+            capacity_threshold=capacity_percent,
+            days_of_week=validated_workout_days,
+        )
+        db_session.add(reminder)
+        db_session.commit()
+
+        return reminder
+
+
+class ToggleCapacityReminder(graphene.Mutation):
+    class Arguments:
+        reminder_id = graphene.Int(required=True)
+
+    Output = CapacityReminder
+
+    def mutate(self, info, reminder_id):
+        reminder = db_session.query(CapacityReminderModel).filter_by(id=reminder_id).first()
+        if not reminder:
+            raise GraphQLError("CapacityReminder not found.")
+
+        topics = [
+            f"{gym}_{day}_{reminder.capacity_threshold}" for gym in reminder.gyms for day in reminder.days_of_week
+        ]
+
+        if reminder.is_active:
+            # Toggle to inactive and unsubscribe
+            for topic in topics:
+                try:
+                    messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                except Exception as error:
+                    raise GraphQLError(f"Error unsubscribing from topic: {error}")
+        else:
+            # Toggle to active and resubscribe
+            for topic in topics:
+                try:
+                    messaging.subscribe_to_topic(reminder.fcm_token, topic)
+                except Exception as error:
+                    raise GraphQLError(f"Error subscribing to topic: {error}")
+
+        reminder.is_active = not reminder.is_active
+        db_session.commit()
+
+        return reminder
+
+
+class DeleteCapacityReminder(graphene.Mutation):
+    class Arguments:
+        reminder_id = graphene.Int(required=True)
+
+    Output = CapacityReminder
+
+    def mutate(self, info, reminder_id):
+        reminder = db_session.query(CapacityReminderModel).filter_by(id=reminder_id).first()
+        if not reminder:
+            raise GraphQLError("CapacityReminder not found.")
+
+        topics = [
+            f"{gym}_{day}_{reminder.capacity_threshold}" for gym in reminder.gyms for day in reminder.days_of_week
+        ]
+
+        for topic in topics:
+            try:
+                messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+            except Exception as error:
+                raise GraphQLError(f"Error unsubscribing from topic {topic}: {error}")
+
+        db_session.delete(reminder)
+        db_session.commit()
+
+        return reminder
+
+
 class Mutation(graphene.ObjectType):
     create_giveaway = CreateGiveaway.Field(description="Creates a new giveaway.")
     create_user = CreateUser.Field(description="Creates a new user.")
@@ -675,6 +798,9 @@ class Mutation(graphene.ObjectType):
     refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
+    create_capacity_reminder = CreateCapacityReminder.Field(description="Create a new capacity reminder.")
+    toggle_capacity_reminder = ToggleCapacityReminder.Field(description="Toggle a capacity reminder on or off.")
+    delete_capacity_reminder = DeleteCapacityReminder.Field(description="Delete a capacity reminder")
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

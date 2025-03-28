@@ -38,6 +38,23 @@ type Capacity {
   updated: Int!
 }
 
+type CapacityReminder {
+  id: ID!
+  fcmToken: String!
+  gyms: [CapacityReminderGym]!
+  capacityThreshold: Int!
+  daysOfWeek: [DayOfWeekEnum]!
+  isActive: Boolean
+}
+
+enum CapacityReminderGym {
+  TEAGLEUP
+  TEAGLEDOWN
+  HELENNEWMAN
+  TONIMORRISON
+  NOYES
+}
+
 type Class {
   id: ID!
   name: String!
@@ -70,6 +87,16 @@ type CreateReport {
 }
 
 scalar DateTime
+
+enum DayOfWeekEnum {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
 
 enum DayOfWeekGraphQLEnum {
   MONDAY
@@ -184,6 +211,9 @@ type Mutation {
   refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
+  createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
+  toggleCapacityReminder(reminderId: Int!): CapacityReminder
+  deleteCapacityReminder(reminderId: Int!): CapacityReminder
 }
 
 type OpenHours {
