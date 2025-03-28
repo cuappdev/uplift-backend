@@ -694,7 +694,7 @@ class CreateCapacityReminder(graphene.Mutation):
             except KeyError:
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
-        # Validate gyma
+        # Validate gyms
         valid_gyms = []
         for gym in gyms:
             try:
