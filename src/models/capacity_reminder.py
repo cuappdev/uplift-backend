@@ -9,6 +9,7 @@ class CapacityReminder(Base):
     A capacity reminder for an Uplift user.
     Attributes:
         - `id`                                    The ID of the capacity reminder.
+        - `fcm_token`                             FCM token used to send notifications to the user's device.
         - `user_id`                               The ID of the user who owns this reminder.
         - `gyms`                                  The list of gyms the user wants to monitor for capacity.
         - `capacity_threshold`                    Notify user when gym capacity dips below this percentage.
