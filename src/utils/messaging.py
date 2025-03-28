@@ -1,9 +1,5 @@
 import logging
-from datetime import datetime
 from firebase_admin import messaging
-from src.database import db_session
-from src.models.user import User
-from src.models.enums import DayOfWeekEnum  # Ensure the DayOfWeekEnum is imported
 
 
 def send_capacity_reminder(topic_name, facility_name, current_percent):

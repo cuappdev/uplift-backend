@@ -1,4 +1,5 @@
 import requests
+import time
 from bs4 import BeautifulSoup
 from collections import namedtuple
 from datetime import datetime
@@ -6,6 +7,7 @@ from src.database import db_session
 from src.utils.messaging import send_capacity_reminder
 from src.models.capacity import Capacity
 from src.models.hourly_average_capacity import HourlyAverageCapacity
+from src.models.facility import Facility
 from src.models.enums import DayOfWeekEnum, CapacityReminderGym
 from src.utils.constants import (
     C2C_URL,
@@ -83,24 +85,31 @@ def fetch_capacities():
                 updated = datetime.strptime(updated_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")
 
                 gym_mapping = {
-                    "HNHFITNESSCENTER": CapacityReminderGym.HELENNEWMAN,
-                    "NOYESFITNESSCENTER": CapacityReminderGym.NOYES,
-                    "TEAGLEDOWNFITNESSCENTER": CapacityReminderGym.TEAGLEDOWN,
-                    "TEAGLEUPFITNESSCENTER": CapacityReminderGym.TEAGLEUP,
-                    "MORRISONFITNESSCENTER": CapacityReminderGym.TONIMORRISON,
+                    "HNH Fitness Center": CapacityReminderGym.HELENNEWMAN,
+                    "Noyes Fitness Center": CapacityReminderGym.NOYES,
+                    "Teagle Down Fitness Center": CapacityReminderGym.TEAGLEDOWN,
+                    "Teagle Up Fitness Center": CapacityReminderGym.TEAGLEUP,
+                    "Morrison Fitness Center": CapacityReminderGym.TONIMORRISON,
                 }
 
-                last_percent = Capacity.query.filter_by(facility_id=facility_id).first()
-                if last_percent:
-                    last_percent = last_percent.percent
-                else:
-                    last_percent = 0
+                last_capacity = Capacity.query.filter_by(facility_id=facility_id).first()
+                last_percent = last_capacity.percent if last_capacity else 0
 
-                topic_name = db_name.replace(" ", "").upper()
+                if db_name in gym_mapping:
+                    # Check if facility is closed
+                    facility = Facility.query.filter_by(id=facility_id).first()
 
-                if topic_name in gym_mapping:
-                    topic_enum = gym_mapping[topic_name]
-                    check_and_send_capacity_reminders(topic_enum.name, db_name, percent, last_percent)
+                    if not facility or not facility.hours:
+                        print(f"Warning: No hours found for facility ID {facility_id}")
+                        continue
+
+                    current_time = int(time.time())
+
+                    is_open = any(hour.start_time <= current_time <= hour.end_time for hour in facility.hours)
+
+                    if is_open:
+                        topic_enum = gym_mapping[db_name]
+                        check_and_send_capacity_reminders(topic_enum.name, db_name, percent, last_percent)
 
                 add_single_capacity(count, facility_id, percent, updated)
 
@@ -189,7 +198,7 @@ def update_hourly_capacity(curDay, curHour):
 
 def check_and_send_capacity_reminders(facility_name, readable_name, current_percent, last_percent):
     """
-    Send notifications to topic if the current capacity dips below the relevant thresholds.
+    Send notifications to topic if the current capacity dips below relevant thresholds.
     """
 
     current_percent_int = int(current_percent * 100)  # Convert to integer percentage
@@ -200,10 +209,10 @@ def check_and_send_capacity_reminders(facility_name, readable_name, current_perc
     # Define threshold levels
     thresholds = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
-    # Find the lowest threshold that was crossed
+    # Find the thresholds that were crossed
     crossed_thresholds = [p for p in thresholds if last_percent_int > p >= current_percent_int]
 
-    if crossed_thresholds:
-        lowest_threshold = min(crossed_thresholds)  # Get the lowest threshold crossed
-        topic_name = f"{facility_name}_{current_day_name}_{lowest_threshold}"
-        send_capacity_reminder(topic_name, readable_name, current_percent_int)
+    for threshold in crossed_thresholds:
+        topic_name = f"{facility_name}_{current_day_name}_{threshold}"
+        print(f"Sending message to devices subscribed to {topic_name}")
+        send_capacity_reminder(topic_name, readable_name, threshold)

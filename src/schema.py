@@ -680,11 +680,11 @@ class CreateCapacityReminder(graphene.Mutation):
         days_of_week = graphene.List(graphene.String, required=True)
         capacity_percent = graphene.Int(required=True)
 
-    Output = CapacityReminder  # Use the renamed GraphQL type
+    Output = CapacityReminder
 
     def mutate(self, info, fcm_token, days_of_week, gyms, capacity_percent):
-        if capacity_percent < 0:
-            raise GraphQLError("Capacity percent must be a non-negative integer.")
+        if capacity_percent not in range(0, 91, 10):
+            raise GraphQLError("Capacity percent must be an interval of 10 from 0-90.")
 
         # Validate days of the week
         validated_workout_days = []
@@ -694,7 +694,7 @@ class CreateCapacityReminder(graphene.Mutation):
             except KeyError:
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
-        # Validate gym existence
+        # Validate gyma
         valid_gyms = []
         for gym in gyms:
             try:
@@ -719,7 +719,6 @@ class CreateCapacityReminder(graphene.Mutation):
         )
         db_session.add(reminder)
         db_session.commit()
-        print(reminder.gyms)
 
         return reminder
 
@@ -735,7 +734,6 @@ class ToggleCapacityReminder(graphene.Mutation):
         if not reminder:
             raise GraphQLError("CapacityReminder not found.")
 
-        # Prepare topics based on reminder's gym_id and days_of_week
         topics = [
             f"{gym}_{day}_{reminder.capacity_threshold}" for gym in reminder.gyms for day in reminder.days_of_week
         ]

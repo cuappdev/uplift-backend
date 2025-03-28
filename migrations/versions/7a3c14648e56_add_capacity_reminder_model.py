@@ -27,7 +27,6 @@ day_of_week_enum = postgresql.ENUM(
 )
 
 def upgrade():
-    # ### Ensure the table does not exist before creating ###
     op.execute("""
     DO $$ 
     BEGIN 
@@ -46,7 +45,6 @@ def upgrade():
 
 
 def downgrade():
-    # ### Drop the table safely if it exists ###
     op.execute("""
     DO $$ 
     BEGIN 
