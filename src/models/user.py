@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, ARRAY, Enum, Table, ForeignKey
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy import Column, Integer, String, ARRAY, Enum, ForeignKey
+from sqlalchemy.orm import relationship
 from src.database import Base
 from src.models.enums import DayOfWeekEnum
+from src.models.friends import Friendship
 
 class User(Base):
     """
@@ -39,31 +40,46 @@ class User(Base):
     workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)
     encoded_image = Column(String, nullable=True)
 
-    friends = relationship(
-        'User',
-        secondary=friendship,
-        primaryjoin=(friendship.c.user_id == id),
-        secondaryjoin=(friendship.c.friend_id == id),
-        backref=backref('friended_by', lazy='dynamic'),
-        lazy='dynamic'
-    )
+    friend_requests_sent = relationship("Friendship",
+                                        foreign_keys="Friendship.user_id",
+                                        back_populates="user")
+
+    friend_requests_received = relationship("Friendship",
+                                            foreign_keys="Friendship.friend_id",
+                                            back_populates="friend")
 
     def add_friend(self, friend):
-        if friend not in self.friends:
-            self.friends.append(friend)
+        # Check if friendship already exists
+        existing = Friendship.query.filter(
+            (Friendship.user_id == self.id) &
+            (Friendship.friend_id == friend.id)
+        ).first()
+
+        if not existing:
+            new_friendship = Friendship(user_id=self.id, friend_id=friend.id)
+            # Add to database session here or return for external handling
+            return new_friendship
 
     def remove_friend(self, friend):
-        if friend in self.friends:
-            self.friends.remove(friend)
+        friendship = Friendship.query.filter(
+            (Friendship.user_id == self.id) &
+            (Friendship.friend_id == friend.id)
+        ).first()
+
+        if friendship:
+            # Delete from database session here or return for external handling
+            return friendship
 
     def get_friends(self):
-        # Get direct friends (users this user has added)
-        direct_friends = self.friends.all()
+        # Get users this user has added as friends
+        direct_friends_query = Friendship.query.filter_by(user_id=self.id)
+        direct_friends = [friendship.friend for friendship in direct_friends_query]
 
         # Get users who have added this user as a friend
-        reverse_friends = self.friended_by.all()
+        reverse_friends_query = Friendship.query.filter_by(friend_id=self.id)
+        reverse_friends = [friendship.user for friendship in reverse_friends_query]
 
-        # Combine both lists and remove duplicates using set
+        # Combine both lists and remove duplicates
         all_friends = list(set(direct_friends + reverse_friends))
 
         return all_friends

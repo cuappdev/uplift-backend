@@ -136,6 +136,21 @@ enum FacilityType {
   COURT
 }
 
+type Friendship {
+  id: ID!
+  userId: Int
+  friendId: Int
+  createdAt: DateTime
+  isAccepted: Boolean
+  acceptedAt: DateTime
+  user: User
+  friend: User
+}
+
+type GetPendingFriendRequests {
+  pendingRequests: [Friendship]
+}
+
 type Giveaway {
   id: ID!
   name: String!
@@ -236,6 +251,10 @@ type Mutation {
   ): CapacityReminder
   toggleCapacityReminder(reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
+  addFriend(friendId: Int!, userId: Int!): Friendship
+  acceptFriendRequest(friendshipId: Int!): Friendship
+  removeFriend(friendId: Int!, userId: Int!): RemoveFriend
+  getPendingFriendRequests(userId: Int!): GetPendingFriendRequests
 }
 
 type OpenHours {
@@ -278,10 +297,15 @@ type Query {
   getHourlyAverageCapacitiesByFacilityId(
     facilityId: Int
   ): [HourlyAverageCapacity]
+  getUserFriends(userId: Int!): [User]
 }
 
 type RefreshAccessToken {
   newAccessToken: String
+}
+
+type RemoveFriend {
+  success: Boolean
 }
 
 type Report {
@@ -311,8 +335,10 @@ type User {
   workoutGoal: [DayOfWeekGraphQLEnum]
   encodedImage: String
   giveaways: [Giveaway]
+  friendRequestsSent: [Friendship]
+  friendRequestsReceived: [Friendship]
+  friendships: [Friendship]
   friends: [User]
-  friendedBy: [User]
 }
 
 type Workout {
