@@ -201,17 +201,39 @@ enum MuscleGroup {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
-  editUser(email: String, encodedImage: String, name: String, netId: String!): User
+  createUser(
+    email: String!
+    encodedImage: String
+    name: String!
+    netId: String!
+  ): User
+  editUser(
+    email: String
+    encodedImage: String
+    name: String
+    netId: String!
+  ): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
   loginUser(netId: String!): LoginUser
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
-  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
+  createReport(
+    createdAt: DateTime!
+    description: String!
+    gymId: Int!
+    issue: String!
+  ): CreateReport
   deleteUser(userId: Int!): User
-  createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
+  addFriend(friendNetId: String!, userNetId: String!): User
+  removeFriend(friendNetId: String!, userNetId: String!): User
+  createCapacityReminder(
+    capacityPercent: Int!
+    daysOfWeek: [String]!
+    fcmToken: String!
+    gyms: [String]!
+  ): CapacityReminder
   toggleCapacityReminder(reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
 }
@@ -245,6 +267,7 @@ enum PriceType {
 type Query {
   getAllGyms: [Gym]
   getUserByNetId(netId: String): [User]
+  getUsersFriends(id: Int): [User]
   getUsersByGiveawayId(id: Int): [User]
   getWeeklyWorkoutDays(id: Int): [String]
   getWorkoutsById(id: Int): [Workout]
@@ -252,7 +275,9 @@ type Query {
   getAllReports: [Report]
   getWorkoutGoals(id: Int!): [String]
   getUserStreak(id: Int!): JSONString
-  getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
+  getHourlyAverageCapacitiesByFacilityId(
+    facilityId: Int
+  ): [HourlyAverageCapacity]
 }
 
 type RefreshAccessToken {
@@ -286,6 +311,8 @@ type User {
   workoutGoal: [DayOfWeekGraphQLEnum]
   encodedImage: String
   giveaways: [Giveaway]
+  friends: [User]
+  friendedBy: [User]
 }
 
 type Workout {
