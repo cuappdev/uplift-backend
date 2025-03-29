@@ -11,7 +11,7 @@ if os.environ.get('FLASK_ENV') in ["development", "production"]:
     )
 
 # Create Flask app with scrapers enabled
-app = create_app(run_migrations=True)
+app = create_app(run_migrations=False)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
