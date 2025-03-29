@@ -17,6 +17,7 @@ from src.models.classes import Class as ClassModel
 from src.models.classes import ClassInstance as ClassInstanceModel
 from src.models.token_blacklist import TokenBlocklist
 from src.models.user import User as UserModel
+from src.models.friends import Friendship as FriendshipModel
 from src.models.enums import DayOfWeekGraphQLEnum, CapacityReminderGymGraphQLEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
@@ -195,12 +196,57 @@ class User(SQLAlchemyObjectType):
         model = UserModel
 
     workout_goal = graphene.List(DayOfWeekGraphQLEnum)
+    friendships = graphene.List(lambda: Friendship)
+    friends = graphene.List(lambda: User)
+
+    def resolve_friendships(self, info):
+        # Return all friendship relationships for this user
+        query = Friendship.get_query(info).filter(
+            (FriendshipModel.user_id == self.id) | (FriendshipModel.friend_id == self.id)
+        )
+        return query.all()
+
+    def resolve_friends(self, info):
+        # Return all friend users for this user
+        direct_friendships = Friendship.get_query(info).filter(FriendshipModel.user_id == self.id).all()
+        reverse_friendships = Friendship.get_query(info).filter(FriendshipModel.friend_id == self.id).all()
+
+        friend_ids = set()
+        # Add friend_ids from direct friendships
+        for friendship in direct_friendships:
+            if friendship.is_accepted:  # Only include accepted friendships
+                friend_ids.add(friendship.friend_id)
+
+        # Add user_ids from reverse friendships
+        for friendship in reverse_friendships:
+            if friendship.is_accepted:  # Only include accepted friendships
+                friend_ids.add(friendship.user_id)
+
+        # Query for all the users at once
+        return User.get_query(info).filter(UserModel.id.in_(friend_ids)).all()
 
 
 class UserInput(graphene.InputObjectType):
     net_id = graphene.String(required=True)
     giveaway_id = graphene.Int(required=True)
 
+
+# MARK: - Friendship
+
+class Friendship(SQLAlchemyObjectType):
+    class Meta:
+        model = FriendshipModel
+
+    user = graphene.Field(lambda: User)
+    friend = graphene.Field(lambda: User)
+
+    def resolve_user(self, info):
+        query = User.get_query(info).filter(UserModel.id == self.user_id).first()
+        return query
+
+    def resolve_friend(self, info):
+        query = User.get_query(info).filter(UserModel.id == self.friend_id).first()
+        return query
 
 # MARK: - Giveaway
 
@@ -239,7 +285,7 @@ class Report(SQLAlchemyObjectType):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
         return query
 
-    
+
 # MARK: - Capacity Reminder
 
 
@@ -254,6 +300,7 @@ class CapacityReminder(SQLAlchemyObjectType):
 class Query(graphene.ObjectType):
     get_all_gyms = graphene.List(Gym, description="Get all gyms.")
     get_user_by_net_id = graphene.List(User, net_id=graphene.String(), description="Get user by Net ID.")
+    get_users_friends = graphene.List(User, id=graphene.Int(), description="Get all friends of a user by ID.")
     get_users_by_giveaway_id = graphene.List(User, id=graphene.Int(), description="Get all users given a giveaway ID.")
     get_weekly_workout_days = graphene.List(
         graphene.String, id=graphene.Int(), description="Get the days a user worked out for the current week."
@@ -267,6 +314,11 @@ class Query(graphene.ObjectType):
         required=True), description="Get the current and max workout streak of a user.")
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
+    )
+    get_user_friends = graphene.List(
+        User,
+        user_id=graphene.Int(required=True),
+        description="Get all friends for a user."
     )
 
     def resolve_get_all_gyms(self, info):
@@ -282,6 +334,13 @@ class Query(graphene.ObjectType):
         if not user:
             raise GraphQLError("User with the given Net ID does not exist.")
         return user
+
+    def resolve_get_users_friends(self, info, id):
+        user = User.get_query(info).filter(UserModel.id == id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+        friends = user.get_friends()
+        return friends
 
     def resolve_get_users_by_giveaway_id(self, info, id):
         entries = GiveawayInstance.get_query(info).filter(GiveawayInstanceModel.giveaway_id == id).all()
@@ -371,13 +430,38 @@ class Query(graphene.ObjectType):
 
         return {"active_streak": active_streak, "max_streak": max_streak}
 
-
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
         if facility_id not in valid_facility_ids:
             raise GraphQLError("Invalid facility ID.")
         query = HourlyAverageCapacity.get_query(info).filter(HourlyAverageCapacityModel.facility_id == facility_id)
         return query.all()
+
+    @jwt_required()
+    def resolve_get_user_friends(self, info, user_id):
+        user = User.get_query(info).filter(UserModel.id == user_id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        # Direct friendships where user is the initiator
+        direct_friendships = Friendship.get_query(info).filter(
+            (FriendshipModel.user_id == user_id) & (FriendshipModel.is_accepted == True)
+        ).all()
+
+        # Reverse friendships where user is the recipient
+        reverse_friendships = Friendship.get_query(info).filter(
+            (FriendshipModel.friend_id == user_id) & (FriendshipModel.is_accepted == True)
+        ).all()
+
+        friend_ids = set()
+        for friendship in direct_friendships:
+            friend_ids.add(friendship.friend_id)
+
+        for friendship in reverse_friendships:
+            friend_ids.add(friendship.user_id)
+
+        # Query for all friends at once
+        return User.get_query(info).filter(UserModel.id.in_(friend_ids)).all()
 
 
 # MARK: - Mutation
@@ -473,7 +557,7 @@ class CreateUser(graphene.Mutation):
         db_session.commit()
 
         return new_user
-    
+
 class EditUser(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=False)
@@ -487,7 +571,7 @@ class EditUser(graphene.Mutation):
         existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
         if not existing_user:
             raise GraphQLError("User with given net id does not exist.")
-        
+
         if name is not None:
             existing_user.name = name
         if email is not None:
@@ -502,9 +586,9 @@ class EditUser(graphene.Mutation):
                 "image": encoded_image  # Base64-encoded image string
             }
             headers = {"Content-Type": "application/json"}
-            
+
             print(f"Uploading image with payload: {payload}")
-            
+
             try:
                 response = requests.post(upload_url, json=payload, headers=headers)
                 response.raise_for_status()
@@ -570,6 +654,51 @@ class CreateGiveaway(graphene.Mutation):
         db_session.commit()
         return giveaway
 
+class AddFriend(graphene.Mutation):
+    class Arguments:
+        user_net_id = graphene.String(required=True, description="The Net ID of the user.")
+        friend_net_id = graphene.String(required=True, description="The Net ID of the friend to add.")
+
+    Output = User
+
+    def mutate(self, info, user_net_id, friend_net_id):
+        user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
+        if not user:
+            raise GraphQLError("User with given NetID does not exist.")
+
+        friend = User.get_query(info).filter(UserModel.net_id == friend_net_id).first()
+        if not friend:
+            raise GraphQLError("Friend with given NetID does not exist.")
+
+        # Add friend
+        if friend not in user.friends:
+            user.add_friend(friend)
+
+        db_session.commit()
+        return user
+
+class RemoveFriend(graphene.Mutation):
+    class Arguments:
+        user_net_id = graphene.String(required=True, description="The Net ID of the user.")
+        friend_net_id = graphene.String(required=True, description="The Net ID of the friend to remove.")
+
+    Output = User
+
+    def mutate(self, info, user_net_id, friend_net_id):
+        user = User.get_query(info).filter(UserModel.net_id == user_net_id).first()
+        if not user:
+            raise GraphQLError("User with given NetID does not exist.")
+
+        friend = User.get_query(info).filter(UserModel.net_id == friend_net_id).first()
+        if not friend:
+            raise GraphQLError("Friend with given NetID does not exist.")
+
+        # Remove friend
+        if friend in user.friends:
+            user.remove_friend(friend)
+
+        db_session.commit()
+        return user
 
 class SetWorkoutGoals(graphene.Mutation):
     class Arguments:
@@ -785,6 +914,109 @@ class DeleteCapacityReminder(graphene.Mutation):
 
         return reminder
 
+class AddFriend(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.Int(required=True)
+        friend_id = graphene.Int(required=True)
+
+    Output = Friendship
+
+    @jwt_required()
+    def mutate(self, info, user_id, friend_id):
+        # Check if users exist
+        user = User.get_query(info).filter(UserModel.id == user_id).first()
+        if not user:
+            raise GraphQLError("User with given ID does not exist.")
+
+        friend = User.get_query(info).filter(UserModel.id == friend_id).first()
+        if not friend:
+            raise GraphQLError("Friend with given ID does not exist.")
+
+        # Check if friendship already exists
+        existing = Friendship.get_query(info).filter(
+            ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id)) |
+            ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
+        ).first()
+
+        if existing:
+            raise GraphQLError("Friendship already exists.")
+
+        # Create new friendship (not automatically accepted)
+        friendship = FriendshipModel(user_id=user_id, friend_id=friend_id)
+        db_session.add(friendship)
+        db_session.commit()
+
+        return friendship
+
+class AcceptFriendRequest(graphene.Mutation):
+    class Arguments:
+        friendship_id = graphene.Int(required=True)
+
+    Output = Friendship
+
+    @jwt_required()
+    def mutate(self, info, friendship_id):
+        # Find the friendship
+        friendship = Friendship.get_query(info).filter(FriendshipModel.id == friendship_id).first()
+        if not friendship:
+            raise GraphQLError("Friendship not found.")
+
+        # Check if already accepted
+        if friendship.is_accepted:
+            raise GraphQLError("Friendship already accepted.")
+
+        # Accept friendship
+        friendship.is_accepted = True
+        friendship.accepted_at = datetime.utcnow()
+        db_session.commit()
+
+        return friendship
+
+class RemoveFriend(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.Int(required=True)
+        friend_id = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+
+    @jwt_required()
+    def mutate(self, info, user_id, friend_id):
+        # Find the friendship
+        friendship = Friendship.get_query(info).filter(
+            ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id)) |
+            ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
+        ).first()
+
+        if not friendship:
+            raise GraphQLError("Friendship not found.")
+
+        # Delete friendship
+        db_session.delete(friendship)
+        db_session.commit()
+
+        return RemoveFriend(success=True)
+
+class GetPendingFriendRequests(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.Int(required=True)
+
+    pending_requests = graphene.List(Friendship)
+
+    @jwt_required()
+    def mutate(self, info, user_id):
+        # Check if user exists
+        user = User.get_query(info).filter(UserModel.id == user_id).first()
+        if not user:
+            raise GraphQLError("User with given ID does not exist.")
+
+        # Get pending friend requests (where this user is the friend)
+        pending = Friendship.get_query(info).filter(
+            (FriendshipModel.friend_id == user_id) &
+            (FriendshipModel.is_accepted == False)
+        ).all()
+
+        return GetPendingFriendRequests(pending_requests=pending)
+
 
 class Mutation(graphene.ObjectType):
     create_giveaway = CreateGiveaway.Field(description="Creates a new giveaway.")
@@ -798,9 +1030,16 @@ class Mutation(graphene.ObjectType):
     refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
+    add_friend = AddFriend.Field(description="Adds a friend to a user.")
+    remove_friend = RemoveFriend.Field(description="Removes a friend from a user.")
     create_capacity_reminder = CreateCapacityReminder.Field(description="Create a new capacity reminder.")
     toggle_capacity_reminder = ToggleCapacityReminder.Field(description="Toggle a capacity reminder on or off.")
     delete_capacity_reminder = DeleteCapacityReminder.Field(description="Delete a capacity reminder")
+    add_friend = AddFriend.Field(description="Send a friend request to another user.")
+    accept_friend_request = AcceptFriendRequest.Field(description="Accept a friend request.")
+    remove_friend = RemoveFriend.Field(description="Remove a friendship.")
+    get_pending_friend_requests = GetPendingFriendRequests.Field(
+        description="Get all pending friend requests for a user.")
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
