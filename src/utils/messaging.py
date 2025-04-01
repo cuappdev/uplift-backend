@@ -59,8 +59,6 @@ def send_workout_reminders():
                 token=user.fcm_token,
             )
 
-            print(payload.data)
-
             try:
                 response = messaging.send(payload)
                 print(f"Successfully sent notification for reminder {reminder.id}, response: {response}")
