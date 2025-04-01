@@ -105,7 +105,7 @@ def fetch_capacities():
 
                     current_time = int(time.time())
 
-                    is_open = any(hour.start_time <= current_time <= hour.end_time for hour in facility.hours)
+                    is_open = any(hour.start_time <= current_time < hour.end_time for hour in facility.hours)
 
                     if is_open:
                         topic_enum = gym_mapping[db_name]

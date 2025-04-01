@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ARRAY, Enum
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 from src.database import Base
 from src.models.enums import DayOfWeekEnum
 
@@ -31,3 +31,5 @@ class User(Base):
     max_streak = Column(Integer, nullable=True)
     workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)
     encoded_image = Column(String, nullable=True)
+    fcm_token = Column(String, nullable=False)
+    workout_reminders = relationship("WorkoutReminder")
