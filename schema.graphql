@@ -201,8 +201,8 @@ enum MuscleGroup {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
-  editUser(email: String, encodedImage: String, name: String, netId: String!): User
+  createUser(email: String!, encodedImage: String, fcmToken: String!, name: String!, netId: String!): User
+  editUser(email: String, encodedImage: String, fcmToken: String, name: String, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
@@ -214,6 +214,9 @@ type Mutation {
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
   toggleCapacityReminder(reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
+  createWorkoutReminder(daysOfWeek: [String]!, reminderTime: Time!, userId: Int!): WorkoutReminder
+  toggleWorkoutReminder(reminderId: Int!): WorkoutReminder
+  deleteWorkoutReminder(reminderId: Int!): WorkoutReminder
 }
 
 type OpenHours {
@@ -276,6 +279,8 @@ enum ReportType {
   OTHER
 }
 
+scalar Time
+
 type User {
   id: ID!
   email: String
@@ -285,7 +290,9 @@ type User {
   maxStreak: Int
   workoutGoal: [DayOfWeekGraphQLEnum]
   encodedImage: String
+  fcmToken: String!
   giveaways: [Giveaway]
+  workoutReminders: [WorkoutReminder]
 }
 
 type Workout {
@@ -293,4 +300,12 @@ type Workout {
   workoutTime: DateTime!
   userId: Int!
   facilityId: Int!
+}
+
+type WorkoutReminder {
+  id: ID!
+  userId: Int!
+  daysOfWeek: [DayOfWeekGraphQLEnum]
+  reminderTime: String!
+  isActive: Boolean
 }

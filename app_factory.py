@@ -6,6 +6,7 @@ from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
 from graphql.utils import schema_printer
+from src.models.workout_reminder import WorkoutReminder
 from src.database import db_session, init_db
 from src.database import Base as db
 from src.database import db_url, db_user, db_password, db_name, db_host, db_port
@@ -26,7 +27,7 @@ def initialize_firebase():
             raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
     else:
         firebase_app = firebase_admin.get_app()
-    logging.info("Firebase app created...")
+    logging.info("Firebase app created")
     return firebase_app
 
 
@@ -127,6 +128,7 @@ def setup_scrapers(app):
     from src.scrapers.class_scraper import fetch_classes
     from src.scrapers.activities_scraper import fetch_activity
     from src.utils.utils import create_gym_table
+    from src.utils.messaging import send_workout_reminders
     from src.models.openhours import OpenHours
     import os
 
@@ -197,7 +199,7 @@ def setup_scrapers(app):
 
     # Update hourly average capacity every hour
     @scheduler.task("cron", id="update_capacity", hour="*")
-    def scheduled_job():
+    def update_hourly_avg_capacity():
         current_time = datetime.now()
         current_day = current_time.strftime("%A").upper()
         current_hour = current_time.hour
@@ -206,6 +208,12 @@ def setup_scrapers(app):
             update_hourly_capacity(current_day, current_hour)
         except Exception as e:
             logging.error(f"Error updating hourly average capacity for {current_day}, hour {current_hour}: {e}")
+
+    # Send workout reminders every morning at 12:00 AM
+    @scheduler.task("cron", id="send_reminders", hour=0, minute=0)
+    def workout_reminders():
+        logging.info("Sending workout reminders...")
+        send_workout_reminders()
 
     # We're now handling job execution logging within each task function
 

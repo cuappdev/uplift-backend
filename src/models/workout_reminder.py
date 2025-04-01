@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, ForeignKey, TIME, Boolean
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy import Enum as SQLAEnum
-from src.models.user import DayOfWeekEnum
+from src.models.enums import DayOfWeekEnum
 from src.database import Base
 
 class WorkoutReminder(Base):
