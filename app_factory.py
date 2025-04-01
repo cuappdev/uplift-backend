@@ -128,7 +128,6 @@ def setup_scrapers(app):
     from src.scrapers.class_scraper import fetch_classes
     from src.scrapers.activities_scraper import fetch_activity
     from src.utils.utils import create_gym_table
-    from src.utils.messaging import send_workout_reminders
     from src.models.openhours import OpenHours
     import os
 
@@ -208,12 +207,6 @@ def setup_scrapers(app):
             update_hourly_capacity(current_day, current_hour)
         except Exception as e:
             logging.error(f"Error updating hourly average capacity for {current_day}, hour {current_hour}: {e}")
-
-    # Send workout reminders every morning at 12:00 AM
-    @scheduler.task("cron", id="send_reminders", hour=0, minute=0)
-    def workout_reminders():
-        logging.info("Sending workout reminders...")
-        send_workout_reminders()
 
     # We're now handling job execution logging within each task function
 

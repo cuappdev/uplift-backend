@@ -216,6 +216,7 @@ type Mutation {
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
   createWorkoutReminder(daysOfWeek: [String]!, reminderTime: Time!, userId: Int!): WorkoutReminder
   toggleWorkoutReminder(reminderId: Int!): WorkoutReminder
+  editWorkoutReminder(daysOfWeek: [String], reminderId: Int!, reminderTime: Time, userId: Int): WorkoutReminder
   deleteWorkoutReminder(reminderId: Int!): WorkoutReminder
 }
 
@@ -256,6 +257,7 @@ type Query {
   getWorkoutGoals(id: Int!): [String]
   getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
+  getWorkoutRemindersByUserId(userId: Int): [WorkoutReminder]
 }
 
 type RefreshAccessToken {

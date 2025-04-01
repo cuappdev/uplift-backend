@@ -240,7 +240,7 @@ class Report(SQLAlchemyObjectType):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
         return query
 
-    
+
 # MARK: - Capacity Reminder
 
 
@@ -272,13 +272,18 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(graphene.String, id=graphene.Int(required=True),
-                                      description="Get the workout goals of a user by ID.")
-    get_user_streak = graphene.Field(graphene.JSONString, id=graphene.Int(
-        required=True), description="Get the current and max workout streak of a user.")
+    get_workout_goals = graphene.List(
+        graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID."
+    )
+    get_user_streak = graphene.Field(
+        graphene.JSONString,
+        id=graphene.Int(required=True),
+        description="Get the current and max workout streak of a user.",
+    )
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
+    get_workout_reminders_by_user_id = graphene.List(WorkoutReminder, user_id=graphene.Int(), description="Get the workout reminders of a user by user ID.")
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -382,12 +387,15 @@ class Query(graphene.ObjectType):
 
         return {"active_streak": active_streak, "max_streak": max_streak}
 
-
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
         if facility_id not in valid_facility_ids:
             raise GraphQLError("Invalid facility ID.")
         query = HourlyAverageCapacity.get_query(info).filter(HourlyAverageCapacityModel.facility_id == facility_id)
+        return query.all()
+    
+    def resolve_get_workout_reminders_by_user_id(self, info, user_id):
+        query = WorkoutReminder.get_query(info).filter(WorkoutReminderModel.user_id == user_id)
         return query.all()
 
 
@@ -464,10 +472,7 @@ class CreateUser(graphene.Mutation):
 
         if encoded_image:
             upload_url = os.getenv("DIGITAL_OCEAN_URL")
-            payload = {
-                "bucket": os.getenv("BUCKET_NAME"),
-                "image": encoded_image  # Base64-encoded image string
-            }
+            payload = {"bucket": os.getenv("BUCKET_NAME"), "image": encoded_image}  # Base64-encoded image string
             headers = {"Content-Type": "application/json"}
             try:
                 response = requests.post(upload_url, json=payload, headers=headers)
@@ -485,7 +490,8 @@ class CreateUser(graphene.Mutation):
         db_session.commit()
 
         return new_user
-    
+
+
 class EditUser(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=False)
@@ -500,7 +506,7 @@ class EditUser(graphene.Mutation):
         existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
         if not existing_user:
             raise GraphQLError("User with given net id does not exist.")
-        
+
         if name is not None:
             existing_user.name = name
         if email is not None:
@@ -514,12 +520,12 @@ class EditUser(graphene.Mutation):
 
             payload = {
                 "bucket": os.getenv("BUCKET_NAME", "DEV_BUCKET"),
-                "image": encoded_image  # Base64-encoded image string
+                "image": encoded_image,  # Base64-encoded image string
             }
             headers = {"Content-Type": "application/json"}
-            
+
             print(f"Uploading image with payload: {payload}")
-            
+
             try:
                 response = requests.post(upload_url, json=payload, headers=headers)
                 response.raise_for_status()
@@ -535,6 +541,7 @@ class EditUser(graphene.Mutation):
 
         db_session.commit()
         return existing_user
+
 
 class EnterGiveaway(graphene.Mutation):
     class Arguments:
@@ -799,7 +806,7 @@ class DeleteCapacityReminder(graphene.Mutation):
         db_session.commit()
 
         return reminder
-    
+
 
 class CreateWorkoutReminder(graphene.Mutation):
     class Arguments:
@@ -823,15 +830,12 @@ class CreateWorkoutReminder(graphene.Mutation):
             except KeyError:
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
-        try:
-            reminder = WorkoutReminderModel(
-                user_id=user_id, reminder_time=reminder_time, days_of_week=validated_workout_days
-            )
-            db_session.add(reminder)
-            db_session.commit()
-        except Exception as e:
-            db_session.rollback()
-            raise GraphQLError(f"Error creating workout reminder: {str(e)}")
+        reminder = WorkoutReminderModel(
+            user_id=user_id, reminder_time=reminder_time, days_of_week=validated_workout_days
+        )
+
+        db_session.add(reminder)
+        db_session.commit()
 
         return reminder
 
@@ -848,6 +852,38 @@ class ToggleWorkoutReminder(graphene.Mutation):
             raise GraphQLError("Workout reminder not found.")
 
         reminder.is_active = not reminder.is_active
+        db_session.commit()
+
+        return reminder
+
+
+class EditWorkoutReminder(graphene.Mutation):
+    class Arguments:
+        reminder_id = graphene.Int(required=True)
+        user_id = graphene.Int(required=False)
+        reminder_time = graphene.Time(required=False)
+        days_of_week = graphene.List(graphene.String, required=False)
+
+    Output = WorkoutReminder
+
+    def mutate(self, info, reminder_id, user_id=None, reminder_time=None, days_of_week=None):
+        reminder = db_session.query(WorkoutReminderModel).filter_by(id=reminder_id).first()
+        if not reminder:
+            raise GraphQLError("Workout reminder not found.")
+
+        if user_id is not None:
+            reminder.user_id = user_id
+        if reminder_time is not None:
+            reminder.reminder_time = reminder_time
+        if days_of_week is not None:
+            validated_days = []
+            for day in days_of_week:
+                try:
+                    validated_days.append(DayOfWeekGraphQLEnum[day.upper()].value)
+                except KeyError:
+                    raise GraphQLError(f"Invalid day of the week: {day}")
+            reminder.days_of_week = validated_days
+
         db_session.commit()
 
         return reminder
@@ -887,6 +923,7 @@ class Mutation(graphene.ObjectType):
     delete_capacity_reminder = DeleteCapacityReminder.Field(description="Delete a capacity reminder")
     create_workout_reminder = CreateWorkoutReminder.Field(description="Create a new workout reminder.")
     toggle_workout_reminder = ToggleWorkoutReminder.Field(description="Toggle a workout reminder on or off.")
+    edit_workout_reminder = EditWorkoutReminder.Field(description="Edit a workout reminder.")
     delete_workout_reminder = DeleteWorkoutReminder.Field(description="Delete a workout reminder.")
 
 
