@@ -6,7 +6,6 @@ from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
 from graphql.utils import schema_printer
-from src.models.workout_reminder import WorkoutReminder
 from src.database import db_session, init_db
 from src.database import Base as db
 from src.database import db_url, db_user, db_password, db_name, db_host, db_port
