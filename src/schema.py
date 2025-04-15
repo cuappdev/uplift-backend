@@ -239,7 +239,7 @@ class Report(SQLAlchemyObjectType):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
         return query
 
-    
+
 # MARK: - Capacity Reminder
 
 
@@ -261,10 +261,14 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(graphene.String, id=graphene.Int(required=True),
-                                      description="Get the workout goals of a user by ID.")
-    get_user_streak = graphene.Field(graphene.JSONString, id=graphene.Int(
-        required=True), description="Get the current and max workout streak of a user.")
+    get_workout_goals = graphene.List(
+        graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID."
+    )
+    get_user_streak = graphene.Field(
+        graphene.JSONString,
+        id=graphene.Int(required=True),
+        description="Get the current and max workout streak of a user.",
+    )
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
@@ -371,7 +375,6 @@ class Query(graphene.ObjectType):
 
         return {"active_streak": active_streak, "max_streak": max_streak}
 
-
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
         if facility_id not in valid_facility_ids:
@@ -452,10 +455,7 @@ class CreateUser(graphene.Mutation):
 
         if encoded_image:
             upload_url = os.getenv("DIGITAL_OCEAN_URL")
-            payload = {
-                "bucket": os.getenv("BUCKET_NAME"),
-                "image": encoded_image  # Base64-encoded image string
-            }
+            payload = {"bucket": os.getenv("BUCKET_NAME"), "image": encoded_image}  # Base64-encoded image string
             headers = {"Content-Type": "application/json"}
             try:
                 response = requests.post(upload_url, json=payload, headers=headers)
@@ -473,7 +473,8 @@ class CreateUser(graphene.Mutation):
         db_session.commit()
 
         return new_user
-    
+
+
 class EditUser(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=False)
@@ -487,7 +488,7 @@ class EditUser(graphene.Mutation):
         existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
         if not existing_user:
             raise GraphQLError("User with given net id does not exist.")
-        
+
         if name is not None:
             existing_user.name = name
         if email is not None:
@@ -499,12 +500,12 @@ class EditUser(graphene.Mutation):
 
             payload = {
                 "bucket": os.getenv("BUCKET_NAME", "DEV_BUCKET"),
-                "image": encoded_image  # Base64-encoded image string
+                "image": encoded_image,  # Base64-encoded image string
             }
             headers = {"Content-Type": "application/json"}
-            
+
             print(f"Uploading image with payload: {payload}")
-            
+
             try:
                 response = requests.post(upload_url, json=payload, headers=headers)
                 response.raise_for_status()
@@ -520,6 +521,7 @@ class EditUser(graphene.Mutation):
 
         db_session.commit()
         return existing_user
+
 
 class EnterGiveaway(graphene.Mutation):
     class Arguments:
@@ -723,39 +725,61 @@ class CreateCapacityReminder(graphene.Mutation):
         return reminder
 
 
-class ToggleCapacityReminder(graphene.Mutation):
+class EditCapacityReminder(graphene.Mutation):
     class Arguments:
         reminder_id = graphene.Int(required=True)
+        gyms = graphene.List(graphene.String, required=True)
+        days_of_week = graphene.List(graphene.String, required=True)
+        capacity_percent = graphene.Int(required=True)
 
     Output = CapacityReminder
 
-    def mutate(self, info, reminder_id):
+    def mutate(self, info, reminder_id, gyms, days_of_week, capacity_percent):
         reminder = db_session.query(CapacityReminderModel).filter_by(id=reminder_id).first()
         if not reminder:
             raise GraphQLError("CapacityReminder not found.")
 
+        # Validate days of the week
+        validated_workout_days = []
+        for day in days_of_week:
+            try:
+                validated_workout_days.append(DayOfWeekGraphQLEnum[day.upper()].value)
+            except KeyError:
+                raise GraphQLError(f"Invalid day of the week: {day}")
+
+        # Validate gyms
+        valid_gyms = []
+        for gym in gyms:
+            try:
+                valid_gyms.append(CapacityReminderGymGraphQLEnum[gym].value)
+            except KeyError:
+                raise GraphQLError(f"Invalid gym: {gym}")
+
+        # Unsubscribe from old reminders
         topics = [
             f"{gym}_{day}_{reminder.capacity_threshold}" for gym in reminder.gyms for day in reminder.days_of_week
         ]
 
-        if reminder.is_active:
-            # Toggle to inactive and unsubscribe
-            for topic in topics:
-                try:
-                    messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
-                except Exception as error:
-                    raise GraphQLError(f"Error unsubscribing from topic: {error}")
-        else:
-            # Toggle to active and resubscribe
-            for topic in topics:
-                try:
-                    messaging.subscribe_to_topic(reminder.fcm_token, topic)
-                except Exception as error:
-                    raise GraphQLError(f"Error subscribing to topic: {error}")
+        for topic in topics:
+            try:
+                messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+            except Exception as error:
+                raise GraphQLError(f"Error subscribing to topic: {error}")
 
-        reminder.is_active = not reminder.is_active
+        # Subscribe to new reminders
+        topics = [f"{gym}_{day}_{reminder.capacity_threshold}" for gym in valid_gyms for day in validated_workout_days]
+
+        for topic in topics:
+            try:
+                messaging.subscribe_to_topic(reminder.fcm_token, topic)
+            except Exception as error:
+                raise GraphQLError(f"Error subscribing to topic: {error}")
+
+        reminder.gyms = valid_gyms
+        reminder.days_of_week = validated_workout_days
+        reminder.capacity_threshold = capacity_percent
+
         db_session.commit()
-
         return reminder
 
 
@@ -799,7 +823,7 @@ class Mutation(graphene.ObjectType):
     create_report = CreateReport.Field(description="Creates a new report.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
     create_capacity_reminder = CreateCapacityReminder.Field(description="Create a new capacity reminder.")
-    toggle_capacity_reminder = ToggleCapacityReminder.Field(description="Toggle a capacity reminder on or off.")
+    edit_capacity_reminder = EditCapacityReminder.Field(description="Edit capacity reminder.")
     delete_capacity_reminder = DeleteCapacityReminder.Field(description="Delete a capacity reminder")
 
 

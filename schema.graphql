@@ -212,7 +212,7 @@ type Mutation {
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
-  toggleCapacityReminder(reminderId: Int!): CapacityReminder
+  editCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
 }
 
