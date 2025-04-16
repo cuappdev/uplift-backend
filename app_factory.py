@@ -1,7 +1,7 @@
 import logging
 from datetime import timedelta, timezone
 from flask_jwt_extended import JWTManager
-from src.utils.constants import SERVICE_ACCOUNT_PATH
+from src.utils.constants import SERVICE_ACCOUNT_PATH, JWT_SECRET_KEY
 from datetime import datetime
 from flask import Flask, render_template
 from graphene import Schema
@@ -71,6 +71,7 @@ def create_app(run_migrations=False):
     schema = Schema(query=Query, mutation=Mutation)
     swagger = Swagger(app)
 
+    app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 
