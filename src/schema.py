@@ -557,7 +557,6 @@ class CreateUser(graphene.Mutation):
         db_session.commit()
 
         return new_user
-
 class EditUser(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=False)
