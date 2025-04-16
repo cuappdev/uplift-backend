@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from src.database import Base
 from datetime import datetime
@@ -8,7 +8,7 @@ class Friendship(Base):
     A friendship relationship between two users.
 
     Attributes:
-        - `id`                                    The ID of the friendship.
+        - `id`                 The ID of the friendship.
         - `user_id`            The ID of the user who initiated the friendship.
         - `friend_id`          The ID of the user who received the friendship request.
         - `created_at`         When the friendship was created.
@@ -19,8 +19,9 @@ class Friendship(Base):
     __tablename__ = "friends"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    friend_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    __table_args__ = (UniqueConstraint('user_id', 'friend_id', name='unique_friendship'),)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     is_accepted = Column(Boolean, default=False)

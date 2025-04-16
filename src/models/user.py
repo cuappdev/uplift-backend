@@ -23,13 +23,6 @@ class User(Base):
 
     __tablename__ = "users"
 
-    friendship = Table(
-        "friends",
-        Base.metadata,
-        Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
-        Column("friend_id", Integer, ForeignKey("users.id"), primary_key=True),
-    )
-
     id = Column(Integer, primary_key=True)
     email = Column(String, nullable=True)
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")

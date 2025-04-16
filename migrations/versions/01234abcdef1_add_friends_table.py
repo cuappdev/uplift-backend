@@ -20,6 +20,7 @@ depends_on = None
 def upgrade():
     # Create friends table
     op.create_table('friends',
+                    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
                     sa.Column('user_id', sa.Integer(), nullable=False),
                     sa.Column('friend_id', sa.Integer(), nullable=False),
                     sa.Column('created_at', sa.DateTime(), nullable=True, default=datetime.utcnow),
@@ -27,7 +28,7 @@ def upgrade():
                     sa.Column('accepted_at', sa.DateTime(), nullable=True),
                     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
                     sa.ForeignKeyConstraint(['friend_id'], ['users.id'], ondelete='CASCADE'),
-                    sa.PrimaryKeyConstraint('user_id', 'friend_id')
+                    sa.PrimaryKeyConstraint('id')
                     )
 
 

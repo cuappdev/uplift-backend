@@ -138,8 +138,8 @@ enum FacilityType {
 
 type Friendship {
   id: ID!
-  userId: Int
-  friendId: Int
+  userId: Int!
+  friendId: Int!
   createdAt: DateTime
   isAccepted: Boolean
   acceptedAt: DateTime
@@ -216,39 +216,17 @@ enum MuscleGroup {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(
-    email: String!
-    encodedImage: String
-    name: String!
-    netId: String!
-  ): User
-  editUser(
-    email: String
-    encodedImage: String
-    name: String
-    netId: String!
-  ): User
+  createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
+  editUser(email: String, encodedImage: String, name: String, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
   loginUser(netId: String!): LoginUser
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
-  createReport(
-    createdAt: DateTime!
-    description: String!
-    gymId: Int!
-    issue: String!
-  ): CreateReport
+  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
-  addFriend(friendNetId: String!, userNetId: String!): User
-  removeFriend(friendNetId: String!, userNetId: String!): User
-  createCapacityReminder(
-    capacityPercent: Int!
-    daysOfWeek: [String]!
-    fcmToken: String!
-    gyms: [String]!
-  ): CapacityReminder
+  createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
   toggleCapacityReminder(reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
   addFriend(friendId: Int!, userId: Int!): Friendship
@@ -294,9 +272,7 @@ type Query {
   getAllReports: [Report]
   getWorkoutGoals(id: Int!): [String]
   getUserStreak(id: Int!): JSONString
-  getHourlyAverageCapacitiesByFacilityId(
-    facilityId: Int
-  ): [HourlyAverageCapacity]
+  getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
   getUserFriends(userId: Int!): [User]
 }
 
