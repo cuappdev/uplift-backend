@@ -324,6 +324,15 @@ class Query(graphene.ObjectType):
         user_id=graphene.Int(required=True),
         description="Get all friends for a user."
     )
+    get_capacity_reminder_by_id = graphene.Field(
+        CapacityReminder,
+        id=graphene.Int(required=True),
+        description="Get a specific capacity reminder by its ID."
+    )
+    get_all_capacity_reminders = graphene.List(
+        CapacityReminder,
+        description="Get all capacity reminders."
+    )
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -466,6 +475,20 @@ class Query(graphene.ObjectType):
 
         # Query for all friends at once
         return User.get_query(info).filter(UserModel.id.in_(friend_ids)).all()
+    
+    @jwt_required()
+    def resolve_get_capacity_reminder_by_id(self, info, id):
+        reminder = CapacityReminder.get_query(info).filter(CapacityReminderModel.id == id).first()
+
+        if not reminder:
+            raise GraphQLError("Capacity reminder with the given ID does not exist.")
+
+        return reminder
+    
+    @jwt_required()
+    def resolve_get_all_capacity_reminders(self, info):
+        query = CapacityReminder.get_query(info)
+        return query.all()
 
 
 # MARK: - Mutation
