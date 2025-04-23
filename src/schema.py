@@ -292,6 +292,7 @@ class Report(SQLAlchemyObjectType):
 class CapacityReminder(SQLAlchemyObjectType):
     class Meta:
         model = CapacityReminderModel
+        exclude_fields = ("fcm_token",)
 
 
 # MARK: - Query
