@@ -71,7 +71,7 @@ termcolor==2.2.0
 toml==0.10.2
 typing==3.6.6
 typing-extensions==4.7.1
-urllib3==1.26.14
+urllib3==1.26.18
 virtualenv==20.24.5
 wasmer==1.1.0
 wasmer-compiler-cranelift==1.1.0
