@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, ForeignKey, ARRAY, Boolean, Table, String
+from sqlalchemy import Column, Integer, ARRAY, Boolean, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy import Enum as SQLAEnum
 from src.models.enums import DayOfWeekEnum, CapacityReminderGym
@@ -15,6 +16,7 @@ class CapacityReminder(Base):
         - `capacity_threshold`                    Notify user when gym capacity dips below this percentage.
         - `days_of_week`                          The days of the week when the reminder is active.
         - `is_active`                             Whether the reminder is currently active (default is True).
+        - `reminder_schedule`                     The JSON for the schedule for capacity reminders based on day and time.
     """
 
     __tablename__ = "capacity_reminder"
@@ -25,3 +27,4 @@ class CapacityReminder(Base):
     capacity_threshold = Column(Integer, nullable=False)
     days_of_week = Column(ARRAY(SQLAEnum(DayOfWeekEnum)), nullable=False)
     is_active = Column(Boolean, default=True)
+    reminder_schedule = Column(JSONB, nullable=False)

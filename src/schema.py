@@ -828,6 +828,10 @@ class DeleteUserById(graphene.Mutation):
         db_session.commit()
         return user
 
+class DailyReminderTimeInput(graphene.InputObjectType):
+    day = graphene.String(required=True)
+    start_time = graphene.Time(required=True)
+    end_time = graphene.Time(required=True)
 
 class CreateCapacityReminder(graphene.Mutation):
     class Arguments:
@@ -835,10 +839,11 @@ class CreateCapacityReminder(graphene.Mutation):
         gyms = graphene.List(graphene.String, required=True)
         days_of_week = graphene.List(graphene.String, required=True)
         capacity_percent = graphene.Int(required=True)
+        reminder_schedule = graphene.List(DailyReminderTimeInput, required=True)
 
     Output = CapacityReminder
 
-    def mutate(self, info, fcm_token, days_of_week, gyms, capacity_percent):
+    def mutate(self, info, fcm_token, days_of_week, gyms, capacity_percent, reminder_schedule):
         if capacity_percent not in range(0, 91, 10):
             raise GraphQLError("Capacity percent must be an interval of 10 from 0-90.")
 
@@ -857,6 +862,22 @@ class CreateCapacityReminder(graphene.Mutation):
                 valid_gyms.append(CapacityReminderGymGraphQLEnum[gym].value)
             except KeyError:
                 raise GraphQLError(f"Invalid gym: {gym}")
+            
+        reminder_schedule_data = []
+        for entry in reminder_schedule:
+            try:
+                day = DayOfWeekGraphQLEnum[entry.day.upper()].value
+            except KeyError:
+                raise GraphQLError(f"Invalid day in reminder_schedule: {entry.day}")
+
+            if entry.start_time >= entry.end_time:
+                raise GraphQLError(f"Start time must be before end time")
+
+            reminder_schedule_data.append({
+                "day": day,
+                "start_time": str(entry.start_time),
+                "end_time": str(entry.end_time)
+            })
 
         # Subscribe to Firebase topics for each gym and day
         for gym in valid_gyms:
@@ -872,6 +893,7 @@ class CreateCapacityReminder(graphene.Mutation):
             gyms=valid_gyms,
             capacity_threshold=capacity_percent,
             days_of_week=validated_workout_days,
+            reminder_schedule=reminder_schedule_data
         )
         db_session.add(reminder)
         db_session.commit()
@@ -885,10 +907,11 @@ class EditCapacityReminder(graphene.Mutation):
         gyms = graphene.List(graphene.String, required=True)
         days_of_week = graphene.List(graphene.String, required=True)
         capacity_percent = graphene.Int(required=True)
+        reminder_schedule = graphene.List(DailyReminderTimeInput, required=True)
 
     Output = CapacityReminder
 
-    def mutate(self, info, reminder_id, gyms, days_of_week, capacity_percent):
+    def mutate(self, info, reminder_id, gyms, days_of_week, capacity_percent, reminder_schedule):
         reminder = db_session.query(CapacityReminderModel).filter_by(id=reminder_id).first()
         if not reminder:
             raise GraphQLError("CapacityReminder not found.")
@@ -909,6 +932,21 @@ class EditCapacityReminder(graphene.Mutation):
             except KeyError:
                 raise GraphQLError(f"Invalid gym: {gym}")
 
+        reminder_schedule_data = []
+        for entry in reminder_schedule:
+            try:
+                day = DayOfWeekGraphQLEnum[entry.day.upper()].value
+            except KeyError:
+                raise GraphQLError(f"Invalid day in reminder_schedule: {entry.day}")
+
+            if entry.start_time >= entry.end_time:
+                raise GraphQLError("Start time must be before end time")
+
+            reminder_schedule_data.append({
+                "day": day,
+                "start_time": str(entry.start_time),
+                "end_time": str(entry.end_time)
+            })
         # Unsubscribe from old reminders
         topics = [
             f"{gym}_{day}_{reminder.capacity_threshold}" for gym in reminder.gyms for day in reminder.days_of_week
@@ -932,6 +970,7 @@ class EditCapacityReminder(graphene.Mutation):
         reminder.gyms = valid_gyms
         reminder.days_of_week = validated_workout_days
         reminder.capacity_threshold = capacity_percent
+        reminder.reminder_schedule = reminder_schedule_data
 
         db_session.commit()
         return reminder

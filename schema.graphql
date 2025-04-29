@@ -45,6 +45,7 @@ type CapacityReminder {
   capacityThreshold: Int!
   daysOfWeek: [DayOfWeekEnum]!
   isActive: Boolean
+  reminderSchedule: JSONString!
 }
 
 enum CapacityReminderGym {
@@ -84,6 +85,12 @@ enum CourtType {
 
 type CreateReport {
   report: Report
+}
+
+input DailyReminderTimeInput {
+  day: String!
+  startTime: Time!
+  endTime: Time!
 }
 
 scalar DateTime
@@ -226,8 +233,8 @@ type Mutation {
   refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
-  createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
-  editCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, reminderId: Int!): CapacityReminder
+  createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!, reminderSchedule: [DailyReminderTimeInput]!): CapacityReminder
+  editCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, reminderId: Int!, reminderSchedule: [DailyReminderTimeInput]!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
   addFriend(friendId: Int!, userId: Int!): Friendship
   acceptFriendRequest(friendshipId: Int!): Friendship
@@ -300,6 +307,8 @@ enum ReportType {
   WAIT_TIMES_NOT_UPDATED
   OTHER
 }
+
+scalar Time
 
 type User {
   id: ID!

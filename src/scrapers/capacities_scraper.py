@@ -6,6 +6,7 @@ from datetime import datetime
 from src.database import db_session
 from src.utils.messaging import send_capacity_reminder
 from src.models.capacity import Capacity
+from src.models.capacity_reminder import CapacityReminder
 from src.models.hourly_average_capacity import HourlyAverageCapacity
 from src.models.facility import Facility
 from src.models.enums import DayOfWeekEnum, CapacityReminderGym
@@ -205,6 +206,7 @@ def check_and_send_capacity_reminders(facility_name, readable_name, current_perc
     last_percent_int = int(last_percent * 100)
 
     current_day_name = datetime.now().strftime("%A").upper()
+    current_time = datetime.now().time()
 
     # Define threshold levels
     thresholds = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
@@ -213,6 +215,26 @@ def check_and_send_capacity_reminders(facility_name, readable_name, current_perc
     crossed_thresholds = [p for p in thresholds if last_percent_int > p >= current_percent_int]
 
     for threshold in crossed_thresholds:
-        topic_name = f"{facility_name}_{current_day_name}_{threshold}"
-        print(f"Sending message to devices subscribed to {topic_name}")
-        send_capacity_reminder(topic_name, readable_name, threshold)
+        print(f"Checking reminders for {facility_name} at {threshold}% on {current_day_name}...")
+        
+        matching_reminders = CapacityReminder.query.filter(
+            CapacityReminder.is_active == True,
+            CapacityReminder.capacity_threshold == threshold,
+            CapacityReminder.gyms.any(facility_name),
+            CapacityReminder.days_of_week.any(current_day_name)
+        ).all()
+        
+        for reminder in matching_reminders:
+            for window in reminder.reminder_schedule:
+                if window["day"].upper() != current_day_name:
+                    continue
+
+                start_time = datetime.strptime(window["start_time"], "%H:%M:%S").time()
+                end_time = datetime.strptime(window["end_time"], "%H:%M:%S").time()
+                print(start_time)
+                print(end_time)
+
+                if start_time <= current_time <= end_time:
+                    print(f"Sending message to {reminder.fcm_token}")
+                    send_capacity_reminder(reminder.fcm_token, readable_name, threshold)
+                    break
