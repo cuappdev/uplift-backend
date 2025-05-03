@@ -136,6 +136,21 @@ enum FacilityType {
   COURT
 }
 
+type Friendship {
+  id: ID!
+  userId: Int!
+  friendId: Int!
+  createdAt: DateTime
+  isAccepted: Boolean
+  acceptedAt: DateTime
+  user: User
+  friend: User
+}
+
+type GetPendingFriendRequests {
+  pendingRequests: [Friendship]
+}
+
 type Giveaway {
   id: ID!
   name: String!
@@ -212,12 +227,16 @@ type Mutation {
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
-  toggleCapacityReminder(reminderId: Int!): CapacityReminder
+  editCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
   createWorkoutReminder(daysOfWeek: [String]!, reminderTime: Time!, userId: Int!): WorkoutReminder
   toggleWorkoutReminder(reminderId: Int!): WorkoutReminder
   editWorkoutReminder(daysOfWeek: [String], reminderId: Int!, reminderTime: Time, userId: Int): WorkoutReminder
   deleteWorkoutReminder(reminderId: Int!): WorkoutReminder
+  addFriend(friendId: Int!, userId: Int!): Friendship
+  acceptFriendRequest(friendshipId: Int!): Friendship
+  removeFriend(friendId: Int!, userId: Int!): RemoveFriend
+  getPendingFriendRequests(userId: Int!): GetPendingFriendRequests
 }
 
 type OpenHours {
@@ -249,6 +268,7 @@ enum PriceType {
 type Query {
   getAllGyms: [Gym]
   getUserByNetId(netId: String): [User]
+  getUsersFriends(id: Int): [User]
   getUsersByGiveawayId(id: Int): [User]
   getWeeklyWorkoutDays(id: Int): [String]
   getWorkoutsById(id: Int): [Workout]
@@ -258,10 +278,15 @@ type Query {
   getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
   getWorkoutRemindersByUserId(userId: Int): [WorkoutReminder]
+  getUserFriends(userId: Int!): [User]
 }
 
 type RefreshAccessToken {
   newAccessToken: String
+}
+
+type RemoveFriend {
+  success: Boolean
 }
 
 type Report {
@@ -295,6 +320,10 @@ type User {
   fcmToken: String!
   giveaways: [Giveaway]
   workoutReminders: [WorkoutReminder]
+  friendRequestsSent: [Friendship]
+  friendRequestsReceived: [Friendship]
+  friendships: [Friendship]
+  friends: [User]
 }
 
 type Workout {
