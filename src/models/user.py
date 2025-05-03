@@ -32,6 +32,8 @@ class User(Base):
     max_streak = Column(Integer, nullable=True)
     workout_goal = Column(ARRAY(Enum(DayOfWeekEnum)), nullable=True)
     encoded_image = Column(String, nullable=True)
+    fcm_token = Column(String, nullable=False)
+    workout_reminders = relationship("WorkoutReminder")
 
     friend_requests_sent = relationship("Friendship",
                                         foreign_keys="Friendship.user_id",

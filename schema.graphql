@@ -216,8 +216,8 @@ enum MuscleGroup {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
-  editUser(email: String, encodedImage: String, name: String, netId: String!): User
+  createUser(email: String!, encodedImage: String, fcmToken: String!, name: String!, netId: String!): User
+  editUser(email: String, encodedImage: String, fcmToken: String, name: String, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
@@ -229,6 +229,10 @@ type Mutation {
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
   editCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
+  createWorkoutReminder(daysOfWeek: [String]!, reminderTime: Time!, userId: Int!): WorkoutReminder
+  toggleWorkoutReminder(reminderId: Int!): WorkoutReminder
+  editWorkoutReminder(daysOfWeek: [String], reminderId: Int!, reminderTime: Time, userId: Int): WorkoutReminder
+  deleteWorkoutReminder(reminderId: Int!): WorkoutReminder
   addFriend(friendId: Int!, userId: Int!): Friendship
   acceptFriendRequest(friendshipId: Int!): Friendship
   removeFriend(friendId: Int!, userId: Int!): RemoveFriend
@@ -273,6 +277,7 @@ type Query {
   getWorkoutGoals(id: Int!): [String]
   getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
+  getWorkoutRemindersByUserId(userId: Int): [WorkoutReminder]
   getUserFriends(userId: Int!): [User]
 }
 
@@ -301,6 +306,8 @@ enum ReportType {
   OTHER
 }
 
+scalar Time
+
 type User {
   id: ID!
   email: String
@@ -310,7 +317,9 @@ type User {
   maxStreak: Int
   workoutGoal: [DayOfWeekGraphQLEnum]
   encodedImage: String
+  fcmToken: String!
   giveaways: [Giveaway]
+  workoutReminders: [WorkoutReminder]
   friendRequestsSent: [Friendship]
   friendRequestsReceived: [Friendship]
   friendships: [Friendship]
@@ -322,4 +331,12 @@ type Workout {
   workoutTime: DateTime!
   userId: Int!
   facilityId: Int!
+}
+
+type WorkoutReminder {
+  id: ID!
+  userId: Int!
+  daysOfWeek: [DayOfWeekGraphQLEnum]
+  reminderTime: String!
+  isActive: Boolean
 }

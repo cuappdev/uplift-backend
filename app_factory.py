@@ -26,7 +26,7 @@ def initialize_firebase():
             raise ValueError("GOOGLE_SERVICE_ACCOUNT_PATH environment variable not set.")
     else:
         firebase_app = firebase_admin.get_app()
-    logging.info("Firebase app created...")
+    logging.info("Firebase app created")
     return firebase_app
 
 
@@ -198,7 +198,7 @@ def setup_scrapers(app):
 
     # Update hourly average capacity every hour
     @scheduler.task("cron", id="update_capacity", hour="*")
-    def scheduled_job():
+    def update_hourly_avg_capacity():
         current_time = datetime.now()
         current_day = current_time.strftime("%A").upper()
         current_hour = current_time.hour
