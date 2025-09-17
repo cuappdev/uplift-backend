@@ -102,6 +102,10 @@ def add_special_facility_hours(start_time, end_time, facility_id, court_type=Non
     # Convert datetime objects to Unix
     start_unix = unix_time(start_time)
     end_unix = unix_time(end_time)
+
+    if start_unix == end_unix:
+        print(f"Skipping special hours because times are equal: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}")
+        return
     
     print(f"Adding special hours: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}, is_special=True")
 

@@ -38,6 +38,23 @@ type Capacity {
   updated: Int!
 }
 
+type CapacityReminder {
+  id: ID!
+  fcmToken: String!
+  gyms: [CapacityReminderGym]!
+  capacityThreshold: Int!
+  daysOfWeek: [DayOfWeekEnum]!
+  isActive: Boolean
+}
+
+enum CapacityReminderGym {
+  TEAGLEUP
+  TEAGLEDOWN
+  HELENNEWMAN
+  TONIMORRISON
+  NOYES
+}
+
 type Class {
   id: ID!
   name: String!
@@ -70,6 +87,16 @@ type CreateReport {
 }
 
 scalar DateTime
+
+enum DayOfWeekEnum {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
 
 enum DayOfWeekGraphQLEnum {
   MONDAY
@@ -107,6 +134,21 @@ enum FacilityType {
   POOL
   BOWLING
   COURT
+}
+
+type Friendship {
+  id: ID!
+  userId: Int!
+  friendId: Int!
+  createdAt: DateTime
+  isAccepted: Boolean
+  acceptedAt: DateTime
+  user: User
+  friend: User
+}
+
+type GetPendingFriendRequests {
+  pendingRequests: [Friendship]
 }
 
 type Giveaway {
@@ -184,6 +226,13 @@ type Mutation {
   refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
+  createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
+  editCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, reminderId: Int!): CapacityReminder
+  deleteCapacityReminder(reminderId: Int!): CapacityReminder
+  addFriend(friendId: Int!, userId: Int!): Friendship
+  acceptFriendRequest(friendshipId: Int!): Friendship
+  removeFriend(friendId: Int!, userId: Int!): RemoveFriend
+  getPendingFriendRequests(userId: Int!): GetPendingFriendRequests
 }
 
 type OpenHours {
@@ -215,6 +264,7 @@ enum PriceType {
 type Query {
   getAllGyms: [Gym]
   getUserByNetId(netId: String): [User]
+  getUsersFriends(id: Int): [User]
   getUsersByGiveawayId(id: Int): [User]
   getWeeklyWorkoutDays(id: Int): [String]
   getWorkoutsById(id: Int): [Workout]
@@ -223,10 +273,15 @@ type Query {
   getWorkoutGoals(id: Int!): [String]
   getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
+  getUserFriends(userId: Int!): [User]
 }
 
 type RefreshAccessToken {
   newAccessToken: String
+}
+
+type RemoveFriend {
+  success: Boolean
 }
 
 type Report {
@@ -256,6 +311,10 @@ type User {
   workoutGoal: [DayOfWeekGraphQLEnum]
   encodedImage: String
   giveaways: [Giveaway]
+  friendRequestsSent: [Friendship]
+  friendRequestsReceived: [Friendship]
+  friendships: [Friendship]
+  friends: [User]
 }
 
 type Workout {

@@ -20,3 +20,17 @@ class DayOfWeekGraphQLEnum(GrapheneEnum):
     FRIDAY = "FRIDAY"
     SATURDAY = "SATURDAY"
     SUNDAY = "SUNDAY"
+
+class CapacityReminderGym(enum.Enum):
+    TEAGLEUP = "TEAGLEUP"
+    TEAGLEDOWN = "TEAGLEDOWN"
+    HELENNEWMAN = "HELENNEWMAN"
+    TONIMORRISON = "TONIMORRISON"
+    NOYES = "NOYES"
+
+class CapacityReminderGymGraphQLEnum(GrapheneEnum):
+    TEAGLEUP = "TEAGLEUP"
+    TEAGLEDOWN = "TEAGLEDOWN"
+    HELENNEWMAN = "HELENNEWMAN"
+    TONIMORRISON = "TONIMORRISON"
+    NOYES = "NOYES"
