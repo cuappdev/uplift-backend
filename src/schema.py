@@ -918,7 +918,9 @@ class EditCapacityReminder(graphene.Mutation):
 
         for topic in topics:
             try:
-                messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -927,7 +929,9 @@ class EditCapacityReminder(graphene.Mutation):
 
         for topic in topics:
             try:
-                messaging.subscribe_to_topic(reminder.fcm_token, topic)
+                response = messaging.subscribe_to_topic(reminder.fcm_token, topic)
+                if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -956,7 +960,9 @@ class DeleteCapacityReminder(graphene.Mutation):
 
         for topic in topics:
             try:
-                messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error unsubscribing from topic {topic}: {error}")
 
