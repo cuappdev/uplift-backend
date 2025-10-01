@@ -1,5 +1,6 @@
 import requests
 import time
+import logging
 from bs4 import BeautifulSoup
 from collections import namedtuple
 from datetime import datetime
@@ -71,7 +72,7 @@ def fetch_capacities():
 
                 # Map API name to database name
                 if facility_name not in CAPACITY_MARKER_NAMES:
-                    print(f"Warning: No name mapping for facility: {facility_name}")
+                    logging.info(f"Warning: No name mapping for facility: {facility_name}")
                     continue
 
                 db_name = CAPACITY_MARKER_NAMES[facility_name]
@@ -100,24 +101,33 @@ def fetch_capacities():
                     facility = Facility.query.filter_by(id=facility_id).first()
 
                     if not facility or not facility.hours:
-                        print(f"Warning: No hours found for facility ID {facility_id}")
+                        logging.info(f"Warning: No hours found for facility ID {facility_id}")
                         continue
 
                     current_time = int(time.time())
-
+                    
                     is_open = any(hour.start_time <= current_time <= hour.end_time for hour in facility.hours)
+                    
+                    logging.info("nicole: before send notif")
 
                     if is_open:
                         topic_enum = gym_mapping[db_name]
                         check_and_send_capacity_reminders(topic_enum.name, db_name, percent, last_percent)
-
+                    
+                    logging.info("nicole: after send notif")
+                    
+                logging.info("nicole: before add single cap")
+                
                 add_single_capacity(count, facility_id, percent, updated)
+                
+                logging.info("nicole: after add single cap")
 
             except Exception as e:
-                print(f"Error processing facility {facility.get('LocationName', 'unknown')}: {str(e)}")
-
+                logging.exception(f"Error processing facility {facility.get('LocationName', 'unknown')}: {str(e)}")
+                db_session.rollback()
+                
     except Exception as e:
-        print(f"Error fetching capacities: {str(e)}")
+        logging.error(f"Error fetching capacities: {str(e)}")
         raise
 
 
@@ -177,10 +187,10 @@ def update_hourly_capacity(curDay, curHour):
             )
 
             if hourly_average_capacity is not None:
-                print("updating average")
+                logging.info("updating average")
                 hourly_average_capacity.update_hourly_average(capacity.percent)
             else:
-                print("No hourly capacity, creating new entry")
+                logging.info("No hourly capacity, creating new entry")
                 hourly_average_capacity = HourlyAverageCapacity(
                     facility_id=capacity.facility_id,
                     average_percent=capacity.percent,
@@ -193,7 +203,7 @@ def update_hourly_capacity(curDay, curHour):
             db_session.commit()
 
         except Exception as e:
-            print(f"Error updating hourly average: {e}")
+            logging.error(f"Error updating hourly average: {e}")
 
 
 def check_and_send_capacity_reminders(facility_name, readable_name, current_percent, last_percent):
@@ -214,5 +224,5 @@ def check_and_send_capacity_reminders(facility_name, readable_name, current_perc
 
     for threshold in crossed_thresholds:
         topic_name = f"{facility_name}_{current_day_name}_{threshold}"
-        print(f"Sending message to devices subscribed to {topic_name}")
+        logging.info(f"Sending message to devices subscribed to {topic_name}")
         send_capacity_reminder(topic_name, readable_name, threshold)
