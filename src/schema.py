@@ -863,7 +863,9 @@ class CreateCapacityReminder(graphene.Mutation):
             for day in validated_workout_days:
                 topic_name = f"{gym}_{day}_{capacity_percent}"
                 try:
-                    messaging.subscribe_to_topic(fcm_token, topic_name)
+                    response = messaging.subscribe_to_topic(fcm_token, topic_name)
+                    if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
                 except Exception as error:
                     raise GraphQLError(f"Error subscribing to topic for {topic_name}: {error}")
 
