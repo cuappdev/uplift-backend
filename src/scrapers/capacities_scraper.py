@@ -108,23 +108,23 @@ def fetch_capacities():
                     
                     is_open = any(hour.start_time <= current_time <= hour.end_time for hour in facility.hours)
                     
-                    logging.info("nicole: before send notif")
+                    logging.info("rollback error: before send notif")
 
                     if is_open:
                         topic_enum = gym_mapping[db_name]
                         check_and_send_capacity_reminders(topic_enum.name, db_name, percent, last_percent)
                     
-                    logging.info("nicole: after send notif")
+                    logging.info("rollback error: after send notif")
                     
-                logging.info("nicole: before add single cap")
+                logging.info("rollback error: before add single cap")
                 
                 add_single_capacity(count, facility_id, percent, updated)
                 
-                logging.info("nicole: after add single cap")
+                logging.info("rollback error: after add single cap")
 
             except Exception as e:
                 logging.exception(f"Error processing facility {facility.get('LocationName', 'unknown')}: {str(e)}")
-                db_session.rollback()
+                # db_session.rollback()
                 
     except Exception as e:
         logging.error(f"Error fetching capacities: {str(e)}")
