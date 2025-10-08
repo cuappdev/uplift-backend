@@ -863,7 +863,9 @@ class CreateCapacityReminder(graphene.Mutation):
             for day in validated_workout_days:
                 topic_name = f"{gym}_{day}_{capacity_percent}"
                 try:
-                    messaging.subscribe_to_topic(fcm_token, topic_name)
+                    response = messaging.subscribe_to_topic(fcm_token, topic_name)
+                    if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
                 except Exception as error:
                     raise GraphQLError(f"Error subscribing to topic for {topic_name}: {error}")
 
@@ -916,7 +918,9 @@ class EditCapacityReminder(graphene.Mutation):
 
         for topic in topics:
             try:
-                messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -925,7 +929,9 @@ class EditCapacityReminder(graphene.Mutation):
 
         for topic in topics:
             try:
-                messaging.subscribe_to_topic(reminder.fcm_token, topic)
+                response = messaging.subscribe_to_topic(reminder.fcm_token, topic)
+                if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -954,7 +960,9 @@ class DeleteCapacityReminder(graphene.Mutation):
 
         for topic in topics:
             try:
-                messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                if response.success_count == 0:
+                        raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error unsubscribing from topic {topic}: {error}")
 
