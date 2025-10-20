@@ -884,13 +884,13 @@ class CreateCapacityReminder(graphene.Mutation):
 class EditCapacityReminder(graphene.Mutation):
     class Arguments:
         reminder_id = graphene.Int(required=True)
-        gyms = graphene.List(graphene.String, required=True)
+        new_gyms = graphene.List(graphene.String, required=True)
         days_of_week = graphene.List(graphene.String, required=True)
-        capacity_percent = graphene.Int(required=True)
+        new_capacity_threshold = graphene.Int(required=True)
 
     Output = CapacityReminder
 
-    def mutate(self, info, reminder_id, gyms, days_of_week, capacity_percent):
+    def mutate(self, info, reminder_id, new_gyms, days_of_week, new_capacity_threshold):
         reminder = db_session.query(CapacityReminderModel).filter_by(id=reminder_id).first()
         if not reminder:
             raise GraphQLError("CapacityReminder not found.")
@@ -904,10 +904,10 @@ class EditCapacityReminder(graphene.Mutation):
                 raise GraphQLError(f"Invalid day of the week: {day}")
 
         # Validate gyms
-        valid_gyms = []
-        for gym in gyms:
+        new_valid_gyms = []
+        for gym in new_gyms:
             try:
-                valid_gyms.append(CapacityReminderGymGraphQLEnum[gym].value)
+                new_valid_gyms.append(CapacityReminderGymGraphQLEnum[gym].value)
             except KeyError:
                 raise GraphQLError(f"Invalid gym: {gym}")
 
@@ -925,7 +925,7 @@ class EditCapacityReminder(graphene.Mutation):
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
         # Subscribe to new reminders
-        topics = [f"{gym}_{day}_{reminder.capacity_threshold}" for gym in valid_gyms for day in validated_workout_days]
+        topics = [f"{gym}_{day}_{new_capacity_threshold}" for gym in new_valid_gyms for day in validated_workout_days]
 
         for topic in topics:
             try:
@@ -935,9 +935,9 @@ class EditCapacityReminder(graphene.Mutation):
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
-        reminder.gyms = valid_gyms
+        reminder.gyms = new_valid_gyms
         reminder.days_of_week = validated_workout_days
-        reminder.capacity_threshold = capacity_percent
+        reminder.capacity_threshold = new_capacity_threshold
 
         db_session.commit()
         return reminder
