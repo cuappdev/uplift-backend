@@ -928,11 +928,9 @@ class EditCapacityReminder(graphene.Mutation):
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
                 logging.info(
-                    "Unsubscribe %s from %s -> success: %d failure: %d",
+                    "Unsubscribe %s from %s",
                     reminder.fcm_token[:12],
                     topic,
-                    response.success_count,
-                    response.failure_count,
                 )
                 for error in response.errors:
                     logging.warning(
@@ -950,11 +948,9 @@ class EditCapacityReminder(graphene.Mutation):
             try:
                 response = messaging.subscribe_to_topic(reminder.fcm_token, topic)
                 logging.info(
-                    "Resubscribing %s to %s -> success: %d failure: %d",
+                    "Resubscribing %s to %s",
                     reminder.fcm_token[:12],
                     topic,
-                    response.success_count,
-                    response.failure_count,
                 )
                 if response.success_count == 0:
                     raise Exception(response.errors[0].reason)
@@ -990,11 +986,9 @@ class DeleteCapacityReminder(graphene.Mutation):
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
                 logging.info(
-                    "Unsubscribe %s from %s -> success: %d failure: %d",
+                    "Unsubscribe %s from %s",
                     reminder.fcm_token[:12],
                     topic,
-                    response.success_count,
-                    response.failure_count,
                 )
                 if response.success_count == 0:
                         raise Exception(response.errors[0].reason)
