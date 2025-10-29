@@ -40,7 +40,6 @@ type Capacity {
 
 type CapacityReminder {
   id: ID!
-  fcmToken: String!
   gyms: [CapacityReminderGym]!
   capacityThreshold: Int!
   daysOfWeek: [DayOfWeekEnum]!
@@ -227,7 +226,7 @@ type Mutation {
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteUser(userId: Int!): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
-  editCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, gyms: [String]!, reminderId: Int!): CapacityReminder
+  editCapacityReminder(daysOfWeek: [String]!, newCapacityThreshold: Int!, newGyms: [String]!, reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
   addFriend(friendId: Int!, userId: Int!): Friendship
   acceptFriendRequest(friendshipId: Int!): Friendship
@@ -274,6 +273,8 @@ type Query {
   getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
   getUserFriends(userId: Int!): [User]
+  getCapacityReminderById(id: Int!): CapacityReminder
+  getAllCapacityReminders: [CapacityReminder]
 }
 
 type RefreshAccessToken {
