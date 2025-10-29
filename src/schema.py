@@ -29,6 +29,7 @@ import requests
 import json
 import os
 from firebase_admin import messaging
+import logging
 
 # MARK: - Gym
 
@@ -919,8 +920,19 @@ class EditCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                logging.info(
+                    "Unsubscribe %s from %s -> success: %d failure: %d",
+                    reminder.fcm_token[:12],
+                    topic,
+                    response.success_count,
+                    response.failure_count,
+                )
+                for error in response.errors:
+                    logging.warning(
+                        "Error unsubscribing %s from %s -> reason: %s", reminder.fcm_token[:12], topic, error.reason
+                    )
                 if response.success_count == 0:
-                        raise Exception(response.errors[0].reason)
+                    raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -930,8 +942,15 @@ class EditCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.subscribe_to_topic(reminder.fcm_token, topic)
+                logging.info(
+                    "Resubscribing %s to %s -> success: %d failure: %d",
+                    reminder.fcm_token[:12],
+                    topic,
+                    response.success_count,
+                    response.failure_count,
+                )
                 if response.success_count == 0:
-                        raise Exception(response.errors[0].reason)
+                    raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -961,6 +980,13 @@ class DeleteCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                logging.info(
+                    "Unsubscribe %s from %s -> success: %d failure: %d",
+                    reminder.fcm_token[:12],
+                    topic,
+                    response.success_count,
+                    response.failure_count,
+                )
                 if response.success_count == 0:
                         raise Exception(response.errors[0].reason)
             except Exception as error:
