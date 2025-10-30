@@ -29,6 +29,12 @@ import requests
 import json
 import os
 from firebase_admin import messaging
+import logging
+
+
+def resolve_enum_value(entry):
+    """Return the raw value for Enum objects while leaving plain strings untouched."""
+    return getattr(entry, "value", entry)
 
 # MARK: - Gym
 
@@ -913,14 +919,25 @@ class EditCapacityReminder(graphene.Mutation):
 
         # Unsubscribe from old reminders
         topics = [
-            f"{gym}_{day}_{reminder.capacity_threshold}" for gym in reminder.gyms for day in reminder.days_of_week
+            f"{resolve_enum_value(gym)}_{resolve_enum_value(day)}_{reminder.capacity_threshold}"
+            for gym in reminder.gyms
+            for day in reminder.days_of_week
         ]
 
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                logging.info(
+                    "Unsubscribe %s from %s",
+                    reminder.fcm_token[:12],
+                    topic,
+                )
+                for error in response.errors:
+                    logging.warning(
+                        "Error unsubscribing %s from %s -> reason: %s", reminder.fcm_token[:12], topic, error.reason
+                    )
                 if response.success_count == 0:
-                        raise Exception(response.errors[0].reason)
+                    raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -930,8 +947,13 @@ class EditCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.subscribe_to_topic(reminder.fcm_token, topic)
+                logging.info(
+                    "Resubscribing %s to %s",
+                    reminder.fcm_token[:12],
+                    topic,
+                )
                 if response.success_count == 0:
-                        raise Exception(response.errors[0].reason)
+                    raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error subscribing to topic: {error}")
 
@@ -955,12 +977,19 @@ class DeleteCapacityReminder(graphene.Mutation):
             raise GraphQLError("CapacityReminder not found.")
 
         topics = [
-            f"{gym}_{day}_{reminder.capacity_threshold}" for gym in reminder.gyms for day in reminder.days_of_week
+            f"{resolve_enum_value(gym)}_{resolve_enum_value(day)}_{reminder.capacity_threshold}"
+            for gym in reminder.gyms
+            for day in reminder.days_of_week
         ]
 
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
+                logging.info(
+                    "Unsubscribe %s from %s",
+                    reminder.fcm_token[:12],
+                    topic,
+                )
                 if response.success_count == 0:
                         raise Exception(response.errors[0].reason)
             except Exception as error:
