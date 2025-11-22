@@ -30,6 +30,7 @@ import json
 import os
 from firebase_admin import messaging
 import logging
+from sqlalchemy import or_
 
 
 def resolve_enum_value(entry):
@@ -340,6 +341,11 @@ class Query(graphene.ObjectType):
         CapacityReminder,
         description="Get all capacity reminders."
     )
+    find_friend = graphene.List(
+        User,
+        search_term=graphene.String(required=True),
+        description="Search for users by name or NetID."
+    )
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -496,6 +502,13 @@ class Query(graphene.ObjectType):
     def resolve_get_all_capacity_reminders(self, info):
         query = CapacityReminder.get_query(info)
         return query.all()
+    
+    def resolve_find_friend(self, info, search_term):
+        query = User.get_query(info)
+        search = f"{search_term}%"
+        return query.filter(
+            or_(UserModel.name.ilike(search), UserModel.net_id.ilike(search))
+        ).all()
 
 
 # MARK: - Mutation
