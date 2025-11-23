@@ -1100,6 +1100,9 @@ class AddFriend(graphene.Mutation):
 
     @jwt_required()
     def mutate(self, info, user_id, friend_id):
+        if user_id == friend_id:
+            raise GraphQLError("You cannot add yourself as a friend.")
+
         # Check if users exist
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
