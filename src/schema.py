@@ -1112,6 +1112,16 @@ class AddFriend(graphene.Mutation):
         if not friend:
             raise GraphQLError("Friend with given ID does not exist.")
 
+        # If a pending request exists in the opposite direction, auto-accept it
+        reverse_existing = Friendship.get_query(info).filter(
+            (FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id)
+        ).first()
+        if reverse_existing and not reverse_existing.is_accepted:
+            reverse_existing.is_accepted = True
+            reverse_existing.accepted_at = datetime.utcnow()
+            db_session.commit()
+            return reverse_existing
+
         # Check if friendship already exists
         existing = Friendship.get_query(info).filter(
             ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id)) |
