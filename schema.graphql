@@ -275,7 +275,7 @@ type Query {
   getUserFriends(userId: Int!): [User]
   getCapacityReminderById(id: Int!): CapacityReminder
   getAllCapacityReminders: [CapacityReminder]
-  findFriend(searchTerm: String!): [User]
+  searchFriend(searchTerm: String!): [User]
 }
 
 type RefreshAccessToken {
@@ -317,6 +317,7 @@ type User {
   friendRequestsReceived: [Friendship]
   friendships: [Friendship]
   friends: [User]
+  friendStatusWithCurrentUser: String
 }
 
 type Workout {
