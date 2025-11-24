@@ -21,6 +21,7 @@ from src.models.friends import Friendship as FriendshipModel
 from src.models.enums import DayOfWeekGraphQLEnum, CapacityReminderGymGraphQLEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
+from src.models.weekly_challenge import WeeklyChallenge as WeeklyChallengeModel
 from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
@@ -301,6 +302,15 @@ class CapacityReminder(SQLAlchemyObjectType):
         exclude_fields = ("fcm_token",)
 
 
+
+# MARK: - Weekly Challenge
+
+class WeeklyChallenge(SQLAlchemyObjectType):
+    class Meta:
+        model = WeeklyChallengeModel
+
+
+
 # MARK: - Query
 
 
@@ -340,6 +350,28 @@ class Query(graphene.ObjectType):
         CapacityReminder,
         description="Get all capacity reminders."
     )
+
+    get_weekly_challenge_by_date = graphene.Field(
+        WeeklyChallenge, 
+        date = graphene.Date(required = True), 
+        description = "Get a weekly challenge by its Date."
+
+    )
+
+
+    def resolve_get_weekly_challenge_by_date(self, info, date):
+    # Query all weekly challenges where the date falls between start_date and end_date
+        challenge = (
+            WeeklyChallenge.get_query(info)
+            .filter(
+                WeeklyChallengeModel.start_date <= date,
+                WeeklyChallengeModel.end_date >= date
+            )
+            .first()
+        )
+        if not challenge:
+            raise GraphQLError("No weekly challenge found for the given date.")
+        return challenge
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -999,6 +1031,35 @@ class DeleteCapacityReminder(graphene.Mutation):
         db_session.commit()
 
         return reminder
+
+
+"""
+class CreateWeeklyChallenge(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required = True)
+        message = graphene.String(required = True)
+        start_date = graphene.Date(required = True)
+        end_date = graphene.Date(required = True)
+
+    Output = WeeklyChallenge
+
+    def mutate(self, info, name, message, start_date, end_date):
+        #Validate that end_date is after start_date
+        if end_date <= start_date:
+            raise GraphQLError("End date must be after start date")
+        
+        #Create new weekly challenge
+        new_challenge = WeeklyChallengeModel(
+            name = name,
+            message = message,
+            start_date = start_date,
+            end_date = end_date,
+        )
+
+        db_session.add(new_challenge)
+        db_session.commit()
+        return new_challenge
+"""
 
 class AddFriend(graphene.Mutation):
     class Arguments:
