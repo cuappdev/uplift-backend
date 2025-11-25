@@ -355,7 +355,6 @@ class Query(graphene.ObjectType):
         WeeklyChallenge, 
         date = graphene.Date(required = True), 
         description = "Get a weekly challenge by its Date."
-
     )
 
 

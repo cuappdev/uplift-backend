@@ -85,6 +85,8 @@ type CreateReport {
   report: Report
 }
 
+scalar Date
+
 scalar DateTime
 
 enum DayOfWeekEnum {
@@ -275,6 +277,7 @@ type Query {
   getUserFriends(userId: Int!): [User]
   getCapacityReminderById(id: Int!): CapacityReminder
   getAllCapacityReminders: [CapacityReminder]
+  getWeeklyChallengeByDate(date: Date!): WeeklyChallenge
 }
 
 type RefreshAccessToken {
@@ -316,6 +319,14 @@ type User {
   friendRequestsReceived: [Friendship]
   friendships: [Friendship]
   friends: [User]
+}
+
+type WeeklyChallenge {
+  id: ID!
+  name: String!
+  message: String!
+  startDate: String!
+  endDate: String!
 }
 
 type Workout {
