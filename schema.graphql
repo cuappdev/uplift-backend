@@ -234,6 +234,7 @@ type Mutation {
   acceptFriendRequest(friendshipId: Int!): Friendship
   removeFriend(friendId: Int!, userId: Int!): RemoveFriend
   getPendingFriendRequests(userId: Int!): GetPendingFriendRequests
+  createWeeklyChallenge(endDate: Date!, message: String!, name: String!, startDate: Date!): WeeklyChallenge
 }
 
 type OpenHours {

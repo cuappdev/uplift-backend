@@ -1031,8 +1031,6 @@ class DeleteCapacityReminder(graphene.Mutation):
 
         return reminder
 
-
-"""
 class CreateWeeklyChallenge(graphene.Mutation):
     class Arguments:
         name = graphene.String(required = True)
@@ -1058,7 +1056,7 @@ class CreateWeeklyChallenge(graphene.Mutation):
         db_session.add(new_challenge)
         db_session.commit()
         return new_challenge
-"""
+
 
 class AddFriend(graphene.Mutation):
     class Arguments:
@@ -1184,8 +1182,7 @@ class Mutation(graphene.ObjectType):
     add_friend = AddFriend.Field(description="Send a friend request to another user.")
     accept_friend_request = AcceptFriendRequest.Field(description="Accept a friend request.")
     remove_friend = RemoveFriend.Field(description="Remove a friendship.")
-    get_pending_friend_requests = GetPendingFriendRequests.Field(
-        description="Get all pending friend requests for a user.")
-
+    get_pending_friend_requests = GetPendingFriendRequests.Field(description="Get all pending friend requests for a user.")
+    create_weekly_challenge = CreateWeeklyChallenge.Field(description="Creates a new weekly challenge.")
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
