@@ -775,7 +775,9 @@ class logWorkout(graphene.Mutation):
     Output = Workout
 
     @jwt_required()
-    def mutate(self, info, workout_time, user_id):
+    def mutate(self, info, workout_time, user_id, facility_id):
+        if not workout_time:
+            raise GraphQLError("Workout time is required.")
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
