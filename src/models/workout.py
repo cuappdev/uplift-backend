@@ -8,7 +8,7 @@ class Workout(Base):
     A workout logged by a user.
 
     Attributes:
-        - `id`              The ID of user.
+        - `id`              The ID of the workout.
         - `workout_time`    The date and time of the workout.
         - `user_id`         The ID of the user who completed the workout.
         - `facility_id`     The ID of the facility visited

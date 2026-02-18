@@ -24,12 +24,14 @@ from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
+# from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
 from src.database import db_session
 import requests
 import json
 import os
 from firebase_admin import messaging
 import logging
+from sqlalchemy import func, cast, Date
 
 
 def resolve_enum_value(entry):
@@ -201,9 +203,95 @@ class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
 
-    workout_goal = graphene.List(DayOfWeekGraphQLEnum)
+    active_streak = graphene.Int(
+        description="Get the current workout streak of a user, in terms of number of consecutive weeks."
+    )
     friendships = graphene.List(lambda: Friendship)
     friends = graphene.List(lambda: User)
+    total_gym_days = graphene.Int(
+        required=True,
+        description="Get the total number of gym days (unique workout days) for user."
+    )
+
+    # NOTE: Current implementation counts total number of workouts with unqiue days, whereas more efficient implementation persists said value in User model 
+    # Persistence currently considered unnecessary/overkill (would require syncing + extra logic, and workouts are unlikely to exceed 800 for a single user — a low number by any standard)
+    def resolve_total_gym_days(self, info):
+        return (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == self.id)
+            .with_entities(func.count(func.distinct(cast(WorkoutModel.workout_time, Date)))) # We cast the datetiem object as a Date object to get the unique days
+            .scalar()
+        )
+
+    def resolve_active_streak(self, info):
+        user = User.get_query(info).filter(UserModel.id == self.id).first()
+
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        # Pull DISTINCT workout dates (not timestamps) in descending order
+        # Gets us a list of date objects [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...]
+        workout_date_rows = (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == user.id)
+            .with_entities(cast(WorkoutModel.workout_time, Date).label("workout_date"))
+            .distinct()
+            .order_by(cast(WorkoutModel.workout_time, Date).desc())
+            .all()
+        )
+
+        # Gets us the user's current workout goal
+        workout_goal = user.workout_goal
+
+        # If the user has no logged workouts or no workout goal, return 0
+        if not workout_date_rows or not workout_goal:
+            return 0
+
+        # Convert rows [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...] -> list[date] descending
+        workout_dates = [row[0] for row in workout_date_rows]  # already date objects
+
+        # TODO: Revisit date logic, make UTC universal in codebase
+        today = datetime.utcnow().date()
+        streak = 0
+
+        # Walk through the workout_dates list once using an index pointer
+        day_pointer = 0 # Dates are sorted in descending order, so we start at the most recent date
+        total_workout_dates = len(workout_dates)
+
+        # Set the end of the current week to today, will look 6 days back from today to check for streaks
+        window_end = today
+
+        while True:
+            # Definition of a given week
+            window_start = window_end - timedelta(days=6)
+
+            # Count how many workout days fall within [window_start, window_end]
+            day_iterator = day_pointer
+            count_in_window = 0
+            while day_iterator < total_workout_dates and workout_dates[day_iterator] >= window_start:
+                count_in_window += 1
+                day_iterator += 1
+
+            # User completed no workouts in the current 7-day window, streak ends
+            if count_in_window == 0:
+                break
+            elif count_in_window >= workout_goal: # Window hits workout goal, streak increases
+                streak += 1
+            else:
+                # User does not hit workout goal, but completes at least one workout in the current window, so streak continues
+                pass
+
+            # Move to the previous rolling 7-day window
+            window_end = window_end - timedelta(days=7)
+
+            # day_iterator should have past the end of the current window and entered the next with the loops break condition, so we can set it as the new day_pointer
+            day_pointer = day_iterator
+
+            # If we've gone through all the workout dates, we've checked all the windows and can terminate the loop
+            if day_pointer >= total_workout_dates:
+                break
+
+        return streak
 
     def resolve_friendships(self, info):
         # Return all friendship relationships for this user
@@ -277,6 +365,17 @@ class Workout(SQLAlchemyObjectType):
     class Meta:
         model = WorkoutModel
 
+    gym_name = graphene.String(required=True)
+
+    def resolve_gym_name(self, info):
+        facility = Facility.get_query(info).filter(FacilityModel.id == self.facility_id).first()
+        if not facility:
+            raise GraphQLError("Facility for workout not found.")
+        gym = Gym.get_query(info).filter(GymModel.id == facility.gym_id).first()
+        if not gym:
+            raise GraphQLError("Gym for workout not found.")
+        return gym.name
+
 
 # MARK: - Report
 
@@ -315,14 +414,6 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(
-        graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID."
-    )
-    get_user_streak = graphene.Field(
-        graphene.JSONString,
-        id=graphene.Int(required=True),
-        description="Get the current and max workout streak of a user.",
-    )
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
@@ -400,55 +491,7 @@ class Query(graphene.ObjectType):
 
     def resolve_get_all_reports(self, info):
         query = ReportModel.query.all()
-        return query
-
-    @jwt_required()
-    def resolve_get_workout_goals(self, info, id):
-        user = User.get_query(info).filter(UserModel.id == id).first()
-        if not user:
-            raise GraphQLError("User with the given ID does not exist.")
-
-        return [day.value for day in user.workout_goal] if user.workout_goal else []
-
-    @jwt_required()
-    def resolve_get_user_streak(self, info, id):
-        user = User.get_query(info).filter(UserModel.id == id).first()
-        if not user:
-            raise GraphQLError("User with the given ID does not exist.")
-
-        workouts = (
-            Workout.get_query(info)
-            .filter(WorkoutModel.user_id == user.id)
-            .order_by(WorkoutModel.workout_time.desc())
-            .all()
-        )
-
-        if not workouts:
-            return {"active_streak": 0, "max_streak": 0}
-
-        workout_dates = {workout.workout_time.date() for workout in workouts}
-        sorted_dates = sorted(workout_dates, reverse=True)
-
-        today = datetime.utcnow().date()
-        active_streak = 0
-        max_streak = 0
-        streak = 0
-        prev_date = None
-
-        for date in sorted_dates:
-            if prev_date and (prev_date - date).days > 1:
-                max_streak = max(max_streak, streak)
-                streak = 0
-
-            streak += 1
-            prev_date = date
-
-            if date == today or (date == today - timedelta(days=1) and active_streak == 0):
-                active_streak = streak
-
-        max_streak = max(max_streak, streak)
-
-        return {"active_streak": active_streak, "max_streak": max_streak}
+        return query    
 
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
@@ -736,30 +779,31 @@ class RemoveFriend(graphene.Mutation):
 class SetWorkoutGoals(graphene.Mutation):
     class Arguments:
         user_id = graphene.Int(required=True, description="The ID of the user.")
-        workout_goal = graphene.List(
-            graphene.String,
+        workout_goal = graphene.Int(
             required=True,
-            description="The new workout goal for the user in terms of days of the week.",
+            description="The new workout goal for the user in terms of number of days per week.",
         )
+        change_time = graphene.DateTime(required=False, description="The date and time the user changed their goal.")
 
     Output = User
 
     @jwt_required()
-    def mutate(self, info, user_id, workout_goal):
+    def mutate(self, info, user_id, workout_goal, change_time=None):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
 
-        # Validate that all workout days are valid
-        validated_workout_goal = []
-        for day in workout_goal:
-            try:
-                # Convert string to enum
-                validated_workout_goal.append(DayOfWeekGraphQLEnum[day.upper()].value)
-            except KeyError:
-                raise GraphQLError(f"Invalid day of the week: {day}")
+         # Update the last time the user changed their goal
+        if change_time:
+            user.last_goal_change = change_time
+        else:
+            user.last_goal_change = datetime.now()
 
-        user.workout_goal = validated_workout_goal
+        # Update the user's last streak
+        user.last_streak = user.active_streak
+
+        # Update the user's workout goal
+        user.workout_goal = workout_goal
 
         db_session.commit()
 
