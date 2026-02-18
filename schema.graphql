@@ -187,8 +187,6 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
-scalar JSONString
-
 type LoginUser {
   accessToken: String
   refreshToken: String
@@ -218,7 +216,7 @@ type Mutation {
   createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
   editUser(email: String, encodedImage: String, name: String, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
-  setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
+  setWorkoutGoals(changeTime: DateTime, userId: Int!, workoutGoal: Int!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
   loginUser(netId: String!): LoginUser
   logoutUser: LogoutUser
@@ -269,8 +267,6 @@ type Query {
   getWorkoutsById(id: Int): [Workout]
   activities: [Activity]
   getAllReports: [Report]
-  getWorkoutGoals(id: Int!): [String]
-  getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
   getUserFriends(userId: Int!): [User]
   getCapacityReminderById(id: Int!): CapacityReminder
@@ -308,14 +304,17 @@ type User {
   netId: String!
   name: String!
   activeStreak: Int
-  maxStreak: Int
-  workoutGoal: [DayOfWeekGraphQLEnum]
+  maxStreak: Int!
+  workoutGoal: Int
+  lastGoalChange: DateTime
+  lastStreak: Int!
   encodedImage: String
   giveaways: [Giveaway]
   friendRequestsSent: [Friendship]
   friendRequestsReceived: [Friendship]
   friendships: [Friendship]
   friends: [User]
+  totalGymDays: Int!
 }
 
 type Workout {
@@ -323,4 +322,5 @@ type Workout {
   workoutTime: DateTime!
   userId: Int!
   facilityId: Int!
+  gymName: String!
 }
