@@ -24,7 +24,7 @@ from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
-# from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
+from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
 from src.database import db_session
 import requests
 import json
@@ -204,7 +204,10 @@ class User(SQLAlchemyObjectType):
         model = UserModel
 
     active_streak = graphene.Int(
-        description="Get the current workout streak of a user, in terms of number of consecutive weeks."
+        description="Get the current workout streak of a user, in terms of number of consecutive weeks, and the start date of the streak."
+    )
+    max_streak = graphene.Int(
+        description="Get the maximum number of consecutive weeks the user has met their goal."
     )
     friendships = graphene.List(lambda: Friendship)
     friends = graphene.List(lambda: User)
@@ -262,15 +265,24 @@ class User(SQLAlchemyObjectType):
         window_end = today
 
         while True:
+            # Never index past the list (defensive guard for edge cases)
+            if day_pointer >= total_workout_dates:
+                break
+
             # Definition of a given week
             window_start = window_end - timedelta(days=6)
 
-            # Count how many workout days fall within [window_start, window_end]
-            day_iterator = day_pointer
+            # Count how many workout days fall within [window_start, window_end]; use bounded iteration to avoid index errors
             count_in_window = 0
-            while day_iterator < total_workout_dates and workout_dates[day_iterator] >= window_start:
+            day_iterator = day_pointer
+            for i in range(day_pointer, total_workout_dates):
+                if workout_dates[i] < window_start:
+                    day_iterator = i
+                    break
                 count_in_window += 1
-                day_iterator += 1
+                day_iterator = i + 1
+            else:
+                day_iterator = total_workout_dates
 
             # User completed no workouts in the current 7-day window, streak ends
             if count_in_window == 0:
@@ -284,7 +296,7 @@ class User(SQLAlchemyObjectType):
             # Move to the previous rolling 7-day window
             window_end = window_end - timedelta(days=7)
 
-            # day_iterator should have past the end of the current window and entered the next with the loops break condition, so we can set it as the new day_pointer
+            # day_iterator is the first index not in the current window (or past end); use as next day_pointer
             day_pointer = day_iterator
 
             # If we've gone through all the workout dates, we've checked all the windows and can terminate the loop
@@ -292,6 +304,96 @@ class User(SQLAlchemyObjectType):
                 break
 
         return streak
+
+    def resolve_max_streak(self, info):
+        user = User.get_query(info).filter(UserModel.id == self.id).first()
+
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        # Pull DISTINCT workout dates (not timestamps) in descending order (newest to oldest)
+        # Gets us a list of date objects [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...]
+        workout_date_rows = (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == user.id)
+            .with_entities(cast(WorkoutModel.workout_time, Date).label("workout_date"))
+            .distinct()
+            .order_by(cast(WorkoutModel.workout_time, Date).desc())
+            .all()
+        )
+
+        # If the user has no logged workouts, return 0
+        if not workout_date_rows:
+            return 0
+
+        # Convert rows [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...] -> list[date] descending
+        workout_dates = [row[0] for row in workout_date_rows] 
+
+        # Pull the user's workout goal history in descending order (newest to oldest)
+        # Gets us a list of tuples [(workout_goal, effective_at), (workout_goal, effective_at), ...]
+        goal_hist = (
+            db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
+            .filter(UserWorkoutGoalHistoryModel.user_id == self.id)
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .all()
+        )
+
+        # If the user has no workout goal history (meaning they have never set nor changed their workout goal), return 0
+        if not goal_hist:
+            if not self.workout_goal:
+                return 0
+            goal_hist = [(self.workout_goal, datetime.min)] # Set the user's current workout goal as the first goal in the history
+
+        def goal_at(window_end_date):
+            window_end_dt = datetime.combine(window_end_date, datetime.max.time())
+            for goal_days, effective_at in goal_hist:
+                if effective_at <= window_end_dt: # Find the most recent goal that was effective at or before the given date
+                    return goal_days
+            return goal_hist[-1][0]
+
+        today = datetime.utcnow().date()
+        day_pointer, total_workout_dates = 0, len(workout_dates)
+        window_end = today
+
+        run_met_goal = 0
+        max_met_goal = 0
+
+        while True:
+            # Definition of a given week
+            window_start = window_end - timedelta(days=6)
+
+            day_iterator = day_pointer
+            count_in_window = 0
+
+            # Count how many workout days fall within [window_start, window_end]
+            while day_iterator < total_workout_dates and workout_dates[day_iterator] >= window_start:
+                count_in_window += 1
+                day_iterator += 1
+
+            goal_days = goal_at(window_end) # Get the user's workout goal for the current window
+
+            # If the user did not complete any workouts in the current window, the streak ends
+            if count_in_window == 0:
+                max_met_goal = max(max_met_goal, run_met_goal)
+                run_met_goal = 0
+            elif goal_days and count_in_window >= goal_days: # Window hits workout goal, streak increases
+                run_met_goal += 1
+            else: # User does not hit workout goal, but completes at least one workout in the current window, so streak continues
+                pass
+
+            # Move to the previous rolling 7-day window
+            window_end = window_end - timedelta(days=7)
+
+            # day_iterator should have past the end of the current window and entered the next with the loops break condition, so we can set it as the new day_pointer
+            day_pointer = day_iterator
+
+            # If we've gone through all the workout dates, we've checked all the windows and can terminate the loop
+            if day_pointer >= total_workout_dates:
+                break
+
+        # Return the maximum number of consecutive weeks the user has met their goal
+        max_met_goal = max(max_met_goal, run_met_goal)
+        return max_met_goal
 
     def resolve_friendships(self, info):
         # Return all friendship relationships for this user

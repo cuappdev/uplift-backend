@@ -38,6 +38,8 @@ class User(Base):
     last_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
     encoded_image = Column(String, nullable=True)
 
+    goal_history = relationship("UserWorkoutGoalHistory", back_populates="user", cascade="all, delete-orphan", order_by="UserWorkoutGoalHistory.effective_at.desc()")
+
     friend_requests_sent = relationship("Friendship",
                                         foreign_keys="Friendship.user_id",
                                         back_populates="user")

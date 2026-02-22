@@ -304,7 +304,7 @@ type User {
   netId: String!
   name: String!
   activeStreak: Int
-  maxStreak: Int!
+  maxStreak: Int
   workoutGoal: Int
   lastGoalChange: DateTime
   lastStreak: Int!
