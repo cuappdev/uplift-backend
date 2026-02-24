@@ -308,6 +308,7 @@ type User {
   workoutGoal: Int
   lastGoalChange: DateTime
   lastStreak: Int!
+  lastStreakStart: DateTime
   encodedImage: String
   giveaways: [Giveaway]
   friendRequestsSent: [Friendship]

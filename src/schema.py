@@ -215,6 +215,9 @@ class User(SQLAlchemyObjectType):
         required=True,
         description="Get the total number of gym days (unique workout days) for user."
     )
+    last_streak_start = graphene.DateTime(
+        description="The start date of the most recent active streak."
+    )
 
     # NOTE: Current implementation counts total number of workouts with unqiue days, whereas more efficient implementation persists said value in User model 
     # Persistence currently considered unnecessary/overkill (would require syncing + extra logic, and workouts are unlikely to exceed 800 for a single user — a low number by any standard)
@@ -227,6 +230,111 @@ class User(SQLAlchemyObjectType):
         )
 
     def resolve_active_streak(self, info):
+        user = User.get_query(info).filter(UserModel.id == self.id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        # 1) Pull workout timestamps (assumed stored as UTC; may be naive UTC)
+        workout_date_rows = (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == user.id)
+            .with_entities(cast(WorkoutModel.workout_time, Date).label("workout_date"))
+            .distinct()
+            .order_by(cast(WorkoutModel.workout_time, Date).desc())
+            .all()
+        )
+
+        if not workout_date_rows:
+            return 0
+
+        workout_dates = [row[0] for row in workout_date_rows] # already date objects
+
+        if not workout_dates:
+            return 0
+
+        # 2) Pull goal history (newest -> oldest)
+        goal_rows = (
+            UserWorkoutGoalHistoryModel.get_query(info)
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
+            .with_entities(
+                UserWorkoutGoalHistoryModel.workout_goal,
+                UserWorkoutGoalHistoryModel.effective_at,
+            )
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .all()
+        )
+
+        if not goal_rows:
+            # No historical goals recorded => define streak as 0
+            return 0
+
+        # Keep effective_at as datetime (newest -> oldest) for minute-level specificity.
+        # ws is a date (window start = midnight); comparison ws < effective_at uses that.
+        # Convert rows [(workout_goal, effective_at), (workout_goal, effective_at), ...] -> list[tuple[int, datetime]] descending
+        goal_values = [goal for goal, _ in goal_rows]
+        goal_effective_dates = [eff_at.date() for _, eff_at in goal_rows]
+
+        # Rule: for a window starting on date ws, use the most recent goal whose effective_date <= ws
+        goal_index = 0  # pointer into (newest -> oldest)
+
+        def goal_for_window_start(ws):
+            """
+            Helper function to determine the workout goal for a given window start date.
+            Parameters:
+                - `ws` (datetime.date): The start date of the window.
+            Returns:
+                - The workout goal for the given window start date.
+            """
+            nonlocal goal_index
+            # Move to older goals until the current goal is effective on/before ws
+            while goal_index < len(goal_values) - 1 and ws < goal_effective_dates[goal_index]:
+                goal_index += 1
+            # If ws is still before the oldest goal effective date, we have no goal defined for that time
+            if ws < goal_effective_dates[-1]:
+                # No goal existed yet; stop counting further back
+                # This case should not be reached, as goals are defined before the first workout
+                return None
+            return goal_values[goal_index]
+
+        # 3) Streak computation
+        streak = 0
+        day_pointer = 0
+        total = len(workout_dates)
+
+        today = datetime.now().date()
+        window_end = today
+
+        while day_pointer < total:
+            window_start = window_end - timedelta(days=6)
+
+            # Determine which goal applies to this window
+            window_goal = goal_for_window_start(window_start)
+            if window_goal is None:
+                # No goal existed yet; stop counting further back
+                break
+
+            # Count workout days in [window_start, window_end] using the descending list
+            count_in_window = 0
+            day_iterator = day_pointer
+            while day_iterator < total and workout_dates[day_iterator] >= window_start: # window_start <= workout_dates[i] <= window_end
+                count_in_window += 1
+                day_iterator += 1
+
+            # If user did 0 workouts in this window, streak ends
+            if count_in_window == 0:
+                break
+
+            # If window hits goal, increment streak; otherwise streak continues but doesn't increment
+            if count_in_window >= window_goal:
+                streak += 1
+
+            # Move to previous 7-day window and continue
+            window_end -= timedelta(days=7)
+            day_pointer = day_iterator
+
+        return streak
+
+    def resolve_last_streak_start(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
 
         if not user:
@@ -243,55 +351,85 @@ class User(SQLAlchemyObjectType):
             .all()
         )
 
-        # Gets us the user's current workout goal
-        workout_goal = user.workout_goal
-
-        # If the user has no logged workouts or no workout goal, return 0
-        if not workout_date_rows or not workout_goal:
-            return 0
+        if not workout_date_rows:
+            return None
 
         # Convert rows [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...] -> list[date] descending
         workout_dates = [row[0] for row in workout_date_rows]  # already date objects
 
+        goal_rows = (
+            UserWorkoutGoalHistoryModel.get_query(info)
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
+            .with_entities(
+                UserWorkoutGoalHistoryModel.workout_goal,
+                UserWorkoutGoalHistoryModel.effective_at,
+            )
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .all()
+        )
+
+        if not goal_rows:
+            return None
+
+        # Convert rows [(workout_goal, effective_at), (workout_goal, effective_at), ...] -> list[tuple[int, datetime]] descending
+        goal_values = [goal for goal, _ in goal_rows]
+        goal_effective_dates = [eff_at.date() for _, eff_at in goal_rows]
+
+        goal_index = 0  # pointer into (newest -> oldest)
+
+        def goal_for_window_start(ws):
+            """
+            Helper function to determine the workout goal for a given window start date.
+            Parameters:
+                - `ws` (datetime.date): The start date of the window.
+            Returns:
+                - The workout goal for the given window start date.
+            """
+            nonlocal goal_index
+            # Move to older goals until the current goal is effective on/before ws
+            while goal_index < len(goal_values) - 1 and ws < goal_effective_dates[goal_index]:
+                goal_index += 1
+            # If ws is still before the oldest goal effective date, we have no goal defined for that time
+            if ws < goal_effective_dates[-1]:
+                # No goal existed yet; stop counting further back
+                # This case should not be reached, as goals are defined before the first workout
+                return None
+            return goal_values[goal_index]
+
+        # 3) Streak computation
+        day_pointer = 0
+        total = len(workout_dates)
+
         # TODO: Revisit date logic, make UTC universal in codebase
-        today = datetime.utcnow().date()
-        streak = 0
-
-        # Walk through the workout_dates list once using an index pointer
-        day_pointer = 0 # Dates are sorted in descending order, so we start at the most recent date
-        total_workout_dates = len(workout_dates)
-
-        # Set the end of the current week to today, will look 6 days back from today to check for streaks
+        today = datetime.now().date()
         window_end = today
+        idx_last_streak_start = None
+        last_streak_start = None  # date of the start of the most recent streak (earliest window in that streak)
 
-        while True:
-            # Never index past the list (defensive guard for edge cases)
-            if day_pointer >= total_workout_dates:
-                break
-
+        while day_pointer < total:
             # Definition of a given week
             window_start = window_end - timedelta(days=6)
+
+            # Determine which goal applies to this window
+            window_goal = goal_for_window_start(window_start)
+            if window_goal is None:
+                # No goal existed yet; stop counting further back
+                break
 
             # Count how many workout days fall within [window_start, window_end]; use bounded iteration to avoid index errors
             count_in_window = 0
             day_iterator = day_pointer
-            for i in range(day_pointer, total_workout_dates):
-                if workout_dates[i] < window_start:
-                    day_iterator = i
-                    break
+            while day_iterator < total and workout_dates[day_iterator] >= window_start: # window_start <= workout_dates[i] <= window_end
                 count_in_window += 1
-                day_iterator = i + 1
-            else:
-                day_iterator = total_workout_dates
+                day_iterator += 1
 
             # User completed no workouts in the current 7-day window, streak ends
             if count_in_window == 0:
                 break
-            elif count_in_window >= workout_goal: # Window hits workout goal, streak increases
-                streak += 1
-            else:
-                # User does not hit workout goal, but completes at least one workout in the current window, so streak continues
-                pass
+
+            if count_in_window >= window_goal:
+                # Window hits workout goal; this window is part of the most recent streak.
+                idx_last_streak_start = day_iterator - 1
 
             # Move to the previous rolling 7-day window
             window_end = window_end - timedelta(days=7)
@@ -300,10 +438,15 @@ class User(SQLAlchemyObjectType):
             day_pointer = day_iterator
 
             # If we've gone through all the workout dates, we've checked all the windows and can terminate the loop
-            if day_pointer >= total_workout_dates:
+            if day_pointer >= total:
                 break
 
-        return streak
+        # Return as datetime at midnight (UTC) for graphene.DateTime, or None
+        if idx_last_streak_start is None:
+            return None
+        
+        last_streak_start = workout_dates[idx_last_streak_start]
+        return datetime.combine(last_streak_start, datetime.min.time()) # Must be returned as DateTime to adhere to schema, despite being Date object
 
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
