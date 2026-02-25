@@ -1076,12 +1076,11 @@ class SetWorkoutGoals(graphene.Mutation):
             required=True,
             description="The new workout goal for the user in terms of number of days per week.",
         )
-        change_time = graphene.DateTime(required=False, description="The date and time the user changed their goal.")
 
     Output = User
 
     @jwt_required()
-    def mutate(self, info, user_id, workout_goal, change_time=None):
+    def mutate(self, info, user_id, workout_goal):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
@@ -1111,18 +1110,12 @@ class SetWorkoutGoals(graphene.Mutation):
             if last_change_utc is not None and now_utc - last_change_utc < timedelta(days=30):
                 raise GraphQLError("Workout goal can only be updated once every 30 days.")
 
-        # Normalize provided change_time to UTC for storage and further logic.
-        change_time_utc = ensure_utc(change_time) if change_time else None
-
         if not has_history:
-            # First goal ever: apply immediately (or at provided change_time) in UTC.
-            effective_at = change_time_utc or datetime.now(timezone.utc)
+            # First goal ever: apply immediately in UTC.
+            effective_at = datetime.now(timezone.utc)
         else:
             # Subsequent goals take effect starting the next day (local concept, but stored as UTC midnight).
-            if change_time_utc:
-                next_start_date = change_time_utc.date() + timedelta(days=1)
-            else:
-                next_start_date = datetime.now(timezone.utc).date() + timedelta(days=1)
+            next_start_date = datetime.now(timezone.utc).date() + timedelta(days=1)
             effective_at = datetime.combine(next_start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
 
         user.last_goal_change = effective_at
