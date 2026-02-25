@@ -248,10 +248,10 @@ class User(SQLAlchemyObjectType):
         model = UserModel
 
     active_streak = graphene.Int(
-        description="Get the current workout streak of a user, in terms of number of consecutive weeks, and the start date of the streak."
+        description="Get the current workout streak of a user, in terms of number of consecutive weeks, up until the current date."
     )
     max_streak = graphene.Int(
-        description="Get the maximum number of consecutive weeks the user has met their goal."
+        description="Get the maximum number of consecutive weeks the user has met their goal up until the current date."
     )
     friendships = graphene.List(lambda: Friendship)
     friends = graphene.List(lambda: User)
@@ -260,7 +260,7 @@ class User(SQLAlchemyObjectType):
         description="Get the total number of gym days (unique workout days) for user."
     )
     last_streak_start = graphene.DateTime(
-        description="The start date of the most recent active streak."
+        description="The start date of the most recent active streak, up until the current date."
     )
     last_goal_change = graphene.DateTime(
         description="The last time the user changed their workout goal."
@@ -314,8 +314,6 @@ class User(SQLAlchemyObjectType):
                 return 0
             goal_hist = [(self.workout_goal, datetime.min)] # Set the user's current workout goal as the first goal in the history
 
-        # print(f"goal_hist: {[(goal, eff_at.date()) for goal, eff_at in goal_hist]}")
-
         def goal_at(window_start_date):
             """
             Helper function to determine the workout goal for a given window start date.
@@ -333,9 +331,7 @@ class User(SQLAlchemyObjectType):
             return goal_hist[-1][0]
 
         # 3) Streak computation
-        today = datetime.now().date()
-        formatted_string = today.strftime("%m/%d/%Y, %H:%M:%S")
-        # print(f"today: {formatted_string}")
+        today = datetime.now(timezone.utc).date()
 
         day_pointer, total_workout_days = 0, len(workout_dates)
         window_end = today
@@ -345,8 +341,6 @@ class User(SQLAlchemyObjectType):
         while day_pointer < total_workout_days:
             # Definition of a given week
             window_start = window_end - timedelta(days=6)
-
-            # print(f"window_start: {window_start}, window_end: {window_end}")
 
             # Count workout days in [window_start, window_end] using the descending list
             day_iterator = day_pointer
@@ -358,7 +352,6 @@ class User(SQLAlchemyObjectType):
 
             # Get the user's workout goal for the current window
             goal_days = goal_at(window_start)
-            # print(f"goal_days: {goal_days}")
 
             # If user did 0 workouts in this window, streak ends
             if count_in_window == 0:
@@ -443,7 +436,7 @@ class User(SQLAlchemyObjectType):
         total = len(workout_dates)
 
         # TODO: Revisit date logic, make UTC universal in codebase
-        today = datetime.now().date()
+        today = datetime.now(timezone.utc).date()
         window_end = today
         idx_last_streak_start = None
         last_streak_start = None  # date of the start of the most recent streak (earliest window in that streak)
@@ -490,7 +483,7 @@ class User(SQLAlchemyObjectType):
         last_streak_start = workout_dates[idx_last_streak_start]
         last_streak_start_dt = datetime.combine(last_streak_start, datetime.min.time())
         # Store as UTC and convert to local time for output
-        return to_local_time(ensure_utc(last_streak_start_dt))  # Must be returned as DateTime to adhere to schema, despite being Date object
+        return to_local_time(last_streak_start_dt)  # Must be returned as DateTime to adhere to schema, despite being Date object
 
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
@@ -530,8 +523,6 @@ class User(SQLAlchemyObjectType):
                 return 0
             goal_hist = [(self.workout_goal, datetime.min)] # Set the user's current workout goal as the first goal in the history
 
-        print(f"goal_hist: {[(goal, eff_at.date()) for goal, eff_at in goal_hist]}")
-
         def goal_at(window_start_date):
             """
             Helper function to determine the workout goal for a given window start date.
@@ -548,10 +539,7 @@ class User(SQLAlchemyObjectType):
             # If we've gone through all the goals and haven't found one, return the oldest goal
             return goal_hist[-1][0]
 
-        today = datetime.now().date()
-        formatted_string = today.strftime("%m/%d/%Y, %H:%M:%S")
-        print(f"today: {formatted_string}")
-
+        today = datetime.now(timezone.utc).date()
         day_pointer, total_workout_dates = 0, len(workout_dates)
         window_end = today
 
@@ -559,7 +547,9 @@ class User(SQLAlchemyObjectType):
         max_met_goal = 0
 
         while day_pointer < total_workout_dates:
-            # TODO: Ignore dates after today
+            # Move to the first workout on or before today (i.e. ignore dates after today)
+            while day_pointer < total_workout_dates and workout_dates[day_pointer] > today:
+                day_pointer += 1
 
             # Definition of a given week
             window_start = window_end - timedelta(days=6)
@@ -574,7 +564,6 @@ class User(SQLAlchemyObjectType):
 
             # Get the user's workout goal for the current window
             goal_days = goal_at(window_start) 
-            print(f"goal_days: {goal_days}")
 
             # If the user did not complete any workouts in the current window, the streak ends
             if count_in_window == 0:
@@ -594,9 +583,6 @@ class User(SQLAlchemyObjectType):
         # Return the maximum number of consecutive weeks the user has met their goal
         max_met_goal = max(max_met_goal, run_met_goal)
         return max_met_goal
-
-    def resolve_last_goal_change(self, info):
-        return to_local_time(self.last_goal_change)
 
     def resolve_friendships(self, info):
         # Return all friendship relationships for this user
