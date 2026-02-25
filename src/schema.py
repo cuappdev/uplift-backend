@@ -259,7 +259,7 @@ class User(SQLAlchemyObjectType):
         required=True,
         description="Get the total number of gym days (unique workout days) for user."
     )
-    last_streak_start = graphene.DateTime(
+    streak_start = graphene.Date(
         description="The start date of the most recent active streak, up until the current date."
     )
     last_goal_change = graphene.DateTime(
@@ -369,14 +369,12 @@ class User(SQLAlchemyObjectType):
 
         return streak
 
-    def resolve_last_streak_start(self, info):
+    def resolve_streak_start(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
-
         if not user:
             raise GraphQLError("User with the given ID does not exist.")
 
-        # Pull DISTINCT workout dates (not timestamps) in descending order
-        # Gets us a list of date objects [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...]
+        # DISTINCT workout dates (descending)
         workout_date_rows = (
             Workout.get_query(info)
             .filter(WorkoutModel.user_id == user.id)
@@ -389,101 +387,95 @@ class User(SQLAlchemyObjectType):
         if not workout_date_rows:
             return None
 
-        # Convert rows [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...] -> list[date] descending
-        workout_dates = [row[0] for row in workout_date_rows]  # already date objects
+        workout_dates = [row[0] for row in workout_date_rows]  # list[date] desc
+        if not workout_dates:
+            return None
 
-        goal_rows = (
-            WorkoutGoalHistory.get_query(info)
-            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
-            .with_entities(
+        goal_hist = (
+            db_session.query(
                 UserWorkoutGoalHistoryModel.workout_goal,
                 UserWorkoutGoalHistoryModel.effective_at,
             )
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
             .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
             .all()
         )
 
-        if not goal_rows:
+        if not goal_hist:
             return None
 
-        # Convert rows [(workout_goal, effective_at), (workout_goal, effective_at), ...] -> list[tuple[int, datetime]] descending
-        goal_values = [goal for goal, _ in goal_rows]
-        goal_effective_dates = [eff_at.date() for _, eff_at in goal_rows]
+        goal_values = [goal for goal, _ in goal_hist]
+        goal_effective_dates = []
+        for _, eff_at in goal_hist:
+            # tolerate naive timestamps by treating them as UTC-by-convention
+            if eff_at.tzinfo is None:
+                eff_at = eff_at.replace(tzinfo=timezone.utc)
+            goal_effective_dates.append(eff_at.date())
 
-        goal_index = 0  # pointer into (newest -> oldest)
+        if not goal_effective_dates:
+            return None
 
-        def goal_for_window_start(ws):
-            """
-            Helper function to determine the workout goal for a given window start date.
-            Parameters:
-                - `ws` (datetime.date): The start date of the window.
-            Returns:
-                - The workout goal for the given window start date.
-            """
+        goal_index = 0  # pointer (newest -> oldest)
+
+        def goal_for_window_start(ws_date):
             nonlocal goal_index
-            # Move to older goals until the current goal is effective on/before ws
-            while goal_index < len(goal_values) - 1 and ws < goal_effective_dates[goal_index]:
+
+            # Advance pointer until we reach a goal effective on/before ws_date
+            while goal_index < len(goal_values) - 1 and ws_date < goal_effective_dates[goal_index]:
                 goal_index += 1
-            # If ws is still before the oldest goal effective date, we have no goal defined for that time
-            if ws < goal_effective_dates[-1]:
-                # No goal existed yet; stop counting further back
-                # This case should not be reached, as goals are defined before the first workout
+
+            # If ws_date is earlier than the oldest goal's effective date, we have no goal defined for that window.
+            if ws_date < goal_effective_dates[-1]:
                 return None
+
             return goal_values[goal_index]
 
-        # 3) Streak computation
+        today = datetime.now(timezone.utc).date()
+        window_end = today
+
         day_pointer = 0
         total = len(workout_dates)
 
-        # TODO: Revisit date logic, make UTC universal in codebase
-        today = datetime.now(timezone.utc).date()
-        window_end = today
-        idx_last_streak_start = None
-        last_streak_start = None  # date of the start of the most recent streak (earliest window in that streak)
+        idx_last_streak_start = None  # index of first workout day (oldest) in earliest goal-met week of the active segment
 
         while day_pointer < total:
-            # Definition of a given week
+            # Move to the first workout on or before today (i.e. ignore dates after today)
+            while day_pointer < total and workout_dates[day_pointer] > today:
+                day_pointer += 1
+
             window_start = window_end - timedelta(days=6)
 
-            # Determine which goal applies to this window
             window_goal = goal_for_window_start(window_start)
             if window_goal is None:
-                # No goal existed yet; stop counting further back
                 break
 
-            # Count how many workout days fall within [window_start, window_end]; use bounded iteration to avoid index errors
-            count_in_window = 0
-            day_iterator = day_pointer
-            while day_iterator < total and workout_dates[day_iterator] >= window_start: # window_start <= workout_dates[i] <= window_end
-                count_in_window += 1
-                day_iterator += 1
+            # Count workout days in [window_start, window_end] (dates are already <= current window_end by construction)
+            i = day_pointer
+            while i < total and workout_dates[i] >= window_start:
+                i += 1
 
-            # User completed no workouts in the current 7-day window, streak ends
+            count_in_window = i - day_pointer
+
+            # No workouts => streak segment ends
             if count_in_window == 0:
                 break
 
+            # Met goal => record the oldest workout day in this window
             if count_in_window >= window_goal:
-                # Window hits workout goal; this window is part of the most recent streak.
-                idx_last_streak_start = day_iterator - 1
+                # i is first index AFTER this window; i-1 is oldest workout day within the window
+                if i - 1 >= 0:
+                    idx_last_streak_start = i - 1
 
-            # Move to the previous rolling 7-day window
-            window_end = window_end - timedelta(days=7)
+            # Move to previous window
+            window_end -= timedelta(days=7)
+            day_pointer = i
 
-            # day_iterator is the first index not in the current window (or past end); use as next day_pointer
-            day_pointer = day_iterator
-
-            # If we've gone through all the workout dates, we've checked all the windows and can terminate the loop
-            if day_pointer >= total:
-                break
-
-        # Return as datetime at midnight (UTC) for graphene.DateTime, or None
         if idx_last_streak_start is None:
             return None
-        
-        last_streak_start = workout_dates[idx_last_streak_start]
-        last_streak_start_dt = datetime.combine(last_streak_start, datetime.min.time())
-        # Store as UTC and convert to local time for output
-        return to_local_time(last_streak_start_dt)  # Must be returned as DateTime to adhere to schema, despite being Date object
+
+        last_streak_start_date = workout_dates[idx_last_streak_start]
+
+        return last_streak_start_date
 
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
