@@ -196,6 +196,15 @@ class Activity(SQLAlchemyObjectType):
         return query
 
 
+class WorkoutGoalHistory(SQLAlchemyObjectType):
+    class Meta:
+        model = UserWorkoutGoalHistoryModel
+
+    id = graphene.Int(description="The ID of the workout goal history.")
+    user_id = graphene.Int(description="The ID of the user who owns the workout goal history.")
+    workout_goal = graphene.Int(description="The workout goal.")
+    effective_at = graphene.DateTime(description="The date and time the workout goal was set.")
+
 # MARK: - User
 
 
@@ -234,7 +243,8 @@ class User(SQLAlchemyObjectType):
         if not user:
             raise GraphQLError("User with the given ID does not exist.")
 
-        # 1) Pull workout timestamps (assumed stored as UTC; may be naive UTC)
+        # Pull DISTINCT workout dates (not timestamps) in descending order (newest to oldest)
+        # Gets us a list of date objects [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...]
         workout_date_rows = (
             Workout.get_query(info)
             .filter(WorkoutModel.user_id == user.id)
@@ -244,89 +254,83 @@ class User(SQLAlchemyObjectType):
             .all()
         )
 
+        # If the user has no logged workouts, return 0
         if not workout_date_rows:
             return 0
 
-        workout_dates = [row[0] for row in workout_date_rows] # already date objects
+        # Convert rows [(datetime.date(2026, 2, 18), ), (datetime.date(2026, 2, 17), ), ...] -> list[date] descending
+        workout_dates = [row[0] for row in workout_date_rows] 
 
-        if not workout_dates:
-            return 0
-
-        # 2) Pull goal history (newest -> oldest)
-        goal_rows = (
-            UserWorkoutGoalHistoryModel.get_query(info)
+        # Pull the user's workout goal history in descending order (newest to oldest)
+        # Gets us a list of tuples [(workout_goal, effective_at), (workout_goal, effective_at), ...]
+        goal_hist = (
+            db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
             .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
-            .with_entities(
-                UserWorkoutGoalHistoryModel.workout_goal,
-                UserWorkoutGoalHistoryModel.effective_at,
-            )
             .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
             .all()
         )
 
-        if not goal_rows:
-            # No historical goals recorded => define streak as 0
-            return 0
+        if not goal_hist:
+            # If the user has no workout goal history (meaning they have never set nor changed their workout goal), return 0
+            if not self.workout_goal:
+                return 0
+            goal_hist = [(self.workout_goal, datetime.min)] # Set the user's current workout goal as the first goal in the history
 
-        # Keep effective_at as datetime (newest -> oldest) for minute-level specificity.
-        # ws is a date (window start = midnight); comparison ws < effective_at uses that.
-        # Convert rows [(workout_goal, effective_at), (workout_goal, effective_at), ...] -> list[tuple[int, datetime]] descending
-        goal_values = [goal for goal, _ in goal_rows]
-        goal_effective_dates = [eff_at.date() for _, eff_at in goal_rows]
+        # print(f"goal_hist: {[(goal, eff_at.date()) for goal, eff_at in goal_hist]}")
 
-        # Rule: for a window starting on date ws, use the most recent goal whose effective_date <= ws
-        goal_index = 0  # pointer into (newest -> oldest)
-
-        def goal_for_window_start(ws):
+        def goal_at(window_start_date):
             """
             Helper function to determine the workout goal for a given window start date.
             Parameters:
-                - `ws` (datetime.date): The start date of the window.
+                - `window_start_date` (datetime.date): The start date of the window.
             Returns:
                 - The workout goal for the given window start date.
             """
-            nonlocal goal_index
-            # Move to older goals until the current goal is effective on/before ws
-            while goal_index < len(goal_values) - 1 and ws < goal_effective_dates[goal_index]:
-                goal_index += 1
-            # If ws is still before the oldest goal effective date, we have no goal defined for that time
-            if ws < goal_effective_dates[-1]:
-                # No goal existed yet; stop counting further back
-                # This case should not be reached, as goals are defined before the first workout
-                return None
-            return goal_values[goal_index]
+            for goal_days, effective_at in goal_hist:
+                # Find the most recent goal that was effective at or before the given datetime (remember, sorted by newest to oldest)
+                if effective_at.date() <= window_start_date: # Important to consider dates instead of datetimes
+                    return goal_days
+        
+            # If we've gone through all the goals and haven't found one, return the oldest goal
+            return goal_hist[-1][0]
 
         # 3) Streak computation
-        streak = 0
-        day_pointer = 0
-        total = len(workout_dates)
-
         today = datetime.now().date()
+        formatted_string = today.strftime("%m/%d/%Y, %H:%M:%S")
+        # print(f"today: {formatted_string}")
+
+        day_pointer, total_workout_days = 0, len(workout_dates)
         window_end = today
 
-        while day_pointer < total:
+        streak = 0
+
+        while day_pointer < total_workout_days:
+            # Definition of a given week
             window_start = window_end - timedelta(days=6)
 
-            # Determine which goal applies to this window
-            window_goal = goal_for_window_start(window_start)
-            if window_goal is None:
-                # No goal existed yet; stop counting further back
-                break
+            # print(f"window_start: {window_start}, window_end: {window_end}")
 
             # Count workout days in [window_start, window_end] using the descending list
-            count_in_window = 0
             day_iterator = day_pointer
-            while day_iterator < total and workout_dates[day_iterator] >= window_start: # window_start <= workout_dates[i] <= window_end
+            count_in_window = 0
+            
+            while day_iterator < total_workout_days and workout_dates[day_iterator] >= window_start: # window_start <= workout_dates[i] <= window_end
                 count_in_window += 1
                 day_iterator += 1
+
+            # Get the user's workout goal for the current window
+            goal_days = goal_at(window_start)
+            # print(f"goal_days: {goal_days}")
 
             # If user did 0 workouts in this window, streak ends
             if count_in_window == 0:
                 break
-
             # If window hits goal, increment streak; otherwise streak continues but doesn't increment
-            if count_in_window >= window_goal:
+            elif count_in_window >= goal_days:
                 streak += 1
+            else:
+                # User did not meet the goal for the current window, streak continues but doesn't increment
+                pass
 
             # Move to previous 7-day window and continue
             window_end -= timedelta(days=7)
@@ -358,7 +362,7 @@ class User(SQLAlchemyObjectType):
         workout_dates = [row[0] for row in workout_date_rows]  # already date objects
 
         goal_rows = (
-            UserWorkoutGoalHistoryModel.get_query(info)
+            WorkoutGoalHistory.get_query(info)
             .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
             .with_entities(
                 UserWorkoutGoalHistoryModel.workout_goal,
@@ -450,7 +454,6 @@ class User(SQLAlchemyObjectType):
 
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
-
         if not user:
             raise GraphQLError("User with the given ID does not exist.")
 
@@ -476,7 +479,7 @@ class User(SQLAlchemyObjectType):
         # Gets us a list of tuples [(workout_goal, effective_at), (workout_goal, effective_at), ...]
         goal_hist = (
             db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
-            .filter(UserWorkoutGoalHistoryModel.user_id == self.id)
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
             .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
             .all()
         )
@@ -487,21 +490,37 @@ class User(SQLAlchemyObjectType):
                 return 0
             goal_hist = [(self.workout_goal, datetime.min)] # Set the user's current workout goal as the first goal in the history
 
-        def goal_at(window_end_date):
-            window_end_dt = datetime.combine(window_end_date, datetime.max.time())
+        print(f"goal_hist: {[(goal, eff_at.date()) for goal, eff_at in goal_hist]}")
+
+        def goal_at(window_start_date):
+            """
+            Helper function to determine the workout goal for a given window start date.
+            Parameters:
+                - `window_start_date` (datetime.date): The start date of the window.
+            Returns:
+                - The workout goal for the given window start date.
+            """
             for goal_days, effective_at in goal_hist:
-                if effective_at <= window_end_dt: # Find the most recent goal that was effective at or before the given date
+                # Find the most recent goal that was effective at or before the given datetime (remember, sorted by newest to oldest)
+                if effective_at.date() <= window_start_date: # Important to consider dates instead of datetimes
                     return goal_days
+        
+            # If we've gone through all the goals and haven't found one, return the oldest goal
             return goal_hist[-1][0]
 
-        today = datetime.utcnow().date()
+        today = datetime.now().date()
+        formatted_string = today.strftime("%m/%d/%Y, %H:%M:%S")
+        print(f"today: {formatted_string}")
+
         day_pointer, total_workout_dates = 0, len(workout_dates)
         window_end = today
 
         run_met_goal = 0
         max_met_goal = 0
 
-        while True:
+        while day_pointer < total_workout_dates:
+            # TODO: Ignore dates after today
+
             # Definition of a given week
             window_start = window_end - timedelta(days=6)
 
@@ -513,7 +532,9 @@ class User(SQLAlchemyObjectType):
                 count_in_window += 1
                 day_iterator += 1
 
-            goal_days = goal_at(window_end) # Get the user's workout goal for the current window
+            # Get the user's workout goal for the current window
+            goal_days = goal_at(window_start) 
+            print(f"goal_days: {goal_days}")
 
             # If the user did not complete any workouts in the current window, the streak ends
             if count_in_window == 0:
@@ -525,14 +546,10 @@ class User(SQLAlchemyObjectType):
                 pass
 
             # Move to the previous rolling 7-day window
-            window_end = window_end - timedelta(days=7)
+            window_end -= timedelta(days=7)
 
             # day_iterator should have past the end of the current window and entered the next with the loops break condition, so we can set it as the new day_pointer
             day_pointer = day_iterator
-
-            # If we've gone through all the workout dates, we've checked all the windows and can terminate the loop
-            if day_pointer >= total_workout_dates:
-                break
 
         # Return the maximum number of consecutive weeks the user has met their goal
         max_met_goal = max(max_met_goal, run_met_goal)
@@ -1038,20 +1055,38 @@ class SetWorkoutGoals(graphene.Mutation):
         if not user:
             raise GraphQLError("User with given ID does not exist.")
 
-         # Update the last time the user changed their goal
-        if change_time:
-            user.last_goal_change = change_time
+        # Avoid writing duplicate history entries if goal didn't actually change
+        if user.workout_goal == workout_goal:
+            return user
+
+        # check if first goal ever
+        has_history = db_session.query(UserWorkoutGoalHistoryModel.id).filter(
+            UserWorkoutGoalHistoryModel.user_id == user.id
+        ).first() is not None
+
+        if not has_history:
+            effective_at = change_time or datetime.now() # apply immediately if no change time is provided
         else:
-            user.last_goal_change = datetime.now()
+            if change_time:
+                next_start_local = change_time.date() + timedelta(days=1)
+            else:
+                next_start_local = datetime.now().date() + timedelta(days=1)
+            effective_at = datetime.combine(next_start_local, datetime.min.time())
 
-        # Update the user's last streak
+        user.last_goal_change = effective_at
         user.last_streak = user.active_streak
-
-        # Update the user's workout goal
         user.workout_goal = workout_goal
 
-        db_session.commit()
+        # Append-only history entry
+        db_session.add(
+            UserWorkoutGoalHistoryModel(
+                user_id=user.id,
+                workout_goal=workout_goal,
+                effective_at=effective_at,
+            )
+        )
 
+        db_session.commit()
         return user
 
 

@@ -308,14 +308,15 @@ type User {
   workoutGoal: Int
   lastGoalChange: DateTime
   lastStreak: Int!
-  lastStreakStart: DateTime
   encodedImage: String
   giveaways: [Giveaway]
+  goalHistory: [WorkoutGoalHistory]
   friendRequestsSent: [Friendship]
   friendRequestsReceived: [Friendship]
   friendships: [Friendship]
   friends: [User]
   totalGymDays: Int!
+  lastStreakStart: DateTime
 }
 
 type Workout {
@@ -324,4 +325,12 @@ type Workout {
   userId: Int!
   facilityId: Int!
   gymName: String!
+}
+
+type WorkoutGoalHistory {
+  id: Int
+  userId: Int
+  workoutGoal: Int
+  effectiveAt: DateTime
+  user: User
 }
