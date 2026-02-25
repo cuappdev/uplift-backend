@@ -38,6 +38,38 @@ def resolve_enum_value(entry):
     """Return the raw value for Enum objects while leaving plain strings untouched."""
     return getattr(entry, "value", entry)
 
+
+def ensure_utc(dt):
+    """
+    Normalize a datetime to UTC.
+    - If dt is None, return None.
+    - If dt is naive, assume it is already in UTC and attach UTC tzinfo.
+    - If dt is timezone-aware, convert it to UTC.
+    """
+    if dt is None:
+        return None
+    if getattr(dt, "tzinfo", None) is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def to_local_time(dt):
+    """
+    Convert a UTC datetime to the server's local timezone for output.
+    - If dt is None, return None.
+    - If dt is naive, assume it is UTC first.
+    - If dt is timezone-aware, convert from UTC to local.
+    """
+    if dt is None:
+        return None
+
+    dt_utc = ensure_utc(dt)
+    if dt_utc is None:
+        return None
+
+    # Convert to local timezone (server-local)
+    return dt_utc.astimezone()
+
 # MARK: - Gym
 
 
@@ -205,6 +237,9 @@ class WorkoutGoalHistory(SQLAlchemyObjectType):
     workout_goal = graphene.Int(description="The workout goal.")
     effective_at = graphene.DateTime(description="The date and time the workout goal was set.")
 
+    def resolve_effective_at(self, info):
+        return to_local_time(self.effective_at)
+
 # MARK: - User
 
 
@@ -226,6 +261,9 @@ class User(SQLAlchemyObjectType):
     )
     last_streak_start = graphene.DateTime(
         description="The start date of the most recent active streak."
+    )
+    last_goal_change = graphene.DateTime(
+        description="The last time the user changed their workout goal."
     )
 
     # NOTE: Current implementation counts total number of workouts with unqiue days, whereas more efficient implementation persists said value in User model 
@@ -450,7 +488,9 @@ class User(SQLAlchemyObjectType):
             return None
         
         last_streak_start = workout_dates[idx_last_streak_start]
-        return datetime.combine(last_streak_start, datetime.min.time()) # Must be returned as DateTime to adhere to schema, despite being Date object
+        last_streak_start_dt = datetime.combine(last_streak_start, datetime.min.time())
+        # Store as UTC and convert to local time for output
+        return to_local_time(ensure_utc(last_streak_start_dt))  # Must be returned as DateTime to adhere to schema, despite being Date object
 
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
@@ -555,6 +595,9 @@ class User(SQLAlchemyObjectType):
         max_met_goal = max(max_met_goal, run_met_goal)
         return max_met_goal
 
+    def resolve_last_goal_change(self, info):
+        return to_local_time(self.last_goal_change)
+
     def resolve_friendships(self, info):
         # Return all friendship relationships for this user
         query = Friendship.get_query(info).filter(
@@ -604,6 +647,9 @@ class Friendship(SQLAlchemyObjectType):
         query = User.get_query(info).filter(UserModel.id == self.friend_id).first()
         return query
 
+    def resolve_accepted_at(self, info):
+        return to_local_time(self.accepted_at)
+
 # MARK: - Giveaway
 
 
@@ -638,6 +684,9 @@ class Workout(SQLAlchemyObjectType):
             raise GraphQLError("Gym for workout not found.")
         return gym.name
 
+    def resolve_workout_time(self, info):
+        return to_local_time(self.workout_time)
+
 
 # MARK: - Report
 
@@ -651,6 +700,9 @@ class Report(SQLAlchemyObjectType):
     def resolve_gym(self, info):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
         return query
+
+    def resolve_created_at(self, info):
+        return to_local_time(self.created_at)
 
 
 # MARK: - Capacity Reminder
@@ -734,8 +786,8 @@ class Query(graphene.ObjectType):
         if not user:
             raise GraphQLError("User with the given ID does not exist.")
 
-        # Get the date 7 days ago
-        one_week_ago = datetime.utcnow() - timedelta(days=7)
+        # Get the date 7 days ago in UTC
+        one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
 
         # Query distinct workout dates for the user in the past week. Workouts must never be logged for a future date.
         workout_days = (
@@ -747,7 +799,8 @@ class Query(graphene.ObjectType):
         )
 
         # Extract days of the week from the workout times (use a set to avoid duplicates)
-        workout_days_set = {workout.workout_time.strftime("%A") for workout in workout_days}
+        # Convert workout_time to local time so the weekday reflects the user's local date.
+        workout_days_set = {to_local_time(workout.workout_time).strftime("%A") for workout in workout_days}
 
         return list(workout_days_set)
 
@@ -1059,19 +1112,40 @@ class SetWorkoutGoals(graphene.Mutation):
         if user.workout_goal == workout_goal:
             return user
 
-        # check if first goal ever
-        has_history = db_session.query(UserWorkoutGoalHistoryModel.id).filter(
-            UserWorkoutGoalHistoryModel.user_id == user.id
-        ).first() is not None
+        # Determine the datetime of the last goal change for cooldown checks.
+        # Prefer the denormalized User.last_goal_change, but fall back to the most recent history entry if needed.
+        last_change_dt = user.last_goal_change
+        latest_history_entry = (
+            db_session.query(UserWorkoutGoalHistoryModel)
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .first()
+        )
+        has_history = latest_history_entry is not None
+
+        if last_change_dt is None and latest_history_entry is not None:
+            last_change_dt = latest_history_entry.effective_at
+
+        # Enforce a 30-day cooldown between workout goal updates.
+        if last_change_dt is not None:
+            now_utc = datetime.now(timezone.utc)
+            last_change_utc = ensure_utc(last_change_dt)
+            if last_change_utc is not None and now_utc - last_change_utc < timedelta(days=30):
+                raise GraphQLError("Workout goal can only be updated once every 30 days.")
+
+        # Normalize provided change_time to UTC for storage and further logic.
+        change_time_utc = ensure_utc(change_time) if change_time else None
 
         if not has_history:
-            effective_at = change_time or datetime.now() # apply immediately if no change time is provided
+            # First goal ever: apply immediately (or at provided change_time) in UTC.
+            effective_at = change_time_utc or datetime.now(timezone.utc)
         else:
-            if change_time:
-                next_start_local = change_time.date() + timedelta(days=1)
+            # Subsequent goals take effect starting the next day (local concept, but stored as UTC midnight).
+            if change_time_utc:
+                next_start_date = change_time_utc.date() + timedelta(days=1)
             else:
-                next_start_local = datetime.now().date() + timedelta(days=1)
-            effective_at = datetime.combine(next_start_local, datetime.min.time())
+                next_start_date = datetime.now(timezone.utc).date() + timedelta(days=1)
+            effective_at = datetime.combine(next_start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
 
         user.last_goal_change = effective_at
         user.last_streak = user.active_streak
@@ -1109,7 +1183,9 @@ class logWorkout(graphene.Mutation):
         if not facility:
             raise GraphQLError("Facility with given ID does not exist.")
 
-        workout = WorkoutModel(workout_time=workout_time, user_id=user.id, facility_id=facility.id)
+        workout_time_utc = ensure_utc(workout_time)
+
+        workout = WorkoutModel(workout_time=workout_time_utc, user_id=user.id, facility_id=facility.id)
 
         db_session.add(workout)
         db_session.commit()
@@ -1139,7 +1215,8 @@ class CreateReport(graphene.Mutation):
             "OTHER",
         ]:
             raise GraphQLError("Issue is not a valid enumeration.")
-        report = ReportModel(description=description, issue=issue, created_at=created_at, gym_id=gym_id)
+        created_at_utc = ensure_utc(created_at)
+        report = ReportModel(description=description, issue=issue, created_at=created_at_utc, gym_id=gym_id)
         db_session.add(report)
         db_session.commit()
         return CreateReport(report=report)
@@ -1379,7 +1456,7 @@ class AcceptFriendRequest(graphene.Mutation):
 
         # Accept friendship
         friendship.is_accepted = True
-        friendship.accepted_at = datetime.utcnow()
+        friendship.accepted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         return friendship
