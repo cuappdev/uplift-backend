@@ -131,6 +131,9 @@ SHEET_REG_BUILDING = "[REG] Building Hours"
 # Worksheet name for regular facility hours
 SHEET_REG_FACILITY = "[REG] Facility Hours"
 
+# Worksheet name for reports
+SHEET_REPORTS = "Reports"
+
 # Worksheet name for special facility hours
 SHEET_SP_FACILITY = "[SP] Facility Hours"
 
