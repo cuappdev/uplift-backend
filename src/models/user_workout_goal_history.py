@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Float, ForeignKey, String, DateTime, text
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
-from datetime import datetime
+from datetime import datetime, timezone
 
 class UserWorkoutGoalHistory(Base):
     """
@@ -19,6 +19,6 @@ class UserWorkoutGoalHistory(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     workout_goal = Column(Integer, nullable=False)
-    effective_at = Column(DateTime, nullable=False, default=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP"))
+    effective_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text("CURRENT_TIMESTAMP"))
 
     user = relationship("User", back_populates='goal_history')
