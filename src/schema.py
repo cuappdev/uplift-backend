@@ -27,8 +27,6 @@ from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAv
 from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
 from src.database import db_session
 import requests
-import json
-import os
 from firebase_admin import messaging
 import logging
 from sqlalchemy import func, cast, Date
@@ -637,19 +635,12 @@ class Query(graphene.ObjectType):
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
     get_user_friends = graphene.List(
-        User,
-        user_id=graphene.Int(required=True),
-        description="Get all friends for a user."
+        User, user_id=graphene.Int(required=True), description="Get all friends for a user."
     )
     get_capacity_reminder_by_id = graphene.Field(
-        CapacityReminder,
-        id=graphene.Int(required=True),
-        description="Get a specific capacity reminder by its ID."
+        CapacityReminder, id=graphene.Int(required=True), description="Get a specific capacity reminder by its ID."
     )
-    get_all_capacity_reminders = graphene.List(
-        CapacityReminder,
-        description="Get all capacity reminders."
-    )
+    get_all_capacity_reminders = graphene.List(CapacityReminder, description="Get all capacity reminders.")
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -727,14 +718,18 @@ class Query(graphene.ObjectType):
             raise GraphQLError("User with the given ID does not exist.")
 
         # Direct friendships where user is the initiator
-        direct_friendships = Friendship.get_query(info).filter(
-            (FriendshipModel.user_id == user_id) & (FriendshipModel.is_accepted == True)
-        ).all()
+        direct_friendships = (
+            Friendship.get_query(info)
+            .filter((FriendshipModel.user_id == user_id) & (FriendshipModel.is_accepted == True))
+            .all()
+        )
 
         # Reverse friendships where user is the recipient
-        reverse_friendships = Friendship.get_query(info).filter(
-            (FriendshipModel.friend_id == user_id) & (FriendshipModel.is_accepted == True)
-        ).all()
+        reverse_friendships = (
+            Friendship.get_query(info)
+            .filter((FriendshipModel.friend_id == user_id) & (FriendshipModel.is_accepted == True))
+            .all()
+        )
 
         friend_ids = set()
         for friendship in direct_friendships:
@@ -745,7 +740,7 @@ class Query(graphene.ObjectType):
 
         # Query for all friends at once
         return User.get_query(info).filter(UserModel.id.in_(friend_ids)).all()
-    
+
     @jwt_required()
     def resolve_get_capacity_reminder_by_id(self, info, id):
         reminder = CapacityReminder.get_query(info).filter(CapacityReminderModel.id == id).first()
@@ -754,7 +749,7 @@ class Query(graphene.ObjectType):
             raise GraphQLError("Capacity reminder with the given ID does not exist.")
 
         return reminder
-    
+
     @jwt_required()
     def resolve_get_all_capacity_reminders(self, info):
         query = CapacityReminder.get_query(info)
@@ -1221,11 +1216,7 @@ class EditCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
-                logging.info(
-                    "Unsubscribe %s from %s",
-                    reminder.fcm_token[:12],
-                    topic,
-                )
+                logging.info("Unsubscribe %s from %s", reminder.fcm_token[:12], topic)
                 for error in response.errors:
                     logging.warning(
                         "Error unsubscribing %s from %s -> reason: %s", reminder.fcm_token[:12], topic, error.reason
@@ -1241,11 +1232,7 @@ class EditCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.subscribe_to_topic(reminder.fcm_token, topic)
-                logging.info(
-                    "Resubscribing %s to %s",
-                    reminder.fcm_token[:12],
-                    topic,
-                )
+                logging.info("Resubscribing %s to %s", reminder.fcm_token[:12], topic)
                 if response.success_count == 0:
                     raise Exception(response.errors[0].reason)
             except Exception as error:
@@ -1279,13 +1266,9 @@ class DeleteCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
-                logging.info(
-                    "Unsubscribe %s from %s",
-                    reminder.fcm_token[:12],
-                    topic,
-                )
+                logging.info("Unsubscribe %s from %s", reminder.fcm_token[:12], topic)
                 if response.success_count == 0:
-                        raise Exception(response.errors[0].reason)
+                    raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error unsubscribing from topic {topic}: {error}")
 
@@ -1293,6 +1276,7 @@ class DeleteCapacityReminder(graphene.Mutation):
         db_session.commit()
 
         return reminder
+
 
 class AddFriend(graphene.Mutation):
     class Arguments:
@@ -1313,10 +1297,14 @@ class AddFriend(graphene.Mutation):
             raise GraphQLError("Friend with given ID does not exist.")
 
         # Check if friendship already exists
-        existing = Friendship.get_query(info).filter(
-            ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id)) |
-            ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
-        ).first()
+        existing = (
+            Friendship.get_query(info)
+            .filter(
+                ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id))
+                | ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
+            )
+            .first()
+        )
 
         if existing:
             raise GraphQLError("Friendship already exists.")
@@ -1327,6 +1315,7 @@ class AddFriend(graphene.Mutation):
         db_session.commit()
 
         return friendship
+
 
 class AcceptFriendRequest(graphene.Mutation):
     class Arguments:
@@ -1362,10 +1351,14 @@ class RemoveFriend(graphene.Mutation):
     @jwt_required()
     def mutate(self, info, user_id, friend_id):
         # Find the friendship
-        friendship = Friendship.get_query(info).filter(
-            ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id)) |
-            ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
-        ).first()
+        friendship = (
+            Friendship.get_query(info)
+            .filter(
+                ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id))
+                | ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
+            )
+            .first()
+        )
 
         if not friendship:
             raise GraphQLError("Friendship not found.")
@@ -1375,6 +1368,7 @@ class RemoveFriend(graphene.Mutation):
         db_session.commit()
 
         return RemoveFriend(success=True)
+
 
 class GetPendingFriendRequests(graphene.Mutation):
     class Arguments:
@@ -1390,10 +1384,11 @@ class GetPendingFriendRequests(graphene.Mutation):
             raise GraphQLError("User with given ID does not exist.")
 
         # Get pending friend requests (where this user is the friend)
-        pending = Friendship.get_query(info).filter(
-            (FriendshipModel.friend_id == user_id) &
-            (FriendshipModel.is_accepted == False)
-        ).all()
+        pending = (
+            Friendship.get_query(info)
+            .filter((FriendshipModel.friend_id == user_id) & (FriendshipModel.is_accepted == False))
+            .all()
+        )
 
         return GetPendingFriendRequests(pending_requests=pending)
 
@@ -1409,6 +1404,7 @@ class Mutation(graphene.ObjectType):
     logout_user = LogoutUser.Field(description="Logs out a user.")
     refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
+    delete_report = DeleteReport.Field(description="Deletes a report by ID.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
     add_friend = AddFriend.Field(description="Adds a friend to a user.")
     remove_friend = RemoveFriend.Field(description="Removes a friend from a user.")
@@ -1419,7 +1415,8 @@ class Mutation(graphene.ObjectType):
     accept_friend_request = AcceptFriendRequest.Field(description="Accept a friend request.")
     remove_friend = RemoveFriend.Field(description="Remove a friendship.")
     get_pending_friend_requests = GetPendingFriendRequests.Field(
-        description="Get all pending friend requests for a user.")
+        description="Get all pending friend requests for a user."
+    )
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
