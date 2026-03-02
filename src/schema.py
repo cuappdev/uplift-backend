@@ -1012,12 +1012,9 @@ class SetWorkoutGoals(graphene.Mutation):
         if not user:
             raise GraphQLError("User with given ID does not exist.")
 
-        # Avoid writing duplicate history entries if goal didn't actually change
         if user.workout_goal == workout_goal:
             return user
 
-        # Determine the datetime of the last goal change for cooldown checks.
-        # Prefer the denormalized User.last_goal_change, but fall back to the most recent history entry if needed.
         last_change_dt = user.last_goal_change
         latest_history_entry = (
             db_session.query(UserWorkoutGoalHistoryModel)
@@ -1030,7 +1027,6 @@ class SetWorkoutGoals(graphene.Mutation):
         if last_change_dt is None and latest_history_entry is not None:
             last_change_dt = latest_history_entry.effective_at
 
-        # Enforce a 30-day cooldown between workout goal updates.
         if last_change_dt is not None:
             now_utc = datetime.now(timezone.utc)
             last_change_utc = ensure_utc(last_change_dt)
@@ -1038,10 +1034,8 @@ class SetWorkoutGoals(graphene.Mutation):
                 raise GraphQLError("Workout goal can only be updated once every 30 days.")
 
         if not has_history:
-            # First goal ever: apply immediately in UTC.
             effective_at = datetime.now(timezone.utc)
         else:
-            # Subsequent goals take effect starting the next day (local concept, but stored as UTC midnight).
             next_start_date = datetime.now(timezone.utc).date() + timedelta(days=1)
             effective_at = datetime.combine(next_start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
 
@@ -1049,7 +1043,6 @@ class SetWorkoutGoals(graphene.Mutation):
         user.last_streak = user.active_streak
         user.workout_goal = workout_goal
 
-        # Append-only history entry
         db_session.add(
             UserWorkoutGoalHistoryModel(
                 user_id=user.id,

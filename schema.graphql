@@ -305,8 +305,8 @@ type User {
   email: String
   netId: String!
   name: String!
-  activeStreak: Int
-  maxStreak: Int
+  activeStreak: Int!
+  maxStreak: Int!
   workoutGoal: Int
   lastGoalChange: DateTime
   lastStreak: Int!
@@ -330,9 +330,9 @@ type Workout {
 }
 
 type WorkoutGoalHistory {
-  id: Int
-  userId: Int
-  workoutGoal: Int
-  effectiveAt: DateTime
+  id: ID!
+  userId: Int!
+  workoutGoal: Int!
+  effectiveAt: DateTime!
   user: User
 }
