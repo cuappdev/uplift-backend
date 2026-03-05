@@ -42,6 +42,6 @@ jobs:
             cd docker-compose
             docker pull cornellappdev/uplift-dev:$IMAGE_TAG
             # temporary container to run migrations
-            docker run --rm --env-file uplift.env cornellappdev/uplift-dev:$IMAGE_TAG flask --app migrations db upgrade
+            docker run --rm --env-file uplift.env -v ./certs:/usr/src/app/certs cornellappdev/uplift-dev:$IMAGE_TAG flask --app migrations db upgrade
             sudo systemctl restart nginx
             docker stack deploy -c docker-compose.yml the-stack --with-registry-auth
