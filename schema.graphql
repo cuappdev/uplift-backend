@@ -224,6 +224,7 @@ type Mutation {
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
+  deleteReport(reportId: Int!): Report
   deleteUser(userId: Int!): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
   editCapacityReminder(daysOfWeek: [String]!, newCapacityThreshold: Int!, newGyms: [String]!, reminderId: Int!): CapacityReminder
