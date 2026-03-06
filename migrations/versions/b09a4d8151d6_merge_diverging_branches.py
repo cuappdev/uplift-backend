@@ -1,7 +1,7 @@
 """Merge diverging branches
 
 Revision ID: b09a4d8151d6
-Revises: 6b01a81bb92b, 48923aecacb0
+Revises: eb948c31a342, 48923aecacb0
 Create Date: 2026-03-05 17:15:46.737524
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'b09a4d8151d6'
-down_revision = ('6b01a81bb92b', '48923aecacb0')
+down_revision = ('eb948c31a342', '48923aecacb0')
 branch_labels = None
 depends_on = None
 
