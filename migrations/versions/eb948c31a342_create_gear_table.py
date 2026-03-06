@@ -27,7 +27,7 @@ def upgrade():
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("cost", sa.Float(), nullable=False),
         sa.Column("rate", sa.String(), nullable=True),
-        sa.Column("type", sa.Enum(PriceType), nullable=False),
+        sa.Column("type", sa.Enum(PriceType, create_type=False), nullable=False),
     )
 
 def downgrade():
