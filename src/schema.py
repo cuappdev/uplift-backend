@@ -3,7 +3,7 @@ import base64
 import os
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, get_jwt, jwt_required
 from functools import wraps
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, time, timezone
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
@@ -30,8 +30,10 @@ from src.database import db_session
 import requests
 from firebase_admin import messaging
 import logging
+from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 
+local_tz = ZoneInfo("America/New_York")
 
 def resolve_enum_value(entry):
     """Return the raw value for Enum objects while leaving plain strings untouched."""
@@ -67,7 +69,7 @@ def to_local_time(dt):
         return None
 
     # Convert to local timezone (server-local)
-    return dt_utc.astimezone()
+    return dt_utc.astimezone(local_tz)
 
 
 def goal_at(goal_history, window_start_date):
@@ -264,8 +266,8 @@ class User(SQLAlchemyObjectType):
     total_gym_days = graphene.Int(
         required=True, description="Get the total number of gym days (unique workout days) for user."
     )
-    streak_start = graphene.Date(
-        description="The start date of the most recent active streak, up until the current date."
+    streak_start = graphene.DateTime(
+        description="The start datetime of the most recent active streak (midnight of the day in local timezone), up until the current date."
     )
 
     def resolve_total_gym_days(self, info):
@@ -432,8 +434,8 @@ class User(SQLAlchemyObjectType):
             return None
 
         last_streak_start_date = workout_dates[idx_last_streak_start]
-
-        return last_streak_start_date
+        local_midnight = datetime.combine(last_streak_start_date, time.min, tzinfo=local_tz)
+        return local_midnight
 
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
