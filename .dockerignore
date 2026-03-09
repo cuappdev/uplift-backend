@@ -18,3 +18,5 @@ build/
 .env
 
 Archive
+
+service-account-key.json

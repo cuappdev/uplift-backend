@@ -25,17 +25,64 @@ from src.models.weekly_challenge import WeeklyChallenge as WeeklyChallengeModel
 from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
+from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
 from src.database import db_session
 import requests
-import json
-import os
 from firebase_admin import messaging
 import logging
+from sqlalchemy import func, cast, Date
 
 
 def resolve_enum_value(entry):
     """Return the raw value for Enum objects while leaving plain strings untouched."""
     return getattr(entry, "value", entry)
+
+
+def ensure_utc(dt):
+    """
+    Normalize a datetime to UTC.
+    - If dt is None, return None.
+    - If dt is naive, assume it is already in UTC and attach UTC tzinfo.
+    - If dt is timezone-aware, convert it to UTC.
+    """
+    if dt is None:
+        return None
+    if getattr(dt, "tzinfo", None) is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def to_local_time(dt):
+    """
+    Convert a UTC datetime to the server's local timezone for output.
+    - If dt is None, return None.
+    - If dt is naive, assume it is UTC first.
+    - If dt is timezone-aware, convert from UTC to local.
+    """
+    if dt is None:
+        return None
+
+    dt_utc = ensure_utc(dt)
+    if dt_utc is None:
+        return None
+
+    # Convert to local timezone (server-local)
+    return dt_utc.astimezone()
+
+def goal_at(goal_history, window_start_date):
+    """
+    Determine the workout goal for a given window start date from the goal history.
+    Parameters:
+        - `window_start_date` (datetime.date): The start date of the window.
+        - `goal_history` (list[tuple[int, datetime.datetime]]): The list of workout goal history entries.
+    Returns:
+        - The workout goal for the given window start date.
+    """
+    for workout_goal, effective_at in goal_history:
+        if effective_at.date() <= window_start_date:
+            return workout_goal
+
+    return goal_history[-1][0]
 
 # MARK: - Gym
 
@@ -195,6 +242,13 @@ class Activity(SQLAlchemyObjectType):
         return query
 
 
+class WorkoutGoalHistory(SQLAlchemyObjectType):
+    class Meta:
+        model = UserWorkoutGoalHistoryModel
+
+    def resolve_effective_at(self, info):
+        return to_local_time(self.effective_at)
+
 # MARK: - User
 
 
@@ -202,9 +256,251 @@ class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
 
-    workout_goal = graphene.List(DayOfWeekGraphQLEnum)
     friendships = graphene.List(lambda: Friendship)
     friends = graphene.List(lambda: User)
+    total_gym_days = graphene.Int(
+        required=True,
+        description="Get the total number of gym days (unique workout days) for user."
+    )
+    streak_start = graphene.Date(
+        description="The start date of the most recent active streak, up until the current date."
+    )
+
+    def resolve_total_gym_days(self, info):
+        return (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == self.id)
+            .with_entities(func.count(func.distinct(cast(WorkoutModel.workout_time, Date)))) # We cast the datetiem object as a Date object to get the unique days
+            .scalar()
+        )
+
+    def resolve_active_streak(self, info):
+        user = User.get_query(info).filter(UserModel.id == self.id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        workout_date_rows = (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == user.id)
+            .with_entities(cast(WorkoutModel.workout_time, Date).label("workout_date"))
+            .distinct()
+            .order_by(cast(WorkoutModel.workout_time, Date).desc())
+            .all()
+        )
+
+        if not workout_date_rows:
+            return 0
+
+        workout_dates = [row[0] for row in workout_date_rows] 
+
+        goal_hist = (
+            db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .all()
+        )
+
+        if not goal_hist:
+            if not self.workout_goal:
+                return 0
+            goal_hist = [(self.workout_goal, datetime.min)]
+
+        today = datetime.now(timezone.utc).date()
+
+        day_pointer, total_workout_days = 0, len(workout_dates)
+        window_end = today
+
+        streak = 0
+
+        while day_pointer < total_workout_days:
+            window_start = window_end - timedelta(days=6)
+
+            day_iterator = day_pointer
+            count_in_window = 0
+            
+            while day_iterator < total_workout_days and workout_dates[day_iterator] >= window_start:
+                count_in_window += 1
+                day_iterator += 1
+
+            goal_days = goal_at(goal_hist, window_start)
+
+            if count_in_window == 0:
+                break
+            elif count_in_window >= goal_days:
+                streak += 1
+            else:
+                pass
+
+            window_end -= timedelta(days=7)
+            day_pointer = day_iterator
+
+        return streak
+
+    def resolve_streak_start(self, info):
+        user = User.get_query(info).filter(UserModel.id == self.id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        workout_date_rows = (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == user.id)
+            .with_entities(cast(WorkoutModel.workout_time, Date).label("workout_date"))
+            .distinct()
+            .order_by(cast(WorkoutModel.workout_time, Date).desc())
+            .all()
+        )
+
+        if not workout_date_rows:
+            return None
+
+        workout_dates = [row[0] for row in workout_date_rows]
+        if not workout_dates:
+            return None
+
+        goal_hist = (
+            db_session.query(
+                UserWorkoutGoalHistoryModel.workout_goal,
+                UserWorkoutGoalHistoryModel.effective_at,
+            )
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .all()
+        )
+
+        if not goal_hist:
+            return None
+
+        goal_values = [goal for goal, _ in goal_hist]
+        goal_effective_dates = []
+        for _, eff_at in goal_hist:
+            if eff_at.tzinfo is None:
+                eff_at = eff_at.replace(tzinfo=timezone.utc)
+            goal_effective_dates.append(eff_at.date())
+
+        if not goal_effective_dates:
+            return None
+
+        goal_index = 0
+
+        def goal_for_window_start(ws_date):
+            nonlocal goal_index
+
+            while goal_index < len(goal_values) - 1 and ws_date < goal_effective_dates[goal_index]:
+                goal_index += 1
+
+            if ws_date < goal_effective_dates[-1]:
+                return None
+
+            return goal_values[goal_index]
+
+        today = datetime.now(timezone.utc).date()
+        window_end = today
+
+        day_pointer = 0
+        total = len(workout_dates)
+
+        idx_last_streak_start = None
+
+        while day_pointer < total:
+            while day_pointer < total and workout_dates[day_pointer] > today:
+                day_pointer += 1
+
+            window_start = window_end - timedelta(days=6)
+
+            window_goal = goal_for_window_start(window_start)
+            if window_goal is None:
+                break
+
+            i = day_pointer
+            while i < total and workout_dates[i] >= window_start:
+                i += 1
+
+            count_in_window = i - day_pointer
+
+            if count_in_window == 0:
+                break
+
+            if count_in_window >= window_goal:
+                if i - 1 >= 0:
+                    idx_last_streak_start = i - 1
+
+            window_end -= timedelta(days=7)
+            day_pointer = i
+
+        if idx_last_streak_start is None:
+            return None
+
+        last_streak_start_date = workout_dates[idx_last_streak_start]
+
+        return last_streak_start_date
+
+    def resolve_max_streak(self, info):
+        user = User.get_query(info).filter(UserModel.id == self.id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+
+        workout_date_rows = (
+            Workout.get_query(info)
+            .filter(WorkoutModel.user_id == user.id)
+            .with_entities(cast(WorkoutModel.workout_time, Date).label("workout_date"))
+            .distinct()
+            .order_by(cast(WorkoutModel.workout_time, Date).desc())
+            .all()
+        )
+
+        if not workout_date_rows:
+            return 0
+
+        workout_dates = [row[0] for row in workout_date_rows] 
+
+        goal_hist = (
+            db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .all()
+        )
+
+        if not goal_hist:
+            if not self.workout_goal:
+                return 0
+            goal_hist = [(self.workout_goal, datetime.min)]
+
+        today = datetime.now(timezone.utc).date()
+        day_pointer, total_workout_dates = 0, len(workout_dates)
+        window_end = today
+
+        run_met_goal = 0
+        max_met_goal = 0
+
+        while day_pointer < total_workout_dates:
+            while day_pointer < total_workout_dates and workout_dates[day_pointer] > today:
+                day_pointer += 1
+
+            window_start = window_end - timedelta(days=6)
+
+            day_iterator = day_pointer
+            count_in_window = 0
+
+            while day_iterator < total_workout_dates and workout_dates[day_iterator] >= window_start:
+                count_in_window += 1
+                day_iterator += 1
+
+            goal_days = goal_at(goal_hist, window_start) 
+
+            if count_in_window == 0:
+                max_met_goal = max(max_met_goal, run_met_goal)
+                run_met_goal = 0
+            elif goal_days and count_in_window >= goal_days:
+                run_met_goal += 1
+            else:
+                pass
+
+            window_end -= timedelta(days=7)
+
+            day_pointer = day_iterator
+
+        max_met_goal = max(max_met_goal, run_met_goal)
+        return max_met_goal
 
     def resolve_friendships(self, info):
         # Return all friendship relationships for this user
@@ -240,6 +536,7 @@ class UserInput(graphene.InputObjectType):
 
 # MARK: - Friendship
 
+
 class Friendship(SQLAlchemyObjectType):
     class Meta:
         model = FriendshipModel
@@ -254,6 +551,9 @@ class Friendship(SQLAlchemyObjectType):
     def resolve_friend(self, info):
         query = User.get_query(info).filter(UserModel.id == self.friend_id).first()
         return query
+
+    def resolve_accepted_at(self, info):
+        return to_local_time(self.accepted_at)
 
 # MARK: - Giveaway
 
@@ -278,6 +578,20 @@ class Workout(SQLAlchemyObjectType):
     class Meta:
         model = WorkoutModel
 
+    gym_name = graphene.String(required=True)
+
+    def resolve_gym_name(self, info):
+        facility = Facility.get_query(info).filter(FacilityModel.id == self.facility_id).first()
+        if not facility:
+            raise GraphQLError("Facility for workout not found.")
+        gym = Gym.get_query(info).filter(GymModel.id == facility.gym_id).first()
+        if not gym:
+            raise GraphQLError("Gym for workout not found.")
+        return gym.name
+
+    def resolve_workout_time(self, info):
+        return to_local_time(self.workout_time)
+
 
 # MARK: - Report
 
@@ -291,6 +605,9 @@ class Report(SQLAlchemyObjectType):
     def resolve_gym(self, info):
         query = Gym.get_query(info).filter(GymModel.id == self.gym_id).first()
         return query
+
+    def resolve_created_at(self, info):
+        return to_local_time(self.created_at)
 
 
 # MARK: - Capacity Reminder
@@ -325,26 +642,14 @@ class Query(graphene.ObjectType):
     get_workouts_by_id = graphene.List(Workout, id=graphene.Int(), description="Get all of a user's workouts by ID.")
     activities = graphene.List(Activity)
     get_all_reports = graphene.List(Report, description="Get all reports.")
-    get_workout_goals = graphene.List(
-        graphene.String, id=graphene.Int(required=True), description="Get the workout goals of a user by ID."
-    )
-    get_user_streak = graphene.Field(
-        graphene.JSONString,
-        id=graphene.Int(required=True),
-        description="Get the current and max workout streak of a user.",
-    )
     get_hourly_average_capacities_by_facility_id = graphene.List(
         HourlyAverageCapacity, facility_id=graphene.Int(), description="Get all facility hourly average capacities."
     )
     get_user_friends = graphene.List(
-        User,
-        user_id=graphene.Int(required=True),
-        description="Get all friends for a user."
+        User, user_id=graphene.Int(required=True), description="Get all friends for a user."
     )
     get_capacity_reminder_by_id = graphene.Field(
-        CapacityReminder,
-        id=graphene.Int(required=True),
-        description="Get a specific capacity reminder by its ID."
+        CapacityReminder, id=graphene.Int(required=True), description="Get a specific capacity reminder by its ID."
     )
     get_all_capacity_reminders = graphene.List(
         CapacityReminder,
@@ -412,8 +717,8 @@ class Query(graphene.ObjectType):
         if not user:
             raise GraphQLError("User with the given ID does not exist.")
 
-        # Get the date 7 days ago
-        one_week_ago = datetime.utcnow() - timedelta(days=7)
+        # Get the date 7 days ago in UTC
+        one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
 
         # Query distinct workout dates for the user in the past week. Workouts must never be logged for a future date.
         workout_days = (
@@ -425,61 +730,14 @@ class Query(graphene.ObjectType):
         )
 
         # Extract days of the week from the workout times (use a set to avoid duplicates)
-        workout_days_set = {workout.workout_time.strftime("%A") for workout in workout_days}
+        # Convert workout_time to local time so the weekday reflects the user's local date.
+        workout_days_set = {to_local_time(workout.workout_time).strftime("%A") for workout in workout_days}
 
         return list(workout_days_set)
 
     def resolve_get_all_reports(self, info):
         query = ReportModel.query.all()
-        return query
-
-    @jwt_required()
-    def resolve_get_workout_goals(self, info, id):
-        user = User.get_query(info).filter(UserModel.id == id).first()
-        if not user:
-            raise GraphQLError("User with the given ID does not exist.")
-
-        return [day.value for day in user.workout_goal] if user.workout_goal else []
-
-    @jwt_required()
-    def resolve_get_user_streak(self, info, id):
-        user = User.get_query(info).filter(UserModel.id == id).first()
-        if not user:
-            raise GraphQLError("User with the given ID does not exist.")
-
-        workouts = (
-            Workout.get_query(info)
-            .filter(WorkoutModel.user_id == user.id)
-            .order_by(WorkoutModel.workout_time.desc())
-            .all()
-        )
-
-        if not workouts:
-            return {"active_streak": 0, "max_streak": 0}
-
-        workout_dates = {workout.workout_time.date() for workout in workouts}
-        sorted_dates = sorted(workout_dates, reverse=True)
-
-        today = datetime.utcnow().date()
-        active_streak = 0
-        max_streak = 0
-        streak = 0
-        prev_date = None
-
-        for date in sorted_dates:
-            if prev_date and (prev_date - date).days > 1:
-                max_streak = max(max_streak, streak)
-                streak = 0
-
-            streak += 1
-            prev_date = date
-
-            if date == today or (date == today - timedelta(days=1) and active_streak == 0):
-                active_streak = streak
-
-        max_streak = max(max_streak, streak)
-
-        return {"active_streak": active_streak, "max_streak": max_streak}
+        return query    
 
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
@@ -495,14 +753,18 @@ class Query(graphene.ObjectType):
             raise GraphQLError("User with the given ID does not exist.")
 
         # Direct friendships where user is the initiator
-        direct_friendships = Friendship.get_query(info).filter(
-            (FriendshipModel.user_id == user_id) & (FriendshipModel.is_accepted == True)
-        ).all()
+        direct_friendships = (
+            Friendship.get_query(info)
+            .filter((FriendshipModel.user_id == user_id) & (FriendshipModel.is_accepted == True))
+            .all()
+        )
 
         # Reverse friendships where user is the recipient
-        reverse_friendships = Friendship.get_query(info).filter(
-            (FriendshipModel.friend_id == user_id) & (FriendshipModel.is_accepted == True)
-        ).all()
+        reverse_friendships = (
+            Friendship.get_query(info)
+            .filter((FriendshipModel.friend_id == user_id) & (FriendshipModel.is_accepted == True))
+            .all()
+        )
 
         friend_ids = set()
         for friendship in direct_friendships:
@@ -513,7 +775,7 @@ class Query(graphene.ObjectType):
 
         # Query for all friends at once
         return User.get_query(info).filter(UserModel.id.in_(friend_ids)).all()
-    
+
     @jwt_required()
     def resolve_get_capacity_reminder_by_id(self, info, id):
         reminder = CapacityReminder.get_query(info).filter(CapacityReminderModel.id == id).first()
@@ -522,7 +784,7 @@ class Query(graphene.ObjectType):
             raise GraphQLError("Capacity reminder with the given ID does not exist.")
 
         return reminder
-    
+
     @jwt_required()
     def resolve_get_all_capacity_reminders(self, info):
         query = CapacityReminder.get_query(info)
@@ -718,6 +980,7 @@ class CreateGiveaway(graphene.Mutation):
         db_session.commit()
         return giveaway
 
+
 class AddFriend(graphene.Mutation):
     class Arguments:
         user_net_id = graphene.String(required=True, description="The Net ID of the user.")
@@ -740,6 +1003,7 @@ class AddFriend(graphene.Mutation):
 
         db_session.commit()
         return user
+
 
 class RemoveFriend(graphene.Mutation):
     class Arguments:
@@ -764,13 +1028,13 @@ class RemoveFriend(graphene.Mutation):
         db_session.commit()
         return user
 
+
 class SetWorkoutGoals(graphene.Mutation):
     class Arguments:
         user_id = graphene.Int(required=True, description="The ID of the user.")
-        workout_goal = graphene.List(
-            graphene.String,
+        workout_goal = graphene.Int(
             required=True,
-            description="The new workout goal for the user in terms of days of the week.",
+            description="The new workout goal for the user in terms of number of days per week.",
         )
 
     Output = User
@@ -781,19 +1045,46 @@ class SetWorkoutGoals(graphene.Mutation):
         if not user:
             raise GraphQLError("User with given ID does not exist.")
 
-        # Validate that all workout days are valid
-        validated_workout_goal = []
-        for day in workout_goal:
-            try:
-                # Convert string to enum
-                validated_workout_goal.append(DayOfWeekGraphQLEnum[day.upper()].value)
-            except KeyError:
-                raise GraphQLError(f"Invalid day of the week: {day}")
+        if user.workout_goal == workout_goal:
+            return user
 
-        user.workout_goal = validated_workout_goal
+        last_change_dt = user.last_goal_change
+        latest_history_entry = (
+            db_session.query(UserWorkoutGoalHistoryModel)
+            .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
+            .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
+            .first()
+        )
+        has_history = latest_history_entry is not None
+
+        if last_change_dt is None and latest_history_entry is not None:
+            last_change_dt = latest_history_entry.effective_at
+
+        if last_change_dt is not None:
+            now_utc = datetime.now(timezone.utc)
+            last_change_utc = ensure_utc(last_change_dt)
+            if last_change_utc is not None and now_utc - last_change_utc < timedelta(days=30):
+                raise GraphQLError("Workout goal can only be updated once every 30 days.")
+
+        if not has_history:
+            effective_at = datetime.now(timezone.utc)
+        else:
+            next_start_date = datetime.now(timezone.utc).date() + timedelta(days=1)
+            effective_at = datetime.combine(next_start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+
+        user.last_goal_change = effective_at
+        user.last_streak = user.active_streak
+        user.workout_goal = workout_goal
+
+        db_session.add(
+            UserWorkoutGoalHistoryModel(
+                user_id=user.id,
+                workout_goal=workout_goal,
+                effective_at=effective_at,
+            )
+        )
 
         db_session.commit()
-
         return user
 
 
@@ -806,7 +1097,9 @@ class logWorkout(graphene.Mutation):
     Output = Workout
 
     @jwt_required()
-    def mutate(self, info, workout_time, user_id):
+    def mutate(self, info, workout_time, user_id, facility_id):
+        if not workout_time:
+            raise GraphQLError("Workout time is required.")
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
@@ -814,7 +1107,9 @@ class logWorkout(graphene.Mutation):
         if not facility:
             raise GraphQLError("Facility with given ID does not exist.")
 
-        workout = WorkoutModel(workout_time=workout_time, user_id=user.id, facility_id=facility.id)
+        workout_time_utc = ensure_utc(workout_time)
+
+        workout = WorkoutModel(workout_time=workout_time_utc, user_id=user.id, facility_id=facility.id)
 
         db_session.add(workout)
         db_session.commit()
@@ -844,10 +1139,41 @@ class CreateReport(graphene.Mutation):
             "OTHER",
         ]:
             raise GraphQLError("Issue is not a valid enumeration.")
-        report = ReportModel(description=description, issue=issue, created_at=created_at, gym_id=gym_id)
+        created_at_utc = ensure_utc(created_at)
+        report = ReportModel(description=description, issue=issue, created_at=created_at_utc, gym_id=gym_id)
         db_session.add(report)
         db_session.commit()
+
+        try:
+            sh.worksheet(SHEET_REPORTS).append_row([report.id, issue, gym.name, description, created_at.isoformat()])
+        except Exception as e:
+            print(f"Error logging report to sheet: {e}")
+
         return CreateReport(report=report)
+
+
+class DeleteReport(graphene.Mutation):
+    class Arguments:
+        report_id = graphene.Int(required=True)
+
+    Output = Report
+
+    def mutate(self, info, report_id):
+        # Check if report exists
+        report = Report.get_query(info).filter(ReportModel.id == report_id).first()
+        if not report:
+            raise GraphQLError("Report with given ID does not exist.")
+
+        try:
+            worksheet = sh.worksheet(SHEET_REPORTS)
+            cell = worksheet.find(str(report_id), in_column=1)
+            worksheet.delete_rows(cell.row)
+        except Exception as e:
+            print(f"Error deleting report from sheet: {e}")
+
+        db_session.delete(report)
+        db_session.commit()
+        return report
 
 
 class DeleteUserById(graphene.Mutation):
@@ -958,11 +1284,7 @@ class EditCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
-                logging.info(
-                    "Unsubscribe %s from %s",
-                    reminder.fcm_token[:12],
-                    topic,
-                )
+                logging.info("Unsubscribe %s from %s", reminder.fcm_token[:12], topic)
                 for error in response.errors:
                     logging.warning(
                         "Error unsubscribing %s from %s -> reason: %s", reminder.fcm_token[:12], topic, error.reason
@@ -978,11 +1300,7 @@ class EditCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.subscribe_to_topic(reminder.fcm_token, topic)
-                logging.info(
-                    "Resubscribing %s to %s",
-                    reminder.fcm_token[:12],
-                    topic,
-                )
+                logging.info("Resubscribing %s to %s", reminder.fcm_token[:12], topic)
                 if response.success_count == 0:
                     raise Exception(response.errors[0].reason)
             except Exception as error:
@@ -1016,13 +1334,9 @@ class DeleteCapacityReminder(graphene.Mutation):
         for topic in topics:
             try:
                 response = messaging.unsubscribe_from_topic(reminder.fcm_token, topic)
-                logging.info(
-                    "Unsubscribe %s from %s",
-                    reminder.fcm_token[:12],
-                    topic,
-                )
+                logging.info("Unsubscribe %s from %s", reminder.fcm_token[:12], topic)
                 if response.success_count == 0:
-                        raise Exception(response.errors[0].reason)
+                    raise Exception(response.errors[0].reason)
             except Exception as error:
                 raise GraphQLError(f"Error unsubscribing from topic {topic}: {error}")
 
@@ -1077,10 +1391,14 @@ class AddFriend(graphene.Mutation):
             raise GraphQLError("Friend with given ID does not exist.")
 
         # Check if friendship already exists
-        existing = Friendship.get_query(info).filter(
-            ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id)) |
-            ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
-        ).first()
+        existing = (
+            Friendship.get_query(info)
+            .filter(
+                ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id))
+                | ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
+            )
+            .first()
+        )
 
         if existing:
             raise GraphQLError("Friendship already exists.")
@@ -1091,6 +1409,7 @@ class AddFriend(graphene.Mutation):
         db_session.commit()
 
         return friendship
+
 
 class AcceptFriendRequest(graphene.Mutation):
     class Arguments:
@@ -1111,10 +1430,11 @@ class AcceptFriendRequest(graphene.Mutation):
 
         # Accept friendship
         friendship.is_accepted = True
-        friendship.accepted_at = datetime.utcnow()
+        friendship.accepted_at = datetime.now(timezone.utc)
         db_session.commit()
 
         return friendship
+
 
 class RemoveFriend(graphene.Mutation):
     class Arguments:
@@ -1126,10 +1446,14 @@ class RemoveFriend(graphene.Mutation):
     @jwt_required()
     def mutate(self, info, user_id, friend_id):
         # Find the friendship
-        friendship = Friendship.get_query(info).filter(
-            ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id)) |
-            ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
-        ).first()
+        friendship = (
+            Friendship.get_query(info)
+            .filter(
+                ((FriendshipModel.user_id == user_id) & (FriendshipModel.friend_id == friend_id))
+                | ((FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id))
+            )
+            .first()
+        )
 
         if not friendship:
             raise GraphQLError("Friendship not found.")
@@ -1139,6 +1463,7 @@ class RemoveFriend(graphene.Mutation):
         db_session.commit()
 
         return RemoveFriend(success=True)
+
 
 class GetPendingFriendRequests(graphene.Mutation):
     class Arguments:
@@ -1154,10 +1479,11 @@ class GetPendingFriendRequests(graphene.Mutation):
             raise GraphQLError("User with given ID does not exist.")
 
         # Get pending friend requests (where this user is the friend)
-        pending = Friendship.get_query(info).filter(
-            (FriendshipModel.friend_id == user_id) &
-            (FriendshipModel.is_accepted == False)
-        ).all()
+        pending = (
+            Friendship.get_query(info)
+            .filter((FriendshipModel.friend_id == user_id) & (FriendshipModel.is_accepted == False))
+            .all()
+        )
 
         return GetPendingFriendRequests(pending_requests=pending)
 
@@ -1173,6 +1499,7 @@ class Mutation(graphene.ObjectType):
     logout_user = LogoutUser.Field(description="Logs out a user.")
     refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
+    delete_report = DeleteReport.Field(description="Deletes a report by ID.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
     add_friend = AddFriend.Field(description="Adds a friend to a user.")
     remove_friend = RemoveFriend.Field(description="Removes a friend from a user.")
