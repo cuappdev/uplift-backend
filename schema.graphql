@@ -318,6 +318,7 @@ type User {
   friends: [User]
   totalGymDays: Int!
   streakStart: DateTime
+  workoutHistory: [Workout]
 }
 
 type Workout {
@@ -333,4 +334,5 @@ type WorkoutGoalHistory {
   userId: Int!
   workoutGoal: Int!
   effectiveAt: DateTime!
+  user: User
 }

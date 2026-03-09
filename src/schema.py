@@ -269,6 +269,11 @@ class User(SQLAlchemyObjectType):
     streak_start = graphene.DateTime(
         description="The start datetime of the most recent active streak (midnight of the day in local timezone), up until the current date."
     )
+    workout_history = graphene.List(lambda: Workout)
+
+    def resolve_workout_history(self, info):
+        query = Workout.get_query(info).filter(WorkoutModel.user_id == self.id).order_by(WorkoutModel.workout_time.desc())
+        return query.all()
 
     def resolve_total_gym_days(self, info):
         return (
