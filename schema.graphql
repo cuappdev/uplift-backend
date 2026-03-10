@@ -85,8 +85,6 @@ type CreateReport {
   report: Report
 }
 
-scalar Date
-
 scalar DateTime
 
 enum DayOfWeekEnum {
@@ -319,7 +317,8 @@ type User {
   friendships: [Friendship]
   friends: [User]
   totalGymDays: Int!
-  streakStart: Date
+  streakStart: DateTime
+  workoutHistory: [Workout]
 }
 
 type Workout {
