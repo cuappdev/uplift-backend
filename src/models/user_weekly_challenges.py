@@ -17,7 +17,7 @@ class UserWeeklyChallenges(Base):
     id = Column(Integer, primary_key = True, autoincrement = True)
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    weekly_challenge_id = Column(Integer, ForeignKey("weekly_challenges.id", ondelete="CASCADE"), nullable=False)
+    weekly_challenge_id = Column(Integer, ForeignKey("weekly_challenge.id", ondelete="CASCADE"), nullable=False)
 
     completed_at = Column(DateTime(timezone=True), nullable=True)
     points = Column(Integer, nullable=False)
