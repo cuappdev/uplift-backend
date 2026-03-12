@@ -189,6 +189,8 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
+scalar JSONString
+
 type LoginUser {
   accessToken: String
   refreshToken: String
@@ -224,6 +226,7 @@ type Mutation {
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
+  deleteReport(reportId: Int!): Report
   deleteUser(userId: Int!): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
   editCapacityReminder(daysOfWeek: [String]!, newCapacityThreshold: Int!, newGyms: [String]!, reminderId: Int!): CapacityReminder
@@ -325,10 +328,17 @@ type User {
 
 type WeeklyChallenge {
   id: ID!
-  name: String!
-  message: String!
-  startDate: String!
-  endDate: String!
+  title: String!
+  description: String!
+  category: String!
+  points: Int!
+  startDate: DateTime!
+  endDate: DateTime!
+  ruleType: String!
+  ruleConfig: JSONString
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type Workout {
