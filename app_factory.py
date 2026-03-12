@@ -3,7 +3,8 @@ from datetime import timedelta, timezone
 from flask_jwt_extended import JWTManager
 from src.utils.constants import SERVICE_ACCOUNT_PATH, JWT_SECRET_KEY
 from datetime import datetime
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template
+from sqlalchemy import text
 from graphene import Schema
 from graphql.utils import schema_printer
 from src.database import db_session, init_db
@@ -88,6 +89,14 @@ def create_app(run_migrations=False):
     @app.route("/")
     def index():
         return render_template("index.html")
+
+    @app.route("/health")
+    def health_check():
+        try:
+            db_session.execute(text("SELECT 1"))
+            return jsonify({"status": "healthy", "database": "connected"}), 200
+        except Exception:
+            return jsonify({"status": "unhealthy", "database": "disconnected"}), 503
 
     app.add_url_rule("/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True))
 

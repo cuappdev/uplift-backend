@@ -1,7 +1,7 @@
 import os
 
 # URL for Uplift image assets
-ASSET_BASE_URL = "https://raw.githubusercontent.com/cuappdev/assets/master/uplift/"
+ASSET_BASE_URL = "https://appdev-upload.nyc3.cdn.digitaloceanspaces.com/uplift"
 
 # Base URL for Cornell Recreation Website
 BASE_URL = "https://scl.cornell.edu/recreation/"

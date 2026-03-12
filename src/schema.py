@@ -1,8 +1,9 @@
 import graphene
+import base64
 import os
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, get_jwt, jwt_required
 from functools import wraps
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, time, timezone
 from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
@@ -30,8 +31,10 @@ from src.database import db_session
 import requests
 from firebase_admin import messaging
 import logging
+from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 
+local_tz = ZoneInfo("America/New_York")
 
 def resolve_enum_value(entry):
     """Return the raw value for Enum objects while leaving plain strings untouched."""
@@ -67,7 +70,8 @@ def to_local_time(dt):
         return None
 
     # Convert to local timezone (server-local)
-    return dt_utc.astimezone()
+    return dt_utc.astimezone(local_tz)
+
 
 def goal_at(goal_history, window_start_date):
     """
@@ -83,6 +87,7 @@ def goal_at(goal_history, window_start_date):
             return workout_goal
 
     return goal_history[-1][0]
+
 
 # MARK: - Gym
 
@@ -249,6 +254,7 @@ class WorkoutGoalHistory(SQLAlchemyObjectType):
     def resolve_effective_at(self, info):
         return to_local_time(self.effective_at)
 
+
 # MARK: - User
 
 
@@ -259,18 +265,24 @@ class User(SQLAlchemyObjectType):
     friendships = graphene.List(lambda: Friendship)
     friends = graphene.List(lambda: User)
     total_gym_days = graphene.Int(
-        required=True,
-        description="Get the total number of gym days (unique workout days) for user."
+        required=True, description="Get the total number of gym days (unique workout days) for user."
     )
-    streak_start = graphene.Date(
-        description="The start date of the most recent active streak, up until the current date."
+    streak_start = graphene.DateTime(
+        description="The start datetime of the most recent active streak (midnight of the day in local timezone), up until the current date."
     )
+    workout_history = graphene.List(lambda: Workout)
+
+    def resolve_workout_history(self, info):
+        query = Workout.get_query(info).filter(WorkoutModel.user_id == self.id).order_by(WorkoutModel.workout_time.desc())
+        return query.all()
 
     def resolve_total_gym_days(self, info):
         return (
             Workout.get_query(info)
             .filter(WorkoutModel.user_id == self.id)
-            .with_entities(func.count(func.distinct(cast(WorkoutModel.workout_time, Date)))) # We cast the datetiem object as a Date object to get the unique days
+            .with_entities(
+                func.count(func.distinct(cast(WorkoutModel.workout_time, Date)))
+            )  # We cast the datetiem object as a Date object to get the unique days
             .scalar()
         )
 
@@ -291,7 +303,7 @@ class User(SQLAlchemyObjectType):
         if not workout_date_rows:
             return 0
 
-        workout_dates = [row[0] for row in workout_date_rows] 
+        workout_dates = [row[0] for row in workout_date_rows]
 
         goal_hist = (
             db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
@@ -317,7 +329,7 @@ class User(SQLAlchemyObjectType):
 
             day_iterator = day_pointer
             count_in_window = 0
-            
+
             while day_iterator < total_workout_days and workout_dates[day_iterator] >= window_start:
                 count_in_window += 1
                 day_iterator += 1
@@ -358,10 +370,7 @@ class User(SQLAlchemyObjectType):
             return None
 
         goal_hist = (
-            db_session.query(
-                UserWorkoutGoalHistoryModel.workout_goal,
-                UserWorkoutGoalHistoryModel.effective_at,
-            )
+            db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
             .filter(UserWorkoutGoalHistoryModel.user_id == user.id)
             .order_by(UserWorkoutGoalHistoryModel.effective_at.desc())
             .all()
@@ -431,8 +440,8 @@ class User(SQLAlchemyObjectType):
             return None
 
         last_streak_start_date = workout_dates[idx_last_streak_start]
-
-        return last_streak_start_date
+        local_midnight = datetime.combine(last_streak_start_date, time.min, tzinfo=local_tz)
+        return local_midnight
 
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
@@ -451,7 +460,7 @@ class User(SQLAlchemyObjectType):
         if not workout_date_rows:
             return 0
 
-        workout_dates = [row[0] for row in workout_date_rows] 
+        workout_dates = [row[0] for row in workout_date_rows]
 
         goal_hist = (
             db_session.query(UserWorkoutGoalHistoryModel.workout_goal, UserWorkoutGoalHistoryModel.effective_at)
@@ -485,7 +494,7 @@ class User(SQLAlchemyObjectType):
                 count_in_window += 1
                 day_iterator += 1
 
-            goal_days = goal_at(goal_hist, window_start) 
+            goal_days = goal_at(goal_hist, window_start)
 
             if count_in_window == 0:
                 max_met_goal = max(max_met_goal, run_met_goal)
@@ -554,6 +563,7 @@ class Friendship(SQLAlchemyObjectType):
 
     def resolve_accepted_at(self, info):
         return to_local_time(self.accepted_at)
+
 
 # MARK: - Giveaway
 
@@ -737,7 +747,7 @@ class Query(graphene.ObjectType):
 
     def resolve_get_all_reports(self, info):
         query = ReportModel.query.all()
-        return query    
+        return query
 
     def resolve_get_hourly_average_capacities_by_facility_id(self, info, facility_id):
         valid_facility_ids = [14492437, 8500985, 7169406, 10055021, 2323580, 16099753, 15446768, 12572681]
@@ -863,10 +873,11 @@ class CreateUser(graphene.Mutation):
 
         if encoded_image:
             upload_url = os.getenv("DIGITAL_OCEAN_URL")
-            payload = {"bucket": os.getenv("BUCKET_NAME"), "image": encoded_image}  # Base64-encoded image string
-            headers = {"Content-Type": "application/json"}
+            image_bytes = base64.b64decode(encoded_image)
+            files = {"image": ("profile.png", image_bytes, "image/png")}
+            data = {"bucket": os.getenv("BUCKET_NAME")}
             try:
-                response = requests.post(upload_url, json=payload, headers=headers)
+                response = requests.post(upload_url, files=files, data=data)
                 response.raise_for_status()
                 json_response = response.json()
                 final_photo_url = json_response.get("data")
@@ -1033,8 +1044,7 @@ class SetWorkoutGoals(graphene.Mutation):
     class Arguments:
         user_id = graphene.Int(required=True, description="The ID of the user.")
         workout_goal = graphene.Int(
-            required=True,
-            description="The new workout goal for the user in terms of number of days per week.",
+            required=True, description="The new workout goal for the user in terms of number of days per week."
         )
 
     Output = User
@@ -1077,11 +1087,7 @@ class SetWorkoutGoals(graphene.Mutation):
         user.workout_goal = workout_goal
 
         db_session.add(
-            UserWorkoutGoalHistoryModel(
-                user_id=user.id,
-                workout_goal=workout_goal,
-                effective_at=effective_at,
-            )
+            UserWorkoutGoalHistoryModel(user_id=user.id, workout_goal=workout_goal, effective_at=effective_at)
         )
 
         db_session.commit()

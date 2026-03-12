@@ -43,7 +43,7 @@
       }
     ],
     "hours": [],
-    "image_url": "gyms/helen-newman.jpg",
+    "image_url": "/helen-newman.jpg",
     "latitude": 42.453188923853595,
     "longitude": -76.47730907608567,
     "name": "Helen Newman"
@@ -59,7 +59,7 @@
       }
     ],
     "hours": [],
-    "image_url": "gyms/morrison.jpeg",
+    "image_url": "/morrison.jpeg",
     "latitude": 42.45582093240726,
     "longitude": -76.47883902202813,
     "name": "Toni Morrison"
@@ -90,7 +90,7 @@
       }
     ],
     "hours": [],
-    "image_url": "gyms/noyes.jpg",
+    "image_url": "/noyes.jpg",
     "latitude": 42.44660528140398,
     "longitude": -76.48803891048553,
     "name": "Noyes"
@@ -126,7 +126,7 @@
       }
     ],
     "hours": [],
-    "image_url": "gyms/teagle.jpg",
+    "image_url": "/teagle.jpg",
     "latitude": 42.4459926380709,
     "longitude": -76.47915389837931,
     "name": "Teagle"
