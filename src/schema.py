@@ -628,6 +628,10 @@ class CapacityReminder(SQLAlchemyObjectType):
         exclude_fields = ("fcm_token",)
 
 
+class StudentHealthPlanProgress(graphene.ObjectType):
+    visits_completed = graphene.Int()
+    visits_remaining = graphene.Int()
+
 # MARK: - Query
 
 
@@ -652,6 +656,7 @@ class Query(graphene.ObjectType):
         CapacityReminder, id=graphene.Int(required=True), description="Get a specific capacity reminder by its ID."
     )
     get_all_capacity_reminders = graphene.List(CapacityReminder, description="Get all capacity reminders.")
+    student_health_plan_progress = graphene.Field(StudentHealthPlanProgress, user_id=graphene.Int(required=True))
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -765,6 +770,31 @@ class Query(graphene.ObjectType):
     def resolve_get_all_capacity_reminders(self, info):
         query = CapacityReminder.get_query(info)
         return query.all()
+    
+    def resolve_student_health_plan_progress(self, info, user_id):
+        user = User.get_query(info).filter(UserModel.id == user_id).first()
+        if not user:
+            raise GraphQLError("User with the given ID does not exist.")
+        
+        if user.student_health_plan is False:
+            raise GraphQLError("User is not enrolled in the student health plan.")
+        
+        #add to constants file later
+        SEMESTER_START = datetime(2026, 1, 20)
+        SEMESTER_END = datetime(2026, 5, 16)
+        
+        workouts = Workout.get_query(info).filter(
+            WorkoutModel.user_id == user_id,
+            WorkoutModel.workout_time >= SEMESTER_START,
+            WorkoutModel.workout_time <= SEMESTER_END
+        )
+
+        REQUIRED = 50
+
+        return StudentHealthPlanProgress(
+            visits_completed=workouts.count(),
+            visits_remaining=max(0, REQUIRED - workouts.count())
+        )
 
 
 # MARK: - Mutation
@@ -851,7 +881,7 @@ class CreateUser(graphene.Mutation):
                     raise GraphQLError("No URL returned from upload service.")
             except requests.exceptions.RequestException as e:
                 print(f"Request failed: {e}")
-                raise GraphQLError("Failed to upload photo.")
+                raise GraphQLError(f"Failed to upload photo. : {e}")
 
         new_user = UserModel(name=name, net_id=net_id, email=email, encoded_image=final_photo_url)
         db_session.add(new_user)
