@@ -851,7 +851,7 @@ class CreateUser(graphene.Mutation):
                     raise GraphQLError("No URL returned from upload service.")
             except requests.exceptions.RequestException as e:
                 print(f"Request failed: {e}")
-                raise GraphQLError("Failed to upload photo.")
+                raise GraphQLError(f"Failed to upload photo: {e}")
 
         new_user = UserModel(name=name, net_id=net_id, email=email, encoded_image=final_photo_url)
         db_session.add(new_user)
