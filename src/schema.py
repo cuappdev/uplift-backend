@@ -616,7 +616,7 @@ class CapacityReminder(SQLAlchemyObjectType):
     class Meta:
         model = CapacityReminderModel
         exclude_fields = ("fcm_token",)
-
+        
 
 # MARK: - Query
 
@@ -829,6 +829,8 @@ class CreateUser(graphene.Mutation):
 
         if encoded_image:
             upload_url = os.getenv("DIGITAL_OCEAN_URL")
+            if not upload_url:
+                raise GraphQLError("Upload URL not configured.")
             payload = {"bucket": os.getenv("BUCKET_NAME"), "image": encoded_image}  # Base64-encoded image string
             headers = {"Content-Type": "application/json"}
             try:
@@ -1052,8 +1054,6 @@ class SetWorkoutGoals(graphene.Mutation):
 
         db_session.commit()
         return user
-
-
 class logWorkout(graphene.Mutation):
     class Arguments:
         workout_time = graphene.DateTime(required=True)
