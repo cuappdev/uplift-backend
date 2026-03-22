@@ -21,3 +21,5 @@ class Workout(Base):
     workout_time = Column(DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))  # should this be nullable?
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
+    
+    user = relationship("User", back_populates='workouts')

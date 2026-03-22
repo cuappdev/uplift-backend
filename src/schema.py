@@ -7,6 +7,7 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
 from src.models.capacity_reminder import CapacityReminder as CapacityReminderModel
+from src.models.weekly_challenge import WeeklyChallenge as WeeklyChallengeModel
 from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
@@ -30,6 +31,9 @@ import requests
 from firebase_admin import messaging
 import logging
 from sqlalchemy import func, cast, Date
+import boto3
+from botocore.exceptions import ClientError
+import base64
 
 
 def resolve_enum_value(entry):
@@ -823,27 +827,35 @@ class CreateUser(graphene.Mutation):
     def mutate(self, info, name, net_id, email, encoded_image=None):
         # Check if a user with the given NetID already exists
         existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
-        final_photo_url = None
         if existing_user:
             raise GraphQLError("NetID already exists.")
 
-        if encoded_image:
-            upload_url = os.getenv("DIGITAL_OCEAN_URL")
-            if not upload_url:
-                raise GraphQLError("Upload URL not configured.")
-            payload = {"bucket": os.getenv("BUCKET_NAME"), "image": encoded_image}  # Base64-encoded image string
-            headers = {"Content-Type": "application/json"}
-            try:
-                response = requests.post(upload_url, json=payload, headers=headers)
-                response.raise_for_status()
-                json_response = response.json()
-                final_photo_url = json_response.get("data")
-                if not final_photo_url:
-                    raise GraphQLError("No URL returned from upload service.")
-            except requests.exceptions.RequestException as e:
-                print(f"Request failed: {e}")
-                raise GraphQLError("Failed to upload photo.")
+        s3 = boto3.client('s3',
+            endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+            aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
+            aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
+        )
 
+        # Decode the base64 image
+        image_data = base64.b64decode(encoded_image)
+
+        # Upload to Spaces
+        try:
+            response = s3.put_object(
+                Bucket="appdev-upload",
+                Key=f"uplift-dev/user-profile/{net_id}-profile.png", 
+                Body=image_data,
+                ContentType="image/png",
+                ACL="public-read"
+            )
+            
+            key = "uplift-dev/photo.jpg"
+            final_photo_url = f"https://nyc3.digitaloceanspaces.com/uplift-dev/user-profile/{net_id}-profile.png"
+            
+
+        except ClientError as e:
+            print("Upload error:", e)        
+        
         new_user = UserModel(name=name, net_id=net_id, email=email, encoded_image=final_photo_url)
         db_session.add(new_user)
         db_session.commit()
@@ -1007,7 +1019,7 @@ class SetWorkoutGoals(graphene.Mutation):
 
     Output = User
 
-    @jwt_required()
+    # @jwt_required()
     def mutate(self, info, user_id, workout_goal):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -1054,6 +1066,7 @@ class SetWorkoutGoals(graphene.Mutation):
 
         db_session.commit()
         return user
+    
 class logWorkout(graphene.Mutation):
     class Arguments:
         workout_time = graphene.DateTime(required=True)
@@ -1062,7 +1075,7 @@ class logWorkout(graphene.Mutation):
 
     Output = Workout
 
-    @jwt_required()
+    # @jwt_required()
     def mutate(self, info, workout_time, user_id, facility_id):
         if not workout_time:
             raise GraphQLError("Workout time is required.")
@@ -1153,6 +1166,21 @@ class DeleteUserById(graphene.Mutation):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
+        
+        s3 = boto3.client('s3',
+            endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+            aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
+            aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
+        )
+        
+        try:
+            s3.delete_object(
+                Bucket="appdev-upload",
+                Key=f"uplift-dev/user-profile/{user.net_id}-profile.png", 
+            )
+        except ClientError as e:
+            print("Upload error:", e) 
+        
         db_session.delete(user)
         db_session.commit()
         return user
