@@ -846,25 +846,29 @@ class CreateUser(graphene.Mutation):
             aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
         )
 
-        # Decode the base64 image
-        image_data = base64.b64decode(encoded_image)
+        final_photo_url = None
+        if encoded_image:
+            # Decode the base64 image
+            image_data = base64.b64decode(encoded_image)
 
-        # Upload to Spaces
-        try:
-            response = s3.put_object(
-                Bucket="appdev-upload",
-                Key=f"uplift-dev/user-profile/{net_id}-profile.png", 
-                Body=image_data,
-                ContentType="image/png",
-                ACL="public-read"
-            )
-            
-            key = "uplift-dev/photo.jpg"
-            final_photo_url = f"https://nyc3.digitaloceanspaces.com/uplift-dev/user-profile/{net_id}-profile.png"
-            
-
-        except ClientError as e:
-            print("Upload error:", e)        
+            # Upload to Spaces
+            try:
+                bucket = "appdev-upload"
+                path = f"uplift-dev/user-profile/{net_id}-profile.png"
+                region = "nyc3"
+                
+                s3.put_object(
+                    Bucket=bucket,
+                    Key=path, 
+                    Body=image_data,
+                    ContentType="image/png",
+                    ACL="public-read"
+                )
+                
+                final_photo_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{path}"
+            except ClientError as e:
+                print("Upload error:", e)
+                raise GraphQLError("Error uploading user profile picture.")        
         
         new_user = UserModel(name=name, net_id=net_id, email=email, encoded_image=final_photo_url)
         db_session.add(new_user)
@@ -1178,13 +1182,15 @@ class DeleteUserById(graphene.Mutation):
             aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
         )
         
-        try:
-            s3.delete_object(
-                Bucket="appdev-upload",
-                Key=f"uplift-dev/user-profile/{user.net_id}-profile.png", 
-            )
-        except ClientError as e:
-            print("Upload error:", e) 
+        if user.encoded_image:
+            try:
+                s3.delete_object(
+                    Bucket="appdev-upload",
+                    Key=f"uplift-dev/user-profile/{user.net_id}-profile.png", 
+                )
+            except ClientError as e:
+                print("Delete error:", e) 
+                raise GraphQLError("Error deleting user profile picture")
         
         db_session.delete(user)
         db_session.commit()
