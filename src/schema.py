@@ -1019,7 +1019,7 @@ class SetWorkoutGoals(graphene.Mutation):
 
     Output = User
 
-    # @jwt_required()
+    @jwt_required()
     def mutate(self, info, user_id, workout_goal):
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -1075,7 +1075,7 @@ class logWorkout(graphene.Mutation):
 
     Output = Workout
 
-    # @jwt_required()
+    @jwt_required()
     def mutate(self, info, workout_time, user_id, facility_id):
         if not workout_time:
             raise GraphQLError("Workout time is required.")
