@@ -896,7 +896,7 @@ class EditUserById(graphene.Mutation):
         
         if not existing_user:
             raise GraphQLError("User with given id does not exist.")
-        if get_jwt_identity() != user_id:
+        if get_jwt_identity() != str(user_id):
             raise GraphQLError("Unauthorized operation")
         if name is not None:
             existing_user.name = name
@@ -1192,7 +1192,7 @@ class DeleteUserById(graphene.Mutation):
         if not user:
             raise GraphQLError("User with given ID does not exist.")
 
-        if get_jwt_identity() != user_id:
+        if get_jwt_identity() != str(user_id):
             raise GraphQLError("Unauthorized operation")
         
         s3 = boto3.client(
