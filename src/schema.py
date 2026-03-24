@@ -1,3 +1,5 @@
+import binascii
+
 import graphene
 import base64
 import os
@@ -839,18 +841,21 @@ class CreateUser(graphene.Mutation):
             raise GraphQLError("NetID already exists.")
 
         final_photo_url = None
+        
         if encoded_image:
             
-            s3 = boto3.client('s3',
+            s3 = boto3.client(
+                "s3",
                 endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
                 aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
                 aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
             )
             
-            # Decode the base64 image
-            image_data = base64.b64decode(encoded_image)
+            try:
+                image_data = base64.b64decode(encoded_image, validate=True)
+            except (binascii.Error, ValueError) as err:
+                raise GraphQLError("Invalid profile image encoding.") 
 
-            # Upload to Spaces
             try:
                 bucket = "appdev-upload"
                 path = f"uplift-dev/user-profile/{net_id}-profile.png"
@@ -891,23 +896,29 @@ class EditUserById(graphene.Mutation):
         
         if not existing_user:
             raise GraphQLError("User with given id does not exist.")
+        if get_jwt_identity() != user_id:
+            raise GraphQLError("Unauthorized operation")
         if name is not None:
             existing_user.name = name
         if email is not None:
             existing_user.email = email
         if encoded_image is not None:
             final_photo_url = None
-            s3 = boto3.client('s3',
+            s3 = boto3.client(
+                "s3",
                 endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
                 aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
                 aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
             )
             
-            image_data = base64.b64decode(encoded_image)
+            try:
+                image_data = base64.b64decode(encoded_image, validate=True)
+            except (binascii.Error, ValueError) as err:
+                raise GraphQLError("Invalid profile image encoding.")
 
             try:
                 bucket = "appdev-upload"
-                path = f"uplift-dev/user-profile/{net_id}-profile.png"
+                path = f"uplift-dev/user-profile/{existing_user.net_id}-profile.png"
                 region = "nyc3"
                 
                 s3.put_object(
@@ -1177,10 +1188,15 @@ class DeleteUserById(graphene.Mutation):
     def mutate(self, info, user_id):
         # Check if user exists
         user = User.get_query(info).filter(UserModel.id == user_id).first()
+        
         if not user:
             raise GraphQLError("User with given ID does not exist.")
+
+        if get_jwt_identity() != user_id:
+            raise GraphQLError("Unauthorized operation")
         
-        s3 = boto3.client('s3',
+        s3 = boto3.client(
+            "s3",
             endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
             aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
             aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
