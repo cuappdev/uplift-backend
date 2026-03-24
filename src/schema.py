@@ -8,7 +8,6 @@ from graphene_sqlalchemy import SQLAlchemyObjectType
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
 from src.models.capacity_reminder import CapacityReminder as CapacityReminderModel
-from src.models.weekly_challenge import WeeklyChallenge as WeeklyChallengeModel
 from src.models.facility import Facility as FacilityModel
 from src.models.gym import Gym as GymModel
 from src.models.openhours import OpenHours as OpenHoursModel
@@ -35,7 +34,6 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 import boto3
 from botocore.exceptions import ClientError
-import base64
 
 local_tz = ZoneInfo("America/New_York")
 
@@ -840,14 +838,15 @@ class CreateUser(graphene.Mutation):
         if existing_user:
             raise GraphQLError("NetID already exists.")
 
-        s3 = boto3.client('s3',
-            endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
-            aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
-            aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
-        )
-
         final_photo_url = None
         if encoded_image:
+            
+            s3 = boto3.client('s3',
+                endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
+                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
+            )
+            
             # Decode the base64 image
             image_data = base64.b64decode(encoded_image)
 
@@ -877,49 +876,53 @@ class CreateUser(graphene.Mutation):
         return new_user
 
 
-class EditUser(graphene.Mutation):
+class EditUserById(graphene.Mutation):
     class Arguments:
+        user_id = graphene.String(required=True)
         name = graphene.String(required=False)
-        net_id = graphene.String(required=True)
         email = graphene.String(required=False)
         encoded_image = graphene.String(required=False)
 
     Output = User
 
-    def mutate(self, info, net_id, name=None, email=None, encoded_image=None):
-        existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+    @jwt_required()
+    def mutate(self, info, user_id, name=None, email=None, encoded_image=None):
+        existing_user = db_session.query(UserModel).filter(UserModel.id == user_id).first()
+        
         if not existing_user:
-            raise GraphQLError("User with given net id does not exist.")
-
+            raise GraphQLError("User with given id does not exist.")
         if name is not None:
             existing_user.name = name
         if email is not None:
             existing_user.email = email
         if encoded_image is not None:
-            upload_url = os.getenv("DIGITAL_OCEAN_URL")  # Base URL for upload endpoint
-            if not upload_url:
-                raise GraphQLError("Upload URL not configured.")
-
-            payload = {
-                "bucket": os.getenv("BUCKET_NAME", "DEV_BUCKET"),
-                "image": encoded_image,  # Base64-encoded image string
-            }
-            headers = {"Content-Type": "application/json"}
-
-            print(f"Uploading image with payload: {payload}")
+            final_photo_url = None
+            s3 = boto3.client('s3',
+                endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
+                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
+            )
+            
+            image_data = base64.b64decode(encoded_image)
 
             try:
-                response = requests.post(upload_url, json=payload, headers=headers)
-                response.raise_for_status()
-                json_response = response.json()
-                print(f"Upload API response: {json_response}")
-                final_photo_url = json_response.get("data")
-                if not final_photo_url:
-                    raise GraphQLError("No URL returned from upload service.")
+                bucket = "appdev-upload"
+                path = f"uplift-dev/user-profile/{net_id}-profile.png"
+                region = "nyc3"
+                
+                s3.put_object(
+                    Bucket=bucket,
+                    Key=path, 
+                    Body=image_data,
+                    ContentType="image/png",
+                    ACL="public-read"
+                )
+                
+                final_photo_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{path}"
                 existing_user.encoded_image = final_photo_url
-            except requests.exceptions.RequestException as e:
-                print(f"Request failed: {e}")
-                raise GraphQLError("Failed to upload photo.")
+            except ClientError as e:
+                print("Upload error:", e)
+                raise GraphQLError("Error adding new user profile picture.")        
 
         db_session.commit()
         return existing_user
@@ -1170,6 +1173,7 @@ class DeleteUserById(graphene.Mutation):
 
     Output = User
 
+    @jwt_required()
     def mutate(self, info, user_id):
         # Check if user exists
         user = User.get_query(info).filter(UserModel.id == user_id).first()
@@ -1470,7 +1474,7 @@ class GetPendingFriendRequests(graphene.Mutation):
 class Mutation(graphene.ObjectType):
     create_giveaway = CreateGiveaway.Field(description="Creates a new giveaway.")
     create_user = CreateUser.Field(description="Creates a new user.")
-    edit_user = EditUser.Field(description="Edit a new user.")
+    edit_user = EditUserById.Field(description="Edit a new user by id.")
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
