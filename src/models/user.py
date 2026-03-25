@@ -48,6 +48,7 @@ class User(Base):
                                             foreign_keys="Friendship.friend_id",
                                             back_populates="friend")
 
+    workouts = relationship("Workout", cascade="all, delete-orphan", back_populates="user")
     def add_friend(self, friend):
         # Check if friendship already exists
         existing = Friendship.query.filter(
