@@ -293,7 +293,7 @@ class User(SQLAlchemyObjectType):
     def resolve_active_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
         if not user:
-            raise GraphQLError("User with the given ID does not exist.")
+            return self.active_streak
 
         workout_date_rows = (
             Workout.get_query(info)
@@ -355,7 +355,7 @@ class User(SQLAlchemyObjectType):
     def resolve_streak_start(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
         if not user:
-            raise GraphQLError("User with the given ID does not exist.")
+            return None
 
         workout_date_rows = (
             Workout.get_query(info)
@@ -450,7 +450,7 @@ class User(SQLAlchemyObjectType):
     def resolve_max_streak(self, info):
         user = User.get_query(info).filter(UserModel.id == self.id).first()
         if not user:
-            raise GraphQLError("User with the given ID does not exist.")
+            return self.max_streak
 
         workout_date_rows = (
             Workout.get_query(info)
@@ -1221,6 +1221,8 @@ class DeleteUserById(graphene.Mutation):
                 raise GraphQLError(f"S3 error: {type(e).__name__}: {e}")
 
         db_session.delete(user)
+        db_session.flush()
+        db_session.expunge(user)
         db_session.commit()
         return user
 
