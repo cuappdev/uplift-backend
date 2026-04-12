@@ -36,7 +36,6 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 import boto3
 from botocore.config import Config
-from botocore.exceptions import ClientError
 
 local_tz = ZoneInfo("America/New_York")
 
@@ -844,37 +843,53 @@ class CreateUser(graphene.Mutation):
         final_photo_url = None
         
         if encoded_image:
-            
-            s3 = boto3.client(
-                "s3",
-                endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
-                aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
-                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
-                config=Config(s3={"addressing_style": "path"}),
+            bucket = "appdev-upload"
+            path = f"uplift-dev/user-profile/{net_id}-profile.png"
+            region = "nyc3"
+
+            logging.info(f"DIGITAL_OCEAN_URL: {os.getenv('DIGITAL_OCEAN_URL')}")
+            logging.info(
+                "CreateUser profile picture upload: net_id=%s, bucket=%s, key=%s",
+                net_id,
+                bucket,
+                path,
             )
-            
+
             try:
                 image_data = base64.b64decode(encoded_image, validate=True)
             except (binascii.Error, ValueError) as err:
-                raise GraphQLError("Invalid profile image encoding.") 
+                logging.warning(
+                    "Invalid profile image encoding: %s: %s",
+                    type(err).__name__,
+                    err,
+                )
+                raise GraphQLError("Invalid profile image encoding.")
 
             try:
-                bucket = "appdev-upload"
-                path = f"uplift-dev/user-profile/{net_id}-profile.png"
-                region = "nyc3"
-                
+                logging.info("Attempting S3 put_object for new user profile picture...")
+                s3 = boto3.client(
+                    "s3",
+                    endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                    aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
+                    aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
+                    config=Config(s3={"addressing_style": "path"}),
+                )
                 s3.put_object(
                     Bucket=bucket,
-                    Key=path, 
+                    Key=path,
                     Body=image_data,
                     ContentType="image/png",
-                    ACL="public-read"
+                    ACL="public-read",
                 )
-                
+                logging.info("S3 put_object succeeded for new user profile picture")
                 final_photo_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{path}"
-            except ClientError as e:
-                print("Upload error:", e)
-                raise GraphQLError("Error uploading user profile picture.")        
+            except Exception as e:
+                logging.error(
+                    "S3 upload failed (create user): %s: %s",
+                    type(e).__name__,
+                    e,
+                )
+                raise GraphQLError(f"S3 error: {type(e).__name__}: {e}")
         
         new_user = UserModel(name=name, net_id=net_id, email=email, encoded_image=final_photo_url)
         db_session.add(new_user)
@@ -906,37 +921,55 @@ class EditUserById(graphene.Mutation):
             existing_user.email = email
         if encoded_image is not None:
             final_photo_url = None
-            s3 = boto3.client(
-                "s3",
-                endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
-                aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
-                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
-                config=Config(s3={"addressing_style": "path"}),
+            bucket = "appdev-upload"
+            path = f"uplift-dev/user-profile/{existing_user.net_id}-profile.png"
+            region = "nyc3"
+
+            logging.info(f"DIGITAL_OCEAN_URL: {os.getenv('DIGITAL_OCEAN_URL')}")
+            logging.info(
+                "EditUser profile picture upload: user_id=%s, net_id=%s, bucket=%s, key=%s",
+                user_id,
+                existing_user.net_id,
+                bucket,
+                path,
             )
-            
+
             try:
                 image_data = base64.b64decode(encoded_image, validate=True)
             except (binascii.Error, ValueError) as err:
+                logging.warning(
+                    "Invalid profile image encoding: %s: %s",
+                    type(err).__name__,
+                    err,
+                )
                 raise GraphQLError("Invalid profile image encoding.")
 
             try:
-                bucket = "appdev-upload"
-                path = f"uplift-dev/user-profile/{existing_user.net_id}-profile.png"
-                region = "nyc3"
-                
+                logging.info("Attempting S3 put_object for edited user profile picture...")
+                s3 = boto3.client(
+                    "s3",
+                    endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                    aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
+                    aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
+                    config=Config(s3={"addressing_style": "path"}),
+                )
                 s3.put_object(
                     Bucket=bucket,
-                    Key=path, 
+                    Key=path,
                     Body=image_data,
                     ContentType="image/png",
-                    ACL="public-read"
+                    ACL="public-read",
                 )
-                
+                logging.info("S3 put_object succeeded for edited user profile picture")
                 final_photo_url = f"https://{bucket}.{region}.digitaloceanspaces.com/{path}"
                 existing_user.encoded_image = final_photo_url
-            except ClientError as e:
-                print("Upload error:", e)
-                raise GraphQLError("Error adding new user profile picture.")        
+            except Exception as e:
+                logging.error(
+                    "S3 upload failed (edit user): %s: %s",
+                    type(e).__name__,
+                    e,
+                )
+                raise GraphQLError(f"S3 error: {type(e).__name__}: {e}")
 
         db_session.commit()
         return existing_user
