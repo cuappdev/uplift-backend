@@ -1197,25 +1197,29 @@ class DeleteUserById(graphene.Mutation):
 
         if int(get_jwt_identity()) != user_id:
             raise GraphQLError("Unauthorized operation")
-        
-        s3 = boto3.client(
-            "s3",
-            endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
-            aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
-            aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
-            config=Config(s3={"addressing_style": "path"}),
-        )
-        
+
+        logging.info(f"DIGITAL_OCEAN_URL: {os.getenv('DIGITAL_OCEAN_URL')}")
+        logging.info(f"User encoded_image: {user.encoded_image}")
+
         if user.encoded_image:
             try:
+                logging.info("Attempting S3 delete...")
+                s3 = boto3.client(
+                    "s3",
+                    endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                    aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
+                    aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
+                    config=Config(s3={"addressing_style": "path"}),
+                )
                 s3.delete_object(
                     Bucket="appdev-upload",
-                    Key=f"uplift-dev/user-profile/{user.net_id}-profile.png", 
+                    Key=f"uplift-dev/user-profile/{user.net_id}-profile.png",
                 )
+                logging.info("S3 delete succeeded")
             except Exception as e:
-                print("Delete error:", e) 
-                raise GraphQLError("Error deleting user profile picture")
-        
+                logging.error(f"S3 delete failed: {type(e).__name__}: {e}")
+                raise GraphQLError(f"S3 error: {type(e).__name__}: {e}")
+
         db_session.delete(user)
         db_session.commit()
         return user
