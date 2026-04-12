@@ -1208,7 +1208,7 @@ class DeleteUserById(graphene.Mutation):
                     Bucket="appdev-upload",
                     Key=f"uplift-dev/user-profile/{user.net_id}-profile.png", 
                 )
-            except ClientError as e:
+            except Exception as e:
                 print("Delete error:", e) 
                 raise GraphQLError("Error deleting user profile picture")
         
