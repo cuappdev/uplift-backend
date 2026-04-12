@@ -28,6 +28,7 @@ from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
 from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
+from src.utils.constants import get_digital_ocean_s3_endpoint_url
 from src.database import db_session
 import requests
 from firebase_admin import messaging
@@ -847,7 +848,11 @@ class CreateUser(graphene.Mutation):
             path = f"uplift-dev/user-profile/{net_id}-profile.png"
             region = "nyc3"
 
-            logging.info(f"DIGITAL_OCEAN_URL: {os.getenv('DIGITAL_OCEAN_URL')}")
+            logging.info(
+                "DIGITAL_OCEAN_URL raw=%r normalized=%r",
+                os.getenv("DIGITAL_OCEAN_URL"),
+                get_digital_ocean_s3_endpoint_url(),
+            )
             logging.info(
                 "CreateUser profile picture upload: net_id=%s, bucket=%s, key=%s",
                 net_id,
@@ -869,7 +874,7 @@ class CreateUser(graphene.Mutation):
                 logging.info("Attempting S3 put_object for new user profile picture...")
                 s3 = boto3.client(
                     "s3",
-                    endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                    endpoint_url=get_digital_ocean_s3_endpoint_url(),
                     aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
                     aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
                     config=Config(s3={"addressing_style": "path"}),
@@ -925,7 +930,11 @@ class EditUserById(graphene.Mutation):
             path = f"uplift-dev/user-profile/{existing_user.net_id}-profile.png"
             region = "nyc3"
 
-            logging.info(f"DIGITAL_OCEAN_URL: {os.getenv('DIGITAL_OCEAN_URL')}")
+            logging.info(
+                "DIGITAL_OCEAN_URL raw=%r normalized=%r",
+                os.getenv("DIGITAL_OCEAN_URL"),
+                get_digital_ocean_s3_endpoint_url(),
+            )
             logging.info(
                 "EditUser profile picture upload: user_id=%s, net_id=%s, bucket=%s, key=%s",
                 user_id,
@@ -948,7 +957,7 @@ class EditUserById(graphene.Mutation):
                 logging.info("Attempting S3 put_object for edited user profile picture...")
                 s3 = boto3.client(
                     "s3",
-                    endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                    endpoint_url=get_digital_ocean_s3_endpoint_url(),
                     aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
                     aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
                     config=Config(s3={"addressing_style": "path"}),
@@ -1231,7 +1240,11 @@ class DeleteUserById(graphene.Mutation):
         if int(get_jwt_identity()) != user_id:
             raise GraphQLError("Unauthorized operation")
 
-        logging.info(f"DIGITAL_OCEAN_URL: {os.getenv('DIGITAL_OCEAN_URL')}")
+        logging.info(
+            "DIGITAL_OCEAN_URL raw=%r normalized=%r",
+            os.getenv("DIGITAL_OCEAN_URL"),
+            get_digital_ocean_s3_endpoint_url(),
+        )
         logging.info(f"User encoded_image: {user.encoded_image}")
 
         if user.encoded_image:
@@ -1239,7 +1252,7 @@ class DeleteUserById(graphene.Mutation):
                 logging.info("Attempting S3 delete...")
                 s3 = boto3.client(
                     "s3",
-                    endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
+                    endpoint_url=get_digital_ocean_s3_endpoint_url(),
                     aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
                     aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
                     config=Config(s3={"addressing_style": "path"}),
