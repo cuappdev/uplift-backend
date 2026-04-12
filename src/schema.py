@@ -894,6 +894,7 @@ class EditUserById(graphene.Mutation):
     def mutate(self, info, user_id, name=None, email=None, encoded_image=None):
         existing_user = db_session.query(UserModel).filter(UserModel.id == user_id).first()
         
+        # quick-fix
         if not existing_user:
             raise GraphQLError("User with given id does not exist.")
         if int(get_jwt_identity()) != user_id:
