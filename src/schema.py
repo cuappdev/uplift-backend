@@ -35,6 +35,7 @@ import logging
 from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 local_tz = ZoneInfo("America/New_York")
@@ -848,7 +849,8 @@ class CreateUser(graphene.Mutation):
                 "s3",
                 endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
                 aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
-                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
+                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
+                config=Config(s3={"addressing_style": "path"}),
             )
             
             try:
@@ -908,7 +910,8 @@ class EditUserById(graphene.Mutation):
                 "s3",
                 endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
                 aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
-                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
+                aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
+                config=Config(s3={"addressing_style": "path"}),
             )
             
             try:
@@ -1199,7 +1202,8 @@ class DeleteUserById(graphene.Mutation):
             "s3",
             endpoint_url=os.getenv("DIGITAL_OCEAN_URL"),
             aws_access_key_id=os.getenv("DIGITAL_OCEAN_ACCESS"),
-            aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS")
+            aws_secret_access_key=os.getenv("DIGITAL_OCEAN_SECRET_ACCESS"),
+            config=Config(s3={"addressing_style": "path"}),
         )
         
         if user.encoded_image:
