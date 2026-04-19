@@ -220,7 +220,6 @@ class Class(SQLAlchemyObjectType):
 
 # MARK: - Class Instance
 
-
 class ClassInstance(SQLAlchemyObjectType):
     class Meta:
         model = ClassInstanceModel
