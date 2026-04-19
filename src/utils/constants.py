@@ -131,6 +131,9 @@ SHEET_REG_BUILDING = "[REG] Building Hours"
 # Worksheet name for regular facility hours
 SHEET_REG_FACILITY = "[REG] Facility Hours"
 
+# Worksheet name for reports
+SHEET_REPORTS = "Reports"
+
 # Worksheet name for special facility hours
 SHEET_SP_FACILITY = "[SP] Facility Hours"
 
@@ -139,3 +142,15 @@ TEAGLE_DOWN_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-downst
 
 # The path for Teagle Up Fitness Center details
 TEAGLE_UP_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-upstairs"
+
+
+def get_digital_ocean_s3_endpoint_url():
+    """
+    DIGITAL_OCEAN_URL for boto3. Strips whitespace and surrounding quotes that
+    often appear when the value is copied into .env or secret managers with quotes.
+    """
+    raw = os.getenv("DIGITAL_OCEAN_URL")
+    if not raw:
+        return None
+    u = raw.strip().strip("\"'")
+    return u or None

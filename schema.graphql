@@ -187,8 +187,6 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
-scalar JSONString
-
 type LoginUser {
   accessToken: String
   refreshToken: String
@@ -218,12 +216,13 @@ type Mutation {
   createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
   editUser(email: String, encodedImage: String, name: String, netId: String!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
-  setWorkoutGoals(userId: Int!, workoutGoal: [String]!): User
+  setWorkoutGoals(userId: Int!, workoutGoal: Int!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
   loginUser(netId: String!): LoginUser
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
+  deleteReport(reportId: Int!): Report
   deleteUser(userId: Int!): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
   editCapacityReminder(daysOfWeek: [String]!, newCapacityThreshold: Int!, newGyms: [String]!, reminderId: Int!): CapacityReminder
@@ -269,8 +268,6 @@ type Query {
   getWorkoutsById(id: Int): [Workout]
   activities: [Activity]
   getAllReports: [Report]
-  getWorkoutGoals(id: Int!): [String]
-  getUserStreak(id: Int!): JSONString
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
   getUserFriends(userId: Int!): [User]
   getCapacityReminderById(id: Int!): CapacityReminder
@@ -307,15 +304,21 @@ type User {
   email: String
   netId: String!
   name: String!
-  activeStreak: Int
-  maxStreak: Int
-  workoutGoal: [DayOfWeekGraphQLEnum]
+  activeStreak: Int!
+  maxStreak: Int!
+  workoutGoal: Int
+  lastGoalChange: DateTime
+  lastStreak: Int!
   encodedImage: String
   giveaways: [Giveaway]
+  goalHistory: [WorkoutGoalHistory]
   friendRequestsSent: [Friendship]
   friendRequestsReceived: [Friendship]
   friendships: [Friendship]
   friends: [User]
+  totalGymDays: Int!
+  streakStart: DateTime
+  workoutHistory: [Workout]
 }
 
 type Workout {
@@ -323,4 +326,13 @@ type Workout {
   workoutTime: DateTime!
   userId: Int!
   facilityId: Int!
+  gymName: String!
+}
+
+type WorkoutGoalHistory {
+  id: ID!
+  userId: Int!
+  workoutGoal: Int!
+  effectiveAt: DateTime!
+  user: User
 }
