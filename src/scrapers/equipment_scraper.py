@@ -104,12 +104,12 @@ def process_equip_page(page, fit_center):
                 create_equip(equip[1], fit_center_id, fit_center)
     else:
         body = table.find_all("tr")
-        for even_row in range(0, len(body), 2):
-            muscle_groups = body[even_row].find_all("th")
-            equip = body[even_row + 1].find_all("td")
-            if muscle_groups[0].text:
+        header_rows = [r.find_all("th") for r in body if r.find_all("th")]
+        data_rows = [r.find_all("td") for r in body if r.find_all("td")]
+        for muscle_groups, equip in zip(header_rows, data_rows):
+            if len(muscle_groups) > 0 and len(equip) > 0 and muscle_groups[0].text:
                 create_equip(equip[0], fit_center_id, fit_center)
-            if muscle_groups[1].text:
+            if len(muscle_groups) > 1 and len(equip) > 1 and muscle_groups[1].text:
                 create_equip(equip[1], fit_center_id, fit_center)
 
 
