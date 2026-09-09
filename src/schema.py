@@ -2,6 +2,7 @@ import binascii
 
 import graphene
 import base64
+import gspread
 import os
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, get_jwt, jwt_required
 from functools import wraps
@@ -28,7 +29,12 @@ from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
 from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
-from src.utils.constants import get_digital_ocean_s3_endpoint_url
+from src.utils.constants import (
+    SERVICE_ACCOUNT_PATH,
+    SHEET_KEY,
+    SHEET_REPORTS,
+    get_digital_ocean_s3_endpoint_url,
+)
 from src.database import db_session
 import requests
 from firebase_admin import messaging
@@ -37,6 +43,11 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 import boto3
 from botocore.config import Config
+
+# Configure the spreadsheet used to mirror user-submitted reports. SHEET_KEY
+# selects the development or production spreadsheet based on FLASK_ENV.
+gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
+sh = gc.open_by_key(SHEET_KEY)
 
 local_tz = ZoneInfo("America/New_York")
 
