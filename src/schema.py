@@ -1198,13 +1198,15 @@ class CreateReport(graphene.Mutation):
             "OTHER",
         ]:
             raise GraphQLError("Issue is not a valid enumeration.")
-        created_at_utc = ensure_utc(created_at)
-        report = ReportModel(description=description, issue=issue, created_at=created_at_utc, gym_id=gym_id)
+        # Keep accepting the client timestamp for backwards compatibility, but
+        # use the time this request reached the server as the source of truth.
+        submitted_at = datetime.now(timezone.utc)
+        report = ReportModel(description=description, issue=issue, created_at=submitted_at, gym_id=gym_id)
         db_session.add(report)
         db_session.commit()
 
         try:
-            sh.worksheet(SHEET_REPORTS).append_row([report.id, issue, gym.name, description, created_at.isoformat()])
+            sh.worksheet(SHEET_REPORTS).append_row([report.id, issue, gym.name, description, submitted_at.isoformat()])
         except Exception as e:
             print(f"Error logging report to sheet: {e}")
 
