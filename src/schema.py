@@ -44,10 +44,6 @@ from sqlalchemy import func, cast, Date
 import boto3
 from botocore.config import Config
 
-# Configure the spreadsheet used to mirror user-submitted reports. SHEET_KEY
-# selects the development or production spreadsheet based on FLASK_ENV.
-gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
-sh = gc.open_by_key(SHEET_KEY)
 
 local_tz = ZoneInfo("America/New_York")
 
@@ -1179,12 +1175,14 @@ class CreateReport(graphene.Mutation):
     class Arguments:
         issue = graphene.String(required=True)
         description = graphene.String(required=True)
-        created_at = graphene.DateTime(required=True)
+        # Accepted temporarily for compatibility with existing clients. The
+        # server timestamp below remains the source of truth.
+        created_at = graphene.DateTime()
         gym_id = graphene.Int(required=True)
 
     report = graphene.Field(Report)
 
-    def mutate(self, info, description, issue, created_at, gym_id):
+    def mutate(self, info, description, issue, gym_id, created_at=None):
         # Check if gym exists
         gym = Gym.get_query(info).filter(GymModel.id == gym_id).first()
         if not gym:
@@ -1206,6 +1204,10 @@ class CreateReport(graphene.Mutation):
         db_session.commit()
 
         try:
+            # Create the Sheets client only when a report needs mirroring, so
+            # unavailable Sheets credentials or service do not block startup.
+            gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
+            sh = gc.open_by_key(SHEET_KEY)
             sh.worksheet(SHEET_REPORTS).append_row([report.id, issue, gym.name, description, submitted_at.isoformat()])
         except Exception as e:
             print(f"Error logging report to sheet: {e}")
