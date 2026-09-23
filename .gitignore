@@ -18,3 +18,4 @@ scripts
 *.sqlite3
 service-account-key.json
 docker-compose.yml
+*.sql

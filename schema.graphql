@@ -85,6 +85,8 @@ type CreateReport {
   report: Report
 }
 
+scalar Date
+
 scalar DateTime
 
 enum DayOfWeekEnum {
