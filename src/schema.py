@@ -2,6 +2,7 @@ import binascii
 
 import graphene
 import base64
+import gspread
 import os
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, get_jwt, jwt_required
 from functools import wraps
@@ -28,7 +29,12 @@ from src.models.workout import Workout as WorkoutModel
 from src.models.report import Report as ReportModel
 from src.models.hourly_average_capacity import HourlyAverageCapacity as HourlyAverageCapacityModel
 from src.models.user_workout_goal_history import UserWorkoutGoalHistory as UserWorkoutGoalHistoryModel
-from src.utils.constants import get_digital_ocean_s3_endpoint_url
+from src.utils.constants import (
+    SERVICE_ACCOUNT_PATH,
+    SHEET_KEY,
+    SHEET_REPORTS,
+    get_digital_ocean_s3_endpoint_url,
+)
 from src.database import db_session
 import requests
 from firebase_admin import messaging
@@ -37,6 +43,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 import boto3
 from botocore.config import Config
+
 
 local_tz = ZoneInfo("America/New_York")
 
@@ -1168,12 +1175,14 @@ class CreateReport(graphene.Mutation):
     class Arguments:
         issue = graphene.String(required=True)
         description = graphene.String(required=True)
-        created_at = graphene.DateTime(required=True)
+        # Accepted temporarily for compatibility with existing clients. The
+        # server timestamp below remains the source of truth.
+        created_at = graphene.DateTime()
         gym_id = graphene.Int(required=True)
 
     report = graphene.Field(Report)
 
-    def mutate(self, info, description, issue, created_at, gym_id):
+    def mutate(self, info, description, issue, gym_id, created_at=None):
         # Check if gym exists
         gym = Gym.get_query(info).filter(GymModel.id == gym_id).first()
         if not gym:
@@ -1187,13 +1196,19 @@ class CreateReport(graphene.Mutation):
             "OTHER",
         ]:
             raise GraphQLError("Issue is not a valid enumeration.")
-        created_at_utc = ensure_utc(created_at)
-        report = ReportModel(description=description, issue=issue, created_at=created_at_utc, gym_id=gym_id)
+        # Keep accepting the client timestamp for backwards compatibility, but
+        # use the time this request reached the server as the source of truth.
+        submitted_at = datetime.now(timezone.utc)
+        report = ReportModel(description=description, issue=issue, created_at=submitted_at, gym_id=gym_id)
         db_session.add(report)
         db_session.commit()
 
         try:
-            sh.worksheet(SHEET_REPORTS).append_row([report.id, issue, gym.name, description, created_at.isoformat()])
+            # Create the Sheets client only when a report needs mirroring, so
+            # unavailable Sheets credentials or service do not block startup.
+            gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
+            sh = gc.open_by_key(SHEET_KEY)
+            sh.worksheet(SHEET_REPORTS).append_row([report.id, issue, gym.name, description, submitted_at.isoformat()])
         except Exception as e:
             print(f"Error logging report to sheet: {e}")
 
