@@ -187,7 +187,7 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
-type LoginUser {
+type LoginWithGoogle {
   accessToken: String
   refreshToken: String
 }
@@ -213,15 +213,15 @@ enum MuscleGroup {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(email: String!, encodedImage: String, name: String!, netId: String!): User
-  editUser(email: String, encodedImage: String, name: String, netId: String!): User
+  createUser(encodedImage: String, idToken: String!, name: String!): User
+  editUser(email: String, encodedImage: String, name: String, userId: Int!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: Int!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
-  loginUser(netId: String!): LoginUser
+  loginWithGoogle(idToken: String!): LoginWithGoogle
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
-  createReport(createdAt: DateTime!, description: String!, gymId: Int!, issue: String!): CreateReport
+  createReport(createdAt: DateTime, description: String!, gymId: Int!, issue: String!): CreateReport
   deleteReport(reportId: Int!): Report
   deleteUser(userId: Int!): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
@@ -314,6 +314,7 @@ type User {
   goalHistory: [WorkoutGoalHistory]
   friendRequestsSent: [Friendship]
   friendRequestsReceived: [Friendship]
+  workouts: [Workout]
   friendships: [Friendship]
   friends: [User]
   totalGymDays: Int!
@@ -326,6 +327,7 @@ type Workout {
   workoutTime: DateTime!
   userId: Int!
   facilityId: Int!
+  user: User
   gymName: String!
 }
 

@@ -32,9 +32,11 @@ export FLASK_ENV=development
 export DB_USERNAME=CHANGE_ME
 export DB_PASSWORD=CHANGE_ME
 export DB_HOST=localhost
+export DB_PORT=5432
 export DB_NAME=upliftdb
-export APP_SETTINGS=src.config.DevelopmentConfig
-export CLIENT_ID=CHANGE_ME
+export JWT_SECRET_KEY=CHANGE_ME
+export GOOGLE_WEB_CLIENT_ID=CHANGE_ME.apps.googleusercontent.com
+export GOOGLE_ALLOWED_HOSTED_DOMAIN=cornell.edu
 ````
 
 To use `autoenv` with this repository, run the following and set the variables appropriately.
