@@ -1,3 +1,4 @@
+import functools
 import logging
 from datetime import timedelta, timezone
 from flask_jwt_extended import JWTManager
@@ -147,8 +148,27 @@ def setup_scrapers(app):
     scheduler = APScheduler()
     logger.info("APScheduler initialized")
 
+    def release_db_session(job):
+        """
+        Remove the job thread's DB session after every run.
+
+        Jobs run on pooled threads that each keep their own scoped session. Without this,
+        a failed transaction (e.g. a dropped DB connection) leaves that thread's session
+        unusable, and every later job scheduled onto it fails with PendingRollbackError.
+        """
+
+        @functools.wraps(job)
+        def wrapper(*args, **kwargs):
+            try:
+                return job(*args, **kwargs)
+            finally:
+                db_session.remove()
+
+        return wrapper
+
     # Scrape hours every 15 minutes
     @scheduler.task("interval", id="scrape_hours", seconds=900)
+    @release_db_session
     def scrape_hours():
         job = scheduler.get_job("scrape_hours")
         next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
@@ -169,6 +189,7 @@ def setup_scrapers(app):
 
     # Scrape capacities every 10 minutes
     @scheduler.task("interval", id="scrape_capacities", seconds=600)
+    @release_db_session
     def scrape_capacities():
         job = scheduler.get_job("scrape_capacities")
         next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
@@ -185,6 +206,7 @@ def setup_scrapers(app):
 
     # Scrape classes every hour
     @scheduler.task("interval", id="scrape_classes", seconds=3600)
+    @release_db_session
     def scrape_classes():
         job = scheduler.get_job("scrape_classes")
         next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
@@ -199,6 +221,7 @@ def setup_scrapers(app):
             logging.error(f"Error in scrape_classes: {e}")
 
     @scheduler.task("interval", id="cleanup_expired_tokens", hours=24)
+    @release_db_session
     def cleanup_expired_tokens():
         logger.info("Deleting expired tokens...")
         now = datetime.now(timezone.utc)
@@ -207,6 +230,7 @@ def setup_scrapers(app):
 
     # Update hourly average capacity every hour
     @scheduler.task("cron", id="update_capacity", hour="*")
+    @release_db_session
     def scheduled_job():
         current_time = datetime.now()
         current_day = current_time.strftime("%A").upper()
@@ -229,31 +253,37 @@ def setup_scrapers(app):
     try:
         create_gym_table()
         logger.info("Gym table created")
+    except Exception as e:
+        logger.error(f"Error creating gym table: {e}")
+        db_session.rollback()
 
-        logger.info("Scraping classes from group-fitness-classes...")
-        fetch_classes(10)
-        logger.info("Initial class scraping complete")
-
-        logger.info("Scraping hours from sheets...")
+    def scrape_initial_hours():
         db_session.query(OpenHours).delete()
         fetch_reg_facility()
         fetch_reg_building()
         fetch_sp_facility()
         clean_past_hours()
-        logger.info("Initial hours scraping complete")
 
-        logger.info("Scraping capacities from C2C...")
-        fetch_capacities()
-        logger.info("Initial capacities scraping complete")
+    # Run each scraper on its own so one failure doesn't skip the rest
+    initial_scrapers = [
+        ("classes", lambda: fetch_classes(10)),
+        ("hours", scrape_initial_hours),
+        ("capacities", fetch_capacities),
+        ("equipment", scrape_equipment),
+        ("activities", fetch_activity),
+    ]
+    failed = []
+    for name, scrape in initial_scrapers:
+        logger.info(f"Initial {name} scraping...")
+        try:
+            scrape()
+            logger.info(f"Initial {name} scraping complete")
+        except Exception as e:
+            logger.error(f"Error during initial {name} scraping: {e}")
+            db_session.rollback()
+            failed.append(name)
 
-        logger.info("Scraping equipment...")
-        scrape_equipment()
-        logger.info("Initial equipment scraping complete")
-
-        logger.info("Scraping activities from sheets...")
-        fetch_activity()
-        logger.info("Initial activities scraping complete")
-
+    if failed:
+        logger.error(f"Initial scraping finished with failures: {', '.join(failed)}")
+    else:
         logger.info("All initial scraping completed successfully")
-    except Exception as e:
-        logger.error(f"Error during initial scraping: {e}")
