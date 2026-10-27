@@ -49,10 +49,16 @@ Returns:
 
 def fetch_classes(num_pages):
     classes = {}
+    # Download every page before clearing old classes, so a failed request keeps the existing data
+    pages = []
+    for i in range(num_pages):
+        response = requests.get(BASE_URL + CLASSES_PATH + str(i))
+        response.raise_for_status()
+        pages.append(response.text)
+
     db_session.query(ClassInstance).delete()
     db_session.commit()
-    for i in range(num_pages):
-        page = requests.get(BASE_URL + CLASSES_PATH + str(i)).text
+    for page in pages:
         soup = BeautifulSoup(page, "lxml")
         if len(soup.find_all("table")) == 1:
             continue
@@ -81,8 +87,9 @@ def fetch_classes(num_pages):
             # special handling for time (cancelled)
 
             time_str = row_elems[3].string.replace("\n", "").strip()
-            if time_str != "" and time_str != "Canceled":
-                class_instance.is_canceled = False
+            # Cancelled classes may also say when, e.g. "Canceled: Today"
+            if time_str != "" and not time_str.startswith("Canceled"):
+                class_instance.isCanceled = False
                 time_strs = time_str.split(" - ")
                 start_time_string = time_strs[0].strip()
                 end_time_string = time_strs[1].strip()
