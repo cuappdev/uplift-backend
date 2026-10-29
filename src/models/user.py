@@ -34,10 +34,11 @@ class User(Base):
     name = Column(String, nullable=False)
     active_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
     max_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
-    workout_goal = Column(Integer, nullable=True)
+    workout_goal = Column(Integer, nullable=False, default=1, server_default=sa.text('1'))
     last_goal_change = Column(DateTime, nullable=True)
     last_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
     encoded_image = Column(String, nullable=True)
+    streak_started_at = Column(DateTime(timezone=True), nullable=True)
 
     goal_history = relationship("UserWorkoutGoalHistory", back_populates="user", cascade="all, delete-orphan", order_by="UserWorkoutGoalHistory.effective_at.desc()")
 

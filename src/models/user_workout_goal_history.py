@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, String, DateTime, text
+from sqlalchemy import Column, Integer, Float, ForeignKey, String, DateTime, text, Index
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
 from datetime import datetime, timezone
@@ -15,6 +15,7 @@ class UserWorkoutGoalHistory(Base):
     """
 
     __tablename__ = "user_workout_goal_history"
+    __table_args__ = (Index("ix_workout_goal_user_effective", "user_id", "effective_at"),)
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)

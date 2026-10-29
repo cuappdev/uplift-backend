@@ -312,7 +312,7 @@ type User {
   name: String!
   activeStreak: Int!
   maxStreak: Int!
-  workoutGoal: Int
+  workoutGoal: Int!
   lastGoalChange: DateTime
   lastStreak: Int!
   encodedImage: String
@@ -324,6 +324,7 @@ type User {
   friendships: [Friendship]
   friends: [User]
   totalGymDays: Int!
+  currentWeekActiveDays: Int!
   streakStart: DateTime
   workoutHistory: [Workout]
 }
