@@ -147,19 +147,9 @@ def setup_scrapers(app):
     scheduler = APScheduler()
     logger.info("APScheduler initialized")
 
-    # Finalize ended local weeks independently of check-ins. Also catch up at
-    # startup; per-user database locks allow multiple app workers to run safely.
-    @scheduler.task("interval", id="finalize_workout_weeks", minutes=1,
-                    next_run_time=datetime.now(timezone.utc), max_instances=1, coalesce=True)
-    def finalize_workout_weeks():
-        from src.utils.workout_streaks import run_weekly_rollover
-        try:
-            run_weekly_rollover(db_session)
-        except Exception:
-            db_session.rollback()
-            logger.exception("Could not finalize workout weeks")
-        finally:
-            db_session.remove()
+    # Finalize at Monday midnight and startup; retry only unfinished work.
+    from src.utils.workout_streaks import schedule_weekly_rollover
+    schedule_weekly_rollover(scheduler, db_session)
 
     # Scrape hours every 15 minutes
     @scheduler.task("interval", id="scrape_hours", seconds=900)

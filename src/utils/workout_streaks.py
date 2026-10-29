@@ -7,6 +7,8 @@ import logging
 from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+from apscheduler.triggers.base import BaseTrigger
+
 from src.models.user_workout_week import UserWorkoutWeek
 from src.models.user_workout_goal_history import UserWorkoutGoalHistory
 
@@ -31,6 +33,17 @@ def week_midnight(monday):
 def next_week_start(now):
     monday = week_start(as_utc(now).astimezone(WORKOUT_TIMEZONE).date())
     return week_midnight(monday + timedelta(days=7))
+
+
+class WorkoutWeekTrigger(BaseTrigger):
+    """Recurring New York Mondays, calculated as calendar dates across DST."""
+
+    def get_next_fire_time(self, previous_fire_time, now):
+        if previous_fire_time is not None:
+            return next_week_start(previous_fire_time)
+        now = as_utc(now)
+        boundary = week_midnight(week_start(now.astimezone(WORKOUT_TIMEZONE).date()))
+        return boundary if now == boundary else next_week_start(now)
 
 
 def active_days(mask):
@@ -137,34 +150,78 @@ def finalize_due_weeks(session, user, now):
         award_goal(user, row)
 
 
-def run_weekly_rollover(session, now=None, limit=500):
-    """Bounded indexed batches; row locks make multiple scheduler workers safe."""
+def run_weekly_rollover(session, now=None):
+    """Process all due users; lock/commit one user at a time."""
     from src.models.user import User
     now = as_utc(now or datetime.now(timezone.utc))
     monday = week_start(now.astimezone(WORKOUT_TIMEZONE).date())
     processed = 0
-    attempted = set()
+    failed = set()
     try:
-        while len(attempted) < limit:
+        while True:
             # Selection failures (e.g. an outage) abort rather than spin.
             user = (session.query(User).join(UserWorkoutWeek, UserWorkoutWeek.user_id == User.id)
                     .filter(UserWorkoutWeek.finalized.is_(False), UserWorkoutWeek.week_start < monday,
-                            ~User.id.in_(attempted))
+                            ~User.id.in_(failed))
                     .order_by(UserWorkoutWeek.week_start, User.id)
                     .populate_existing().with_for_update(of=User, skip_locked=True).first())
             if user is None:
                 break
             user_id = user.id
-            # Count failures too and exclude this ID until the next invocation.
-            attempted.add(user_id)
+            # Successful users no longer match the due-week query. Only retain
+            # failed IDs, so a large successful run does not grow an IN clause.
             try:
                 finalize_due_weeks(session, user, now)
                 session.commit()
                 processed += 1
             except Exception:
                 session.rollback()
+                failed.add(user_id)
                 logging.getLogger(__name__).exception("Could not finalize workout weeks for user %s", user_id)
     except Exception:
         session.rollback()
         raise
     return processed
+
+
+def schedule_weekly_rollover(scheduler, session):
+    """Run at local Monday midnight/startup; retry only unfinished work."""
+    def finalize_workout_weeks():
+        retry = True
+        checked_at = datetime.now(timezone.utc)
+        # Cleanup and retry registration must survive a failed rollback.
+        try:
+            try:
+                run_weekly_rollover(session, checked_at)
+                # A long catch-up can cross another Monday boundary.
+                checked_at = datetime.now(timezone.utc)
+                monday = week_start(checked_at.astimezone(WORKOUT_TIMEZONE).date())
+                retry = session.query(UserWorkoutWeek.user_id).filter(
+                    UserWorkoutWeek.finalized.is_(False),
+                    UserWorkoutWeek.week_start < monday,
+                ).first() is not None
+            except Exception:
+                logging.getLogger(__name__).exception("Could not finalize workout weeks")
+                session.rollback()
+        finally:
+            try:
+                session.remove()
+            except Exception:
+                retry = True
+                logging.getLogger(__name__).exception("Could not clean up workout rollover session")
+            finally:
+                # The recurring job owns the weekly schedule independently.
+                # Also retry if Monday passed after the final due-week check.
+                now = datetime.now(timezone.utc)
+                if retry or next_week_start(checked_at) <= now:
+                    scheduler.add_job(
+                        id="retry_workout_weeks", func=finalize_workout_weeks,
+                        trigger="date", run_date=now + timedelta(minutes=5),
+                        replace_existing=True, max_instances=1, misfire_grace_time=None,
+                    )
+
+    scheduler.add_job(
+        id="finalize_workout_weeks", func=finalize_workout_weeks,
+        trigger=WorkoutWeekTrigger(), next_run_time=datetime.now(timezone.utc),
+        max_instances=1, coalesce=True, misfire_grace_time=None,
+    )

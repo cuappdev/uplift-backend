@@ -78,14 +78,18 @@ class WorkoutStreakTests(WorkoutDatabaseTest):
         self.assertEqual(user.active_streak, 1)
         self.assertEqual(self.session.query(UserWorkoutWeek).filter_by(finalized=True).count(), 3)
 
-    def test_rollover_batch_limit_leaves_other_users_for_next_run(self):
+    def test_rollover_processes_all_due_users(self):
         first = self.user(local("2026-10-26"), streak=4)
         second = self.user(local("2026-10-26"), streak=7)
-        self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02"), limit=1), 1)
-        self.assertEqual((first.active_streak, second.active_streak), (0, 7))
-        self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02")), 1)
-        self.assertEqual(second.active_streak, 0)
+        self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02")), 2)
+        self.assertEqual((first.active_streak, second.active_streak), (0, 0))
         self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02")), 0)
+
+    def test_default_rollover_processes_more_than_500_users(self):
+        for _ in range(501):
+            self.user(local("2026-10-26"), streak=4)
+        self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02")), 501)
+        self.assertEqual(self.session.query(User).filter(User.active_streak != 0).count(), 0)
 
     def test_failed_user_rolls_back_others_continue_and_later_run_retries(self):
         first = self.user(local("2026-10-26"), streak=4)
@@ -98,7 +102,7 @@ class WorkoutStreakTests(WorkoutDatabaseTest):
                 raise RuntimeError("persistent user failure")
         with patch("src.utils.workout_streaks.finalize_due_weeks", side_effect=fail_after_flush) as finalize:
             with self.assertLogs("src.utils.workout_streaks", level="ERROR"):
-                self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02"), limit=2), 1)
+                self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02")), 1)
             self.assertEqual(finalize.call_count, 2)
         self.assertEqual((first.active_streak, second.active_streak), (4, 0))
         self.assertFalse(current_week(self.session, first, local("2026-10-26")).finalized)
@@ -112,13 +116,13 @@ class WorkoutStreakTests(WorkoutDatabaseTest):
             query.assert_called_once()
             rollback.assert_called_once()
 
-    def test_failed_attempt_counts_towards_limit(self):
+    def test_all_failed_users_are_attempted_once_without_spinning(self):
         first = self.user(local("2026-10-26"), streak=4)
         second = self.user(local("2026-10-26"), streak=7)
         with patch("src.utils.workout_streaks.finalize_due_weeks", side_effect=RuntimeError("failure")) as finalize:
             with self.assertLogs("src.utils.workout_streaks", level="ERROR"):
-                self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02"), limit=1), 0)
-            self.assertEqual(finalize.call_count, 1)
+                self.assertEqual(run_weekly_rollover(self.session, local("2026-11-02")), 0)
+            self.assertEqual(finalize.call_count, 2)
         self.assertEqual((first.active_streak, second.active_streak), (4, 7))
 
     def test_checkin_awards_after_previous_week_finalized(self):
