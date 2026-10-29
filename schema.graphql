@@ -222,7 +222,7 @@ type Mutation {
   editUser(email: String, encodedImage: String, name: String, userId: Int!): User
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: Int!): User
-  logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
+  logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime): Workout
   loginUser(netId: String!): LoginUser
   loginWithGoogle(idToken: String!): LoginWithGoogle
   logoutUser: LogoutUser

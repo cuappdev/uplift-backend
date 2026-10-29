@@ -959,6 +959,9 @@ class SetWorkoutGoals(graphene.Mutation):
 
     @jwt_required()
     def mutate(self, info, user_id, workout_goal):
+        # Reject another user’s ID before querying or locking their row.
+        if str(get_jwt_identity()) != str(user_id):
+            raise GraphQLError("You may only modify your own workout data.")
         if not 1 <= workout_goal <= 7:
             raise GraphQLError("Workout goal must be between 1 and 7 days per week.")
 
@@ -1009,18 +1012,24 @@ class SetWorkoutGoals(graphene.Mutation):
         return user
     
 class logWorkout(graphene.Mutation):
-    # Save a user's workout timestamp in UTC for date-based streak calculations.
+    # Check-ins use server time; accept the old timestamp argument for clients.
     class Arguments:
-        workout_time = graphene.DateTime(required=True)
+        workout_time = graphene.DateTime(
+            description="Legacy client timestamp; ignored. Check-ins use the server's current time."
+        )
         user_id = graphene.Int(required=True)
         facility_id = graphene.Int(required=True)
 
     Output = Workout
 
     @jwt_required()
-    def mutate(self, info, workout_time, user_id, facility_id):
-        if not workout_time:
-            raise GraphQLError("Workout time is required.")
+    def mutate(self, info, user_id, facility_id, workout_time=None):
+        # Reject another user’s ID before querying or locking their row.
+        if str(get_jwt_identity()) != str(user_id):
+            raise GraphQLError("You may only modify your own workout data.")
+        # Ignore legacy client time; one server instant drives both the saved
+        # workout and its weekly day, even if the request crosses midnight.
+        now = datetime.now(timezone.utc)
         user = User.get_query(info).filter(UserModel.id == user_id).populate_existing().with_for_update().first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
@@ -1028,14 +1037,10 @@ class logWorkout(graphene.Mutation):
         if not facility:
             raise GraphQLError("Facility with given ID does not exist.")
 
-        workout_time_utc = ensure_utc(workout_time)
-        if workout_time_utc > datetime.now(timezone.utc):
-            raise GraphQLError("Workout time cannot be in the future.")
-
-        workout = WorkoutModel(workout_time=workout_time_utc, user_id=user.id, facility_id=facility.id)
+        workout = WorkoutModel(workout_time=now, user_id=user.id, facility_id=facility.id)
 
         try:
-            record_checkin(db_session, user, workout_time_utc, datetime.now(timezone.utc))
+            record_checkin(db_session, user, now, now)
             db_session.add(workout)
             db_session.commit()
         except ValueError as error:

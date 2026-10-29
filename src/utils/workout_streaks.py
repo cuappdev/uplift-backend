@@ -50,7 +50,7 @@ def goal_for_week(session, user, monday):
                .order_by(UserWorkoutGoalHistory.effective_at.desc()).first())
     if history is not None:
         return history.workout_goal if 1 <= history.workout_goal <= 7 else 1
-    # First-time goals apply immediately; legacy users are seeded by migration.
+    # Accounts start with a default goal; later selections have dated history.
     return user.workout_goal if user.workout_goal and 1 <= user.workout_goal <= 7 else 1
 
 
@@ -88,10 +88,10 @@ def award_goal(user, row):
 
 
 def record_checkin(session, user, workout_time, now):
-    """Update current-week progress; historical uploads leave closed weeks alone.
+    """Update current-week progress without finalizing ended weeks.
 
-    The caller still saves the workout when this returns None, preserving the
-    existing API's acceptance of past timestamps without finalizing on writes.
+    The public mutation passes server time for both timestamps. Other callers
+    supplying an older week leave its progress and streak counters unchanged.
     """
     now, workout_time = as_utc(now), as_utc(workout_time)
     if workout_time > now:
@@ -107,6 +107,7 @@ def record_checkin(session, user, workout_time, now):
     if pending is None:
         raise ValueError("Workout tracking needs its one-time migration before check-in.")
     row = get_or_create_week(session, user, monday)
+    # One bit per local weekday (Monday=1, Sunday=64); repeats keep the same bit.
     bit = 1 << day.weekday()
     if not row.checked_in_days & bit:
         row.checked_in_days |= bit
@@ -154,6 +155,7 @@ def run_weekly_rollover(session, now=None, limit=500):
             if user is None:
                 break
             user_id = user.id
+            # Count failures too and exclude this ID until the next invocation.
             attempted.add(user_id)
             try:
                 finalize_due_weeks(session, user, now)
