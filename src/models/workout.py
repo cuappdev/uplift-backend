@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, String, DateTime, text
+from sqlalchemy import Column, Integer, Float, ForeignKey, String, DateTime, text, Index
 from sqlalchemy.orm import backref, relationship
 from src.database import Base
 from datetime import timezone
@@ -16,6 +16,7 @@ class Workout(Base):
     """
 
     __tablename__ = "workout"
+    __table_args__ = (Index("ix_workout_user_time", "user_id", "workout_time"),)
 
     id = Column(Integer, primary_key=True)
     workout_time = Column(DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))  # should this be nullable?

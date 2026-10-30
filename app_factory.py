@@ -147,6 +147,10 @@ def setup_scrapers(app):
     scheduler = APScheduler()
     logger.info("APScheduler initialized")
 
+    # Finalize at Monday midnight and startup; retry only unfinished work.
+    from src.utils.workout_streaks import schedule_weekly_rollover
+    schedule_weekly_rollover(scheduler, db_session)
+
     # Scrape hours every 15 minutes
     @scheduler.task("interval", id="scrape_hours", seconds=900)
     def scrape_hours():
