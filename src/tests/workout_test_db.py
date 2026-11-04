@@ -1,6 +1,7 @@
 """Isolated DB fixtures. PostgreSQL requires an explicit *_streak_test DB."""
 import os
 import unittest
+from datetime import datetime
 
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
 os.environ.setdefault("FLASK_ENV", "test")
@@ -13,7 +14,11 @@ from src.models.user import User
 from src.models.workout import Workout
 from src.models.user_workout_week import UserWorkoutWeek
 from src.models.user_workout_goal_history import UserWorkoutGoalHistory
-from src.utils.workout_streaks import initialize_tracking
+from src.utils.workout_streaks import WORKOUT_TIMEZONE, initialize_tracking
+
+
+def local(day, hour=12):
+    return datetime.fromisoformat(day).replace(hour=hour, tzinfo=WORKOUT_TIMEZONE)
 
 
 class WorkoutDatabaseTest(unittest.TestCase):
@@ -25,7 +30,7 @@ class WorkoutDatabaseTest(unittest.TestCase):
         self.postgres = self.engine.dialect.name == "postgresql"
         with self.engine.begin() as conn:
             for name in ("user_workout_week", "user_workout_goal_history", "workout", "users", "facility"):
-                conn.execute(sa.text('DROP TABLE IF EXISTS ' + name))
+                conn.execute(sa.text("DROP TABLE IF EXISTS " + name))
             conn.execute(sa.text("CREATE TABLE facility (id INTEGER PRIMARY KEY)"))
         for table in (User.__table__, UserWorkoutGoalHistory.__table__, UserWorkoutWeek.__table__, Workout.__table__):
             table.create(self.engine)
@@ -36,10 +41,10 @@ class WorkoutDatabaseTest(unittest.TestCase):
         self.session.close()
         self.engine.dispose()
 
-    def user(self, now, goal=3, streak=0):
-        user = User(net_id="tester", name="Test", workout_goal=goal,
-                    active_streak=streak, max_streak=streak)
+    def user(self, now, goal=3, streak=0, commit=True):
+        user = User(net_id="tester", name="Test", workout_goal=goal, active_streak=streak, max_streak=streak)
         self.session.add(user)
         initialize_tracking(self.session, user, now)
-        self.session.commit()
+        if commit:
+            self.session.commit()
         return user

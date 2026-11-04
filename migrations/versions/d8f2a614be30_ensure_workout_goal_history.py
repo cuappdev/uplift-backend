@@ -20,20 +20,12 @@ def upgrade():
             sa.Column("id", sa.Integer(), primary_key=True),
             sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
             sa.Column("workout_goal", sa.Integer(), nullable=False),
-            sa.Column("effective_at", sa.DateTime(timezone=True), nullable=False,
-                      server_default=sa.text("CURRENT_TIMESTAMP")),
+            sa.Column(
+                "effective_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")
+            ),
         )
-    # Seed only users without history. This is an explicit legacy fallback,
-    # not an assertion that we know when their original goal was selected.
-    op.execute(sa.text("""
-        INSERT INTO user_workout_goal_history (user_id, workout_goal, effective_at)
-        SELECT id, workout_goal, '1970-01-01 00:00:00+00'
-        FROM users
-        WHERE workout_goal BETWEEN 1 AND 7
-          AND NOT EXISTS (
-              SELECT 1 FROM user_workout_goal_history h WHERE h.user_id = users.id
-          )
-    """))
+    # The weekly migration seeds missing history after preserving the old
+    # display. Seeding here would turn an unknown streak start into a date.
 
 
 def downgrade():

@@ -1027,12 +1027,13 @@ class logWorkout(graphene.Mutation):
         # Reject another user’s ID before querying or locking their row.
         if str(get_jwt_identity()) != str(user_id):
             raise GraphQLError("You may only modify your own workout data.")
-        # Ignore legacy client time; one server instant drives both the saved
-        # workout and its weekly day, even if the request crosses midnight.
-        now = datetime.now(timezone.utc)
         user = User.get_query(info).filter(UserModel.id == user_id).populate_existing().with_for_update().first()
         if not user:
             raise GraphQLError("User with given ID does not exist.")
+        # Capture time under the lock: a request waiting across Monday must
+        # not write into a week the rollover worker has already finalized.
+        # Ignore legacy client time; one instant drives the workout and day.
+        now = datetime.now(timezone.utc)
         facility = Facility.get_query(info).filter(FacilityModel.id == facility_id).first()
         if not facility:
             raise GraphQLError("Facility with given ID does not exist.")

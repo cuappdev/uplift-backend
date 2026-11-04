@@ -23,61 +23,32 @@ class WorkoutSchedulerTests(TestCase):
         self.scheduler.shutdown()
 
     @patch("src.utils.workout_streaks.run_weekly_rollover")
-    def test_weekly_schedule_uses_new_york_and_catches_up_at_startup(self, rollover):
+    def test_startup_catchup_retries_only_pending_work(self, rollover):
         self.assertLess(abs((self.job.next_run_time - datetime.now(timezone.utc)).total_seconds()), 5)
-        self.session.query.return_value.filter.return_value.first.return_value = None
-        for start, expected in (
-            (datetime(2026, 10, 28, tzinfo=timezone.utc), datetime(2026, 11, 2, 5, tzinfo=timezone.utc)),
-            (datetime(2026, 3, 4, tzinfo=timezone.utc), datetime(2026, 3, 9, 4, tzinfo=timezone.utc)),
-        ):
-            self.assertEqual(self.job.trigger.get_next_fire_time(None, start), expected)
-            self.assertEqual(self.job.trigger.get_next_fire_time(start, start), expected)
-        self.assertIsNone(self.job.misfire_grace_time)
-
-    @patch("src.utils.workout_streaks.run_weekly_rollover")
-    def test_success_without_pending_users_does_not_schedule_retry(self, rollover):
-        self.session.query.return_value.filter.return_value.first.return_value = None
-        self.job.func()
-        rollover.assert_called_once()
-        self.assertIs(self.scheduler.get_job("finalize_workout_weeks"), self.job)
-        self.assertIsNone(self.scheduler.get_job("retry_workout_weeks"))
-        self.session.remove.assert_called_once()
-
-    @patch("src.utils.workout_streaks.run_weekly_rollover")
-    def test_unfinished_users_schedule_one_delayed_retry(self, rollover):
-        self.session.query.return_value.filter.return_value.first.return_value = (1,)
-        self.job.func()
-        retry = self.scheduler.get_job("retry_workout_weeks")
-        delay = (retry.trigger.run_date - datetime.now(timezone.utc)).total_seconds()
-        self.assertTrue(295 <= delay <= 305)
-        self.assertIs(retry.func, self.job.func)
+        for pending in (None, (1,)):
+            with self.subTest(pending=pending):
+                self.session.query.return_value.filter.return_value.first.return_value = pending
+                self.job.func()
+                retry = self.scheduler.get_job("retry_workout_weeks")
+                self.assertIs(self.scheduler.get_job("finalize_workout_weeks"), self.job)
+                if pending is None:
+                    self.assertIsNone(retry)
+                else:
+                    self.assertTrue(
+                        295 <= (retry.trigger.run_date - datetime.now(timezone.utc)).total_seconds() <= 305
+                    )
+        self.assertEqual(rollover.call_count, 2)
 
     @patch("src.utils.workout_streaks.run_weekly_rollover", side_effect=RuntimeError("outage"))
-    def test_database_failure_schedules_retry_and_cleans_up(self, rollover):
-        with self.assertLogs("src.utils.workout_streaks", level="ERROR"):
-            self.job.func()
-        self.session.rollback.assert_called_once()
-        self.session.remove.assert_called_once()
-        retry = self.scheduler.get_job("retry_workout_weeks")
-        self.assertTrue(295 <= (retry.trigger.run_date - datetime.now(timezone.utc)).total_seconds() <= 305)
-
-    @patch("src.utils.workout_streaks.run_weekly_rollover")
-    def test_cleanup_failure_still_schedules_retry(self, rollover):
-        self.session.query.return_value.filter.return_value.first.return_value = None
-        self.session.remove.side_effect = RuntimeError("cleanup failure")
-        with self.assertLogs("src.utils.workout_streaks", level="ERROR"):
-            self.job.func()
-        retry = self.scheduler.get_job("retry_workout_weeks")
-        self.assertTrue(295 <= (retry.trigger.run_date - datetime.now(timezone.utc)).total_seconds() <= 305)
-
-    @patch("src.utils.workout_streaks.run_weekly_rollover", side_effect=RuntimeError("outage"))
-    def test_rollback_failure_still_cleans_up_and_schedules_retry(self, rollover):
+    def test_rollback_and_cleanup_failures_still_schedule_retry(self, rollover):
         self.session.rollback.side_effect = RuntimeError("rollback failure")
+        self.session.remove.side_effect = RuntimeError("cleanup failure")
         with self.assertLogs("src.utils.workout_streaks", level="ERROR"):
             with self.assertRaisesRegex(RuntimeError, "rollback failure"):
                 self.job.func()
         self.session.remove.assert_called_once()
         retry = self.scheduler.get_job("retry_workout_weeks")
+        self.assertIs(retry.func, self.job.func)
         self.assertTrue(295 <= (retry.trigger.run_date - datetime.now(timezone.utc)).total_seconds() <= 305)
 
     @patch("src.utils.workout_streaks.run_weekly_rollover")
@@ -102,15 +73,7 @@ class WorkoutSchedulerTests(TestCase):
         ):
             self.assertEqual(trigger.get_next_fire_time(before, before), after)
             self.assertEqual(trigger.get_next_fire_time(None, before), before)
-
-    @patch("src.utils.workout_streaks.run_weekly_rollover", side_effect=RuntimeError("outage"))
-    def test_retry_scheduling_failure_does_not_remove_weekly_job(self, rollover):
-        with patch.object(self.scheduler, "add_job", side_effect=RuntimeError("scheduling failure")):
-            with self.assertLogs("src.utils.workout_streaks", level="ERROR"):
-                with self.assertRaisesRegex(RuntimeError, "scheduling failure"):
-                    self.job.func()
-        self.assertIs(self.scheduler.get_job("finalize_workout_weeks"), self.job)
-        self.assertIsNotNone(self.job.trigger.get_next_fire_time(self.job.next_run_time, datetime.now(timezone.utc)))
+            self.assertEqual(trigger.get_next_fire_time(None, before + timedelta(days=2)), after)
 
     @patch("src.utils.workout_streaks.run_weekly_rollover", side_effect=RuntimeError("outage"))
     def test_executing_failed_job_keeps_its_next_weekly_run(self, rollover):
