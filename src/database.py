@@ -15,7 +15,8 @@ db_port = os.getenv("DB_PORT", "5432")  # Add default port
 db_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 
-engine = create_engine(db_url)
+# pool_pre_ping replaces connections the DB server has dropped instead of failing the query
+engine = create_engine(db_url, pool_pre_ping=True)
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 Base = declarative_base()

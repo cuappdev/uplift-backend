@@ -92,25 +92,17 @@ def process_equip_page(page, fit_center):
     soup = BeautifulSoup(requests.get(page).content, "lxml")
     fit_center_id = get_facility_id(fit_center)
     table = soup.find("table")
-    if fit_center == "Morrison Fitness Center":
-        head = table.find("thead").find_all("tr")
-        body = table.find("tbody").find_all("tr")
-        for row in range(len(head)):
-            muscle_groups = head[row].find_all("th")
-            equip = body[row].find_all("td")
-            if muscle_groups[0].text:
-                create_equip(equip[0], fit_center_id, fit_center)
-            if muscle_groups[1].text:
-                create_equip(equip[1], fit_center_id, fit_center)
-    else:
-        body = table.find_all("tr")
-        for even_row in range(0, len(body), 2):
-            muscle_groups = body[even_row].find_all("th")
-            equip = body[even_row + 1].find_all("td")
-            if muscle_groups[0].text:
-                create_equip(equip[0], fit_center_id, fit_center)
-            if muscle_groups[1].text:
-                create_equip(equip[1], fit_center_id, fit_center)
+    rows = table.find_all("tr")
+    # Pages either alternate header/equipment rows or list all header rows (thead) before
+    # all equipment rows (tbody); in both, the nth header row describes the nth equipment row
+    head = [row for row in rows if row.find_all("th")]
+    body = [row for row in rows if row.find_all("td")]
+    for head_row, body_row in zip(head, body):
+        muscle_groups = head_row.find_all("th")
+        equip = body_row.find_all("td")
+        for col in range(min(len(muscle_groups), len(equip))):
+            if muscle_groups[col].text:
+                create_equip(equip[col], fit_center_id, fit_center)
 
 
 def scrape_equipment():
