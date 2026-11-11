@@ -272,6 +272,7 @@ type Query {
   getUserFriends(userId: Int!): [User]
   getCapacityReminderById(id: Int!): CapacityReminder
   getAllCapacityReminders: [CapacityReminder]
+  searchFriend(searchTerm: String!): [User]
 }
 
 type RefreshAccessToken {
@@ -319,6 +320,7 @@ type User {
   totalGymDays: Int!
   streakStart: DateTime
   workoutHistory: [Workout]
+  friendStatusWithCurrentUser: String
 }
 
 type Workout {

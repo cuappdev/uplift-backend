@@ -39,6 +39,7 @@ from src.database import db_session
 import requests
 from firebase_admin import messaging
 import logging
+from sqlalchemy import or_, and_
 from zoneinfo import ZoneInfo
 from sqlalchemy import func, cast, Date
 import boto3
@@ -276,6 +277,7 @@ class User(SQLAlchemyObjectType):
 
     friendships = graphene.List(lambda: Friendship)
     friends = graphene.List(lambda: User)
+    friend_status_with_current_user = graphene.String(name="friendStatusWithCurrentUser")
     total_gym_days = graphene.Int(
         required=True, description="Get the total number of gym days (unique workout days) for user."
     )
@@ -549,6 +551,38 @@ class User(SQLAlchemyObjectType):
         # Query for all the users at once
         return User.get_query(info).filter(UserModel.id.in_(friend_ids)).all()
 
+    def resolve_friend_status_with_current_user(self, info):
+        # Prefer precomputed map from parent resolver to avoid N+1 queries
+        status_map = getattr(info.context, "friend_status_map", None)
+        if status_map is not None:
+            return status_map.get(self.id, "none")
+
+        # If no context map, fall back to checking a single friendship if a JWT is present
+        try:
+            current_user_id = int(get_jwt_identity())
+        except Exception:
+            return None
+
+        if not current_user_id:
+            return None
+
+        fs = (
+            Friendship.get_query(info)
+            .filter(
+                or_(
+                    and_(FriendshipModel.user_id == current_user_id, FriendshipModel.friend_id == self.id),
+                    and_(FriendshipModel.friend_id == current_user_id, FriendshipModel.user_id == self.id),
+                )
+            )
+            .first()
+        )
+
+        if not fs:
+            return "none"
+        if fs.is_accepted:
+            return "friends"
+        return "pending_outgoing" if fs.user_id == current_user_id else "pending_incoming"
+
 
 class UserInput(graphene.InputObjectType):
     net_id = graphene.String(required=True)
@@ -665,6 +699,11 @@ class Query(graphene.ObjectType):
         CapacityReminder, id=graphene.Int(required=True), description="Get a specific capacity reminder by its ID."
     )
     get_all_capacity_reminders = graphene.List(CapacityReminder, description="Get all capacity reminders.")
+    search_friend = graphene.List(
+        User,
+        search_term=graphene.String(required=True),
+        description="Search for users by name or NetID."
+    )
 
     def resolve_get_all_gyms(self, info):
         query = Gym.get_query(info)
@@ -778,7 +817,51 @@ class Query(graphene.ObjectType):
     def resolve_get_all_capacity_reminders(self, info):
         query = CapacityReminder.get_query(info)
         return query.all()
+    
+    @jwt_required()
+    def resolve_search_friend(self, info, search_term):
+        query = User.get_query(info)
+        search = f"{search_term}%"
 
+        current_user_id = int(get_jwt_identity())
+
+        users = query.filter(
+            or_(
+                UserModel.name.ilike(search), 
+                UserModel.net_id.ilike(search)
+            ), 
+            UserModel.id != current_user_id,
+        ).all()
+
+        candidate_ids = [user.id for user in users]
+        friend_status_map = {}
+
+        if candidate_ids:
+            friendships = Friendship.get_query(info).filter(
+                or_(
+                    and_(FriendshipModel.user_id == current_user_id, FriendshipModel.friend_id.in_(candidate_ids)),
+                    and_(FriendshipModel.friend_id == current_user_id, FriendshipModel.user_id.in_(candidate_ids)),
+                )
+            ).all()
+
+            for fs in friendships:
+                other_id = fs.friend_id if fs.user_id == current_user_id else fs.user_id
+                if fs.is_accepted:
+                    status = "friends"
+                elif fs.user_id == current_user_id:
+                    status = "pending_outgoing"
+                else:
+                    status = "pending_incoming"
+                friend_status_map[other_id] = status
+
+        # Stash for the User.friendStatusWithCurrentUser resolver to avoid N+1 queries
+        setattr(info.context, "friend_status_map", friend_status_map)
+
+        # Provide default status when the resolver is not invoked (e.g., unused field)
+        for user in users:
+            user.friend_status_with_current_user = friend_status_map.get(user.id, "none")
+
+        return users
 
 # MARK: - Mutation
 
@@ -1282,6 +1365,13 @@ class DeleteUserById(graphene.Mutation):
                 logging.error(f"S3 delete failed: {type(e).__name__}: {e}")
                 raise GraphQLError(f"S3 error: {type(e).__name__}: {e}")
 
+        # Remove any friendships that reference this user to avoid orphaned rows
+        friendships = Friendship.get_query(info).filter(
+            or_(FriendshipModel.user_id == user_id, FriendshipModel.friend_id == user_id)
+        )
+        for friendship in friendships:
+            db_session.delete(friendship)
+
         db_session.delete(user)
         db_session.flush()
         db_session.expunge(user)
@@ -1452,6 +1542,9 @@ class AddFriend(graphene.Mutation):
 
     @jwt_required()
     def mutate(self, info, user_id, friend_id):
+        if user_id == friend_id:
+            raise GraphQLError("You cannot add yourself as a friend.")
+
         # Check if users exist
         user = User.get_query(info).filter(UserModel.id == user_id).first()
         if not user:
@@ -1460,6 +1553,16 @@ class AddFriend(graphene.Mutation):
         friend = User.get_query(info).filter(UserModel.id == friend_id).first()
         if not friend:
             raise GraphQLError("Friend with given ID does not exist.")
+
+        # If a pending request exists in the opposite direction, auto-accept it
+        reverse_existing = Friendship.get_query(info).filter(
+            (FriendshipModel.user_id == friend_id) & (FriendshipModel.friend_id == user_id)
+        ).first()
+        if reverse_existing and not reverse_existing.is_accepted:
+            reverse_existing.is_accepted = True
+            reverse_existing.accepted_at = datetime.utcnow()
+            db_session.commit()
+            return reverse_existing
 
         # Check if friendship already exists
         existing = (
