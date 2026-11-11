@@ -44,6 +44,9 @@ DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturda
 # Eastern Timezone
 EASTERN_TIMEZONE = "America/New_York"
 
+# Google Workspace hosted domain allowed to sign in
+GOOGLE_ALLOWED_HOSTED_DOMAIN = "cornell.edu"
+
 # The list of gyms
 GYMS = ["Helen Newman", "Toni Morrison", "Noyes", "Teagle"]
 

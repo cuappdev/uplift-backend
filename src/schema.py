@@ -35,6 +35,7 @@ from src.utils.constants import (
     SHEET_REPORTS,
     get_digital_ocean_s3_endpoint_url,
 )
+from src.utils.google_auth import GoogleAuthUnavailableError, GoogleTokenVerificationError, verify_google_identity
 from src.database import db_session
 import requests
 from firebase_admin import messaging
@@ -273,6 +274,7 @@ class WorkoutGoalHistory(SQLAlchemyObjectType):
 class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
+        exclude_fields = ("google_sub",)
 
     friendships = graphene.List(lambda: Friendship)
     friends = graphene.List(lambda: User)
@@ -783,7 +785,25 @@ class Query(graphene.ObjectType):
 # MARK: - Mutation
 
 
+def resolve_google_identity(id_token):
+    """Verify a Google ID token, converting failures into GraphQL errors."""
+    try:
+        return verify_google_identity(id_token)
+    except GoogleTokenVerificationError as error:
+        raise GraphQLError("Google sign-in could not be verified.") from error
+    except GoogleAuthUnavailableError:
+        logging.exception("Could not reach Google to verify sign-in.")
+        raise GraphQLError("Google sign-in is unavailable.")
+    except RuntimeError:
+        logging.exception("Google sign-in is not configured.")
+        raise GraphQLError("Google sign-in is unavailable.")
+
+
 class LoginUser(graphene.Mutation):
+    """Deprecated NetID login, kept so app versions released before Google
+    sign-in keep working. Remove once those versions are no longer supported.
+    """
+
     class Arguments:
         net_id = graphene.String(required=True)
 
@@ -802,6 +822,41 @@ class LoginUser(graphene.Mutation):
         db_session.commit()
 
         return LoginUser(access_token=access_token, refresh_token=refresh_token)
+
+
+class LoginWithGoogle(graphene.Mutation):
+    class Arguments:
+        id_token = graphene.String(required=True)
+
+    access_token = graphene.String()
+    refresh_token = graphene.String()
+
+    def mutate(self, info, id_token):
+        """Exchange a verified Google ID token for Uplift JWTs.
+
+        A caller-controlled NetID is never accepted as proof of identity.
+        """
+        identity = resolve_google_identity(id_token)
+        google_sub = identity.sub
+        net_id = identity.net_id
+
+        user = db_session.query(UserModel).filter(UserModel.google_sub == google_sub).first()
+
+        if not user:
+            # Preserve the existing account-creation flow. On a user's first
+            # Google login, associate the verified Google identity with their
+            # existing NetID record.
+            user = db_session.query(UserModel).filter(func.lower(UserModel.net_id) == net_id).first()
+            if not user or (user.google_sub and user.google_sub != google_sub):
+                raise GraphQLError("No user with those credentials. Please create an account and try again.")
+
+            user.google_sub = google_sub
+
+        db_session.commit()
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
+
+        return LoginWithGoogle(access_token=access_token, refresh_token=refresh_token)
 
 
 class RefreshAccessToken(graphene.Mutation):
@@ -836,16 +891,37 @@ class LogoutUser(graphene.Mutation):
 
 class CreateUser(graphene.Mutation):
     class Arguments:
+        id_token = graphene.String(required=False)
         name = graphene.String(required=True)
-        net_id = graphene.String(required=True)
-        email = graphene.String(required=True)
+        # Deprecated: only sent by app versions released before Google sign-in.
+        net_id = graphene.String(required=False)
+        email = graphene.String(required=False)
         encoded_image = graphene.String(required=False)
 
     Output = User
 
-    def mutate(self, info, name, net_id, email, encoded_image=None):
-        # Check if a user with the given NetID already exists
-        existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+    def mutate(self, info, name, id_token=None, net_id=None, email=None, encoded_image=None):
+        if id_token:
+            # NetID and email come from the verified Google token so nobody can
+            # create an account for someone else's NetID.
+            identity = resolve_google_identity(id_token)
+            net_id = identity.net_id
+            email = identity.email
+            google_sub = identity.sub
+
+            # Check if a user with the given NetID or Google account already exists
+            existing_user = (
+                db_session.query(UserModel)
+                .filter((func.lower(UserModel.net_id) == net_id) | (UserModel.google_sub == google_sub))
+                .first()
+            )
+        else:
+            # Legacy flow for app versions released before Google sign-in.
+            if not net_id or not email:
+                raise GraphQLError("idToken is required.")
+            google_sub = None
+            existing_user = db_session.query(UserModel).filter(UserModel.net_id == net_id).first()
+
         if existing_user:
             raise GraphQLError("NetID already exists.")
 
@@ -904,7 +980,9 @@ class CreateUser(graphene.Mutation):
                 )
                 raise GraphQLError(f"S3 error: {type(e).__name__}: {e}")
         
-        new_user = UserModel(name=name, net_id=net_id, email=email, encoded_image=final_photo_url)
+        new_user = UserModel(
+            name=name, net_id=net_id, email=email, google_sub=google_sub, encoded_image=final_photo_url
+        )
         db_session.add(new_user)
         db_session.commit()
 
@@ -1566,7 +1644,8 @@ class Mutation(graphene.ObjectType):
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
-    login_user = LoginUser.Field(description="Login a user.")
+    login_user = LoginUser.Field(description="Deprecated: login a user by NetID. Use loginWithGoogle instead.")
+    login_with_google = LoginWithGoogle.Field(description="Exchanges a verified Google ID token for Uplift tokens.")
     logout_user = LogoutUser.Field(description="Logs out a user.")
     refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
