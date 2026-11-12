@@ -13,6 +13,7 @@ depends_on = None
 
 
 def upgrade():
+    """Create missing goal history without inventing historical selections."""
     # App startup may already have created this table through create_all().
     if not sa.inspect(op.get_bind()).has_table("user_workout_goal_history"):
         op.create_table(
@@ -29,5 +30,6 @@ def upgrade():
 
 
 def downgrade():
+    """Preserve a table that may predate this migration."""
     # Preserve history: the table and rows may have existed before this revision.
     pass

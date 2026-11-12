@@ -4,6 +4,8 @@ from src.database import Base
 
 
 class UserWorkoutWeek(Base):
+    """Store frozen goals, checked-in days, and award state for each week."""
+
     __tablename__ = "user_workout_week"
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)

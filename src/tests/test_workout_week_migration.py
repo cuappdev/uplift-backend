@@ -12,11 +12,14 @@ from src.models.user_workout_week import UserWorkoutWeek
 from src.models.workout import Workout
 from src.models.user_workout_goal_history import UserWorkoutGoalHistory
 from src.tests.workout_test_db import WorkoutDatabaseTest, local
-from src.utils.workout_streaks import as_utc, finalize_due_weeks
+from src.utils.workout_streaks import as_utc, finalize_due_weeks, recover_tracking
 
 
 class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
+    """Verify cutover credit, data preservation, and migration safety."""
+
     def migration(self, filename="e2a471c9b630_store_workout_weeks.py"):
+        """Load the actual migration without invoking application startup."""
         path = Path(__file__).resolve().parents[2] / "migrations/versions" / filename
         spec = importlib.util.spec_from_file_location("workout_migration", path)
         module = importlib.util.module_from_spec(spec)
@@ -24,6 +27,7 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
         return module
 
     def legacy_user(self, goal=1):
+        """Seed duplicate and future workout dates without weekly tracking."""
         user = self.user(local("2026-10-26"), goal=goal, streak=17)
         user.max_streak, user.last_streak = 29, 12
         self.session.query(UserWorkoutWeek).filter_by(user_id=user.id).delete()
@@ -36,6 +40,7 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
         return user
 
     def test_chained_cutover_preserves_display_workouts_and_prevents_duplicate_awards(self):
+        """Preserve the old display and raw workouts across repeat seeding."""
         module = self.migration()
         for goal, expected in ((1, 1), (3, 0)):
             with self.subTest(goal=goal):
@@ -65,6 +70,7 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
                 self.session.commit()
 
     def test_upgrade_old_schema_defaults_goals_and_is_repeatable(self):
+        """Exercise real PostgreSQL schema changes from a pre-weekly schema."""
         if not self.postgres:
             self.skipTest("PostgreSQL ALTER COLUMN migration test")
         self.legacy_user(goal=3)
@@ -98,6 +104,7 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
             self.assertEqual(connection.execute(sa.text("SELECT COUNT(*) FROM workout")).scalar(), 4)
 
     def test_rolling_display_and_real_history_survive_cutover_and_rerun(self):
+        """Keep history-based rolling streaks and leave existing baselines intact."""
         user = self.legacy_user()
         self.session.query(Workout).delete()
         for goal, day in ((1, "2020-01-01"), (3, "2026-10-15")):
@@ -126,3 +133,150 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
             module.seed_current_weeks(connection, local("2026-11-02"))
         self.session.refresh(user)
         self.assertEqual((user.active_streak, user.max_streak), (4, 4))
+
+    def test_overlap_cutover_does_not_award_the_same_activity_again(self):
+        """Consume overlapping legacy credit once while allowing next-week credit."""
+        user = self.legacy_user(goal=3)
+        self.session.query(Workout).delete()
+        for day in ("2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26"):
+            self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=local(day)))
+        self.session.commit()
+        module = self.migration()
+        with self.engine.begin() as connection:
+            module.seed_current_weeks(connection, local("2026-10-28"))
+        self.session.refresh(user)
+        row = self.session.query(UserWorkoutWeek).one()
+        self.assertEqual((user.active_streak, row.checked_in_days, row.goal_awarded), (1, 1, True))
+        from src.utils.workout_streaks import record_checkin
+
+        for day in ("2026-10-28", "2026-10-29"):
+            record_checkin(self.session, user, local(day), local(day))
+        finalize_due_weeks(self.session, user, local("2026-11-02"))
+        self.assertEqual((user.active_streak, user.max_streak), (1, 1))
+        for day in ("2026-11-02", "2026-11-03", "2026-11-04"):
+            record_checkin(self.session, user, local(day), local(day))
+        self.assertEqual(user.active_streak, 2)
+
+    def test_downgrade_refuses_before_any_database_changes(self):
+        """Reject an irreversible downgrade before touching the database."""
+        module = self.migration()
+        with patch.object(module, "op") as operations:
+            with self.assertRaisesRegex(RuntimeError, "irreversible"):
+                module.downgrade()
+            self.assertEqual(operations.mock_calls, [])
+
+    def test_runtime_recovery_matches_migration_for_legacy_histories(self):
+        """Keep the two one-time legacy cutover paths equivalent."""
+        cases = (
+            (1, (), ("2026-10-26", "2026-10-26", "2099-01-01")),
+            (3, (), ("2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26")),
+            (3, ((7, "2020-01-01"), (3, "2026-10-26")), ("2026-10-26", "2026-10-27", "2026-10-28")),
+            (1, ((1, "2020-01-01"),), ("2026-10-01", "2026-10-02", "2026-10-26")),
+            (3, ((3, "2026-10-25"),), ("2026-10-11", "2026-10-24", "2026-10-25", "2026-10-26")),
+            (1, ((1, "2020-01-01"),), (("2026-10-22", 23), ("2026-10-28", 23))),
+        )
+        now = as_utc(local("2026-10-28", 23))
+        module = self.migration()
+        for goal, history, days in cases:
+            with self.subTest(goal=goal, history=history, days=days):
+                migrated, recovered = self.legacy_user(goal), self.legacy_user(goal)
+                for user in (migrated, recovered):
+                    self.session.query(Workout).filter_by(user_id=user.id).delete()
+                    for day in days:
+                        timestamp = local(*day) if isinstance(day, tuple) else local(day)
+                        self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=timestamp))
+                    for value, effective in history:
+                        self.session.add(
+                            UserWorkoutGoalHistory(
+                                user_id=user.id, workout_goal=value, effective_at=local(effective, 0)
+                            )
+                        )
+                self.session.commit()
+                if self.postgres:
+                    # Legacy DATE casts follow the database's session timezone.
+                    self.session.execute(sa.text("SET LOCAL TIME ZONE 'America/New_York'"))
+                recover_tracking(self.session, recovered, now)
+                self.session.commit()
+                with self.engine.begin() as connection:
+                    if self.postgres:
+                        connection.execute(sa.text("SET LOCAL TIME ZONE 'America/New_York'"))
+                    module.seed_current_weeks(connection, now)
+                self.session.expire_all()
+
+                def snapshot(user):
+                    row = self.session.query(UserWorkoutWeek).filter_by(user_id=user.id).one()
+                    goals = (
+                        self.session.query(UserWorkoutGoalHistory)
+                        .filter_by(user_id=user.id)
+                        .order_by(UserWorkoutGoalHistory.effective_at)
+                        .all()
+                    )
+                    return (
+                        user.active_streak,
+                        user.max_streak,
+                        as_utc(user.streak_started_at) if user.streak_started_at else None,
+                        user.last_streak,
+                        row.week_start,
+                        row.workout_goal,
+                        row.checked_in_days,
+                        row.goal_awarded,
+                        row.finalized,
+                        [(entry.workout_goal, as_utc(entry.effective_at)) for entry in goals],
+                    )
+
+                self.assertEqual(snapshot(recovered), snapshot(migrated))
+
+    def test_backfill_reads_are_batched_and_rerun_preserves_rows(self):
+        """Bound data reads across the 250-user batch boundary."""
+        for _ in range(251):
+            self.user(local("2026-10-26"), commit=False)
+        self.session.query(UserWorkoutWeek).delete()
+        self.session.commit()
+        selects = []
+
+        def record_select(conn, cursor, statement, parameters, context, executemany):
+            if statement.lstrip().upper().startswith("SELECT") and not statement.startswith("SELECT pg_catalog"):
+                selects.append(statement)
+
+        module = self.migration()
+        with self.engine.begin() as connection:
+            # Reflection is fixed setup overhead; measure data queries separately.
+            module.seed_current_weeks(connection, local("2026-10-28"))
+            self.assertEqual(connection.execute(sa.text("SELECT COUNT(*) FROM user_workout_week")).scalar(), 251)
+        # Test the batch boundary without counting schema reflection queries.
+        self.session.query(UserWorkoutWeek).delete()
+        self.session.commit()
+        with self.engine.begin() as connection:
+            sa.event.listen(connection, "before_cursor_execute", record_select)
+            module.seed_current_weeks(connection, local("2026-10-28"))
+            sa.event.remove(connection, "before_cursor_execute", record_select)
+        data_reads = [
+            sql
+            for sql in selects
+            if "FROM users" in sql
+            or "FROM workout" in sql
+            or "FROM user_workout_week" in sql
+            or "FROM user_workout_goal_history" in sql
+        ]
+        self.assertEqual(len(data_reads), 9)  # Four per batch, then one empty cursor page.
+        self.assertEqual(self.session.query(UserWorkoutWeek).count(), 251)
+
+    def test_uncredited_calendar_goal_is_awarded_after_cutover(self):
+        """A goal decrease must not suppress credit absent from the legacy baseline."""
+        user = self.legacy_user(goal=3)
+        self.session.query(Workout).delete()
+        for goal, day in ((7, "2020-01-01"), (3, "2026-10-26")):
+            self.session.add(UserWorkoutGoalHistory(user_id=user.id, workout_goal=goal, effective_at=local(day, 0)))
+        for day in ("2026-10-26", "2026-10-27", "2026-10-28"):
+            self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=local(day)))
+        self.session.commit()
+        module = self.migration()
+        with self.engine.begin() as connection:
+            module.seed_current_weeks(connection, local("2026-10-28", 23))
+        self.session.refresh(user)
+        row = self.session.query(UserWorkoutWeek).one()
+        self.assertEqual(
+            (user.active_streak, row.workout_goal, row.checked_in_days, row.goal_awarded), (0, 3, 7, False)
+        )
+        finalize_due_weeks(self.session, user, local("2026-11-02"))
+        self.assertEqual((user.active_streak, row.goal_awarded), (1, True))

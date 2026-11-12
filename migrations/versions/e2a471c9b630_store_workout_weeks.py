@@ -17,10 +17,12 @@ depends_on = None
 
 
 def utc(value):
+    """Normalize legacy timestamps under the existing UTC convention."""
     return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
 def midnight(day, tz):
+    """Convert a local calendar boundary to UTC."""
     return datetime.combine(day, time.min, tz).astimezone(timezone.utc)
 
 
@@ -82,99 +84,96 @@ def seed_current_weeks(bind, now):
     workouts = sa.Table("workout", metadata, autoload_with=bind)
     history = sa.Table("user_workout_goal_history", metadata, autoload_with=bind)
     weeks = sa.Table("user_workout_week", metadata, autoload_with=bind)
-    for user in bind.execute(sa.select(users)).mappings():
-        tz = ZoneInfo("America/New_York")
-        today = utc(now).astimezone(tz).date()
-        monday = today - timedelta(days=today.weekday())
-        # Existing weekly records are the tracking baseline; reruns preserve it.
-        if (
-            bind.execute(
-                sa.select(weeks.c.user_id)
-                .where(
-                    weeks.c.user_id == user["id"],
-                )
-                .limit(1)
-            ).first()
-            is not None
+    tz = ZoneInfo("America/New_York")
+    today = utc(now).astimezone(tz).date()
+    monday = today - timedelta(days=today.weekday())
+    boundary = midnight(monday, tz)
+    date_column = (
+        sa.cast(workouts.c.workout_time, sa.Date()) if bind.dialect.name == "postgresql" else workouts.c.workout_time
+    )
+    cursor = -1
+    while True:
+        batch = list(
+            bind.execute(sa.select(users).where(users.c.id > cursor).order_by(users.c.id).limit(250)).mappings()
+        )
+        if not batch:
+            break
+        cursor = batch[-1]["id"]
+        ids = [user["id"] for user in batch]
+        existing = set(bind.execute(sa.select(weeks.c.user_id).where(weeks.c.user_id.in_(ids))).scalars())
+        times_by_user = {uid: [] for uid in ids}
+        goals_by_user = {uid: [] for uid in ids}
+        for uid, timestamp, day in bind.execute(
+            sa.select(workouts.c.user_id, workouts.c.workout_time, date_column).where(workouts.c.user_id.in_(ids))
         ):
-            continue
-        # Match the old database DATE cast (and its connection timezone), not
-        # the New York dates used for the new calendar-week progress below.
-        date_column = (
-            sa.cast(workouts.c.workout_time, sa.Date())
-            if bind.dialect.name == "postgresql"
-            else workouts.c.workout_time
-        )
-        dates = [row[0] for row in bind.execute(sa.select(date_column).where(workouts.c.user_id == user["id"]))]
-        if bind.dialect.name != "postgresql":
-            dates = [utc(value).date() for value in dates]
-        goals = list(
-            bind.execute(
-                sa.select(history.c.workout_goal, history.c.effective_at)
-                .where(
-                    history.c.user_id == user["id"],
-                )
-                .order_by(history.c.effective_at.desc())
-            )
-        )
-        active, longest, started = legacy_streaks(dates, goals, user["workout_goal"], utc(now).date())
-        bind.execute(
-            users.update()
-            .where(users.c.id == user["id"])
-            .values(
-                active_streak=active,
-                max_streak=longest,
-                streak_started_at=started,
-            )
-        )
-        boundary = midnight(monday, tz)
-        times = bind.execute(
-            sa.select(workouts.c.workout_time).where(
-                workouts.c.user_id == user["id"],
-                workouts.c.workout_time >= boundary,
-                workouts.c.workout_time <= utc(now),
-            )
-        )
-        mask = 0
-        for row in times:
-            mask |= 1 << utc(row[0]).astimezone(tz).weekday()
-        entry = bind.execute(
-            sa.select(history.c.workout_goal)
-            .where(
-                history.c.user_id == user["id"],
-                history.c.effective_at <= boundary,
-            )
+            times_by_user[uid].append((timestamp, day if bind.dialect.name == "postgresql" else utc(day).date()))
+        for uid, goal, effective in bind.execute(
+            sa.select(history.c.user_id, history.c.workout_goal, history.c.effective_at)
+            .where(history.c.user_id.in_(ids))
             .order_by(history.c.effective_at.desc())
-            .limit(1)
-        ).first()
-        goal = entry[0] if entry and entry[0] and 1 <= entry[0] <= 7 else user["workout_goal"]
-        goal = goal if goal and 1 <= goal <= 7 else 1
-        if bind.execute(sa.select(history.c.id).where(history.c.user_id == user["id"]).limit(1)).first() is None:
-            bind.execute(
-                history.insert().values(
-                    user_id=user["id"], workout_goal=goal, effective_at=datetime(1970, 1, 1, tzinfo=timezone.utc)
+        ):
+            goals_by_user[uid].append((goal, effective))
+        updates, baselines, inserts = [], [], []
+        for user in batch:
+            uid = user["id"]
+            if uid in existing:
+                continue
+            times, goals = times_by_user[uid], goals_by_user[uid]
+            dates = [day for _, day in times]
+            active, longest, started = legacy_streaks(dates, goals, user["workout_goal"], utc(now).date())
+            updates.append(dict(uid=uid, active=active, longest=longest, started=started))
+            mask = 0
+            for timestamp, _ in times:
+                if boundary <= utc(timestamp) <= utc(now):
+                    mask |= 1 << utc(timestamp).astimezone(tz).weekday()
+            goal = next((g for g, effective in goals if utc(effective) <= boundary), user["workout_goal"])
+            goal = goal if goal and 1 <= goal <= 7 else 1
+            if not goals:
+                baselines.append(
+                    dict(user_id=uid, workout_goal=goal, effective_at=datetime(1970, 1, 1, tzinfo=timezone.utc))
+                )
+            # Preserve the displayed baseline without awarding an overlapping week.
+            # With no current-week activity, the new week can still earn credit.
+            rolling_start = utc(now).date() - timedelta(days=6)
+            legacy_goals = goals or ([(user["workout_goal"], datetime.min)] if user["workout_goal"] else [])
+            rolling_goal = next(
+                (g for g, effective in legacy_goals if effective.date() <= rolling_start),
+                legacy_goals[-1][0] if legacy_goals else None,
+            )
+            rolling_count = len({day for day in dates if day >= rolling_start})
+            overlap_awarded = bool(mask and rolling_goal and rolling_count >= rolling_goal)
+            inserts.append(
+                dict(
+                    user_id=uid,
+                    week_start=monday,
+                    workout_goal=goal,
+                    checked_in_days=mask,
+                    goal_awarded=overlap_awarded,
+                    finalized=False,
                 )
             )
-        # An already-met current week is included in the cutover baseline;
-        # neither later check-ins nor rollover should award that week again.
-        bind.execute(
-            weeks.insert().values(
-                user_id=user["id"],
-                week_start=monday,
-                workout_goal=goal,
-                checked_in_days=mask,
-                goal_awarded=bin(mask).count("1") >= goal,
-                finalized=False,
+        if updates:
+            bind.execute(
+                users.update()
+                .where(users.c.id == sa.bindparam("uid"))
+                .values(
+                    active_streak=sa.bindparam("active"),
+                    max_streak=sa.bindparam("longest"),
+                    streak_started_at=sa.bindparam("started"),
+                ),
+                updates,
             )
-        )
+        if baselines:
+            bind.execute(history.insert(), baselines)
+        if inserts:
+            bind.execute(weeks.insert(), inserts)
 
 
 def upgrade():
+    """Create weekly storage and preserve the legacy display at cutover."""
     bind = op.get_bind()
     columns = {column["name"] for column in sa.inspect(bind).get_columns("users")}
-    additions = [
-        sa.Column("streak_started_at", sa.DateTime(timezone=True), nullable=True),
-    ]
+    additions = [sa.Column("streak_started_at", sa.DateTime(timezone=True), nullable=True)]
     for column in additions:
         if column.name not in columns:
             op.add_column("users", column)
@@ -205,6 +204,8 @@ def upgrade():
 
 
 def downgrade():
-    # Retain the weekly audit records and existing counters: dropping them
-    # would discard data and cannot recover unknown original NULL goal values.
-    pass
+    """Refuse a rollback that cannot restore the original streak and goal data."""
+    raise RuntimeError(
+        "Weekly streak migration is irreversible: restore a pre-migration backup "
+        "or use a reviewed forward repair. No downgrade changes were applied."
+    )
