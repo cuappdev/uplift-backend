@@ -146,6 +146,21 @@ TEAGLE_DOWN_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-downst
 # The path for Teagle Up Fitness Center details
 TEAGLE_UP_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-upstairs"
 
+# MARK: - Workout logging
+
+# Longest workout title, in characters
+WORKOUT_TITLE_MAX_LENGTH = 100
+
+# Longest workout description, in characters
+WORKOUT_DESCRIPTION_MAX_LENGTH = 2000
+
+# Allowed workout satisfaction ratings, from "Off day" (0) to "Excellent" (5)
+WORKOUT_RATING_MIN = 0
+WORKOUT_RATING_MAX = 5
+
+# Longest workout that can be saved, in hours
+WORKOUT_MAX_DURATION_HOURS = 24
+
 
 def get_digital_ocean_s3_endpoint_url():
     """

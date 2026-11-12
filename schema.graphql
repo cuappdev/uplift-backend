@@ -223,6 +223,7 @@ type Mutation {
   enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
   setWorkoutGoals(userId: Int!, workoutGoal: Int!): User
   logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime!): Workout
+  saveWorkout(description: String, endTime: DateTime!, facilityId: Int, rating: Int, startTime: DateTime!, title: String, workoutId: Int): Workout
   loginUser(netId: String!): LoginUser
   loginWithGoogle(idToken: String!): LoginWithGoogle
   logoutUser: LogoutUser
@@ -333,6 +334,11 @@ type Workout {
   workoutTime: DateTime!
   userId: Int!
   facilityId: Int!
+  startedAt: DateTime
+  endedAt: DateTime
+  title: String
+  description: String
+  rating: Int
   user: User
   gymName: String!
 }

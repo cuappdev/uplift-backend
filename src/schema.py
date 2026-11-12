@@ -33,6 +33,11 @@ from src.utils.constants import (
     SERVICE_ACCOUNT_PATH,
     SHEET_KEY,
     SHEET_REPORTS,
+    WORKOUT_DESCRIPTION_MAX_LENGTH,
+    WORKOUT_MAX_DURATION_HOURS,
+    WORKOUT_RATING_MAX,
+    WORKOUT_RATING_MIN,
+    WORKOUT_TITLE_MAX_LENGTH,
     get_digital_ocean_s3_endpoint_url,
 )
 from src.utils.google_auth import GoogleAuthUnavailableError, GoogleTokenVerificationError, verify_google_identity
@@ -615,6 +620,12 @@ class Workout(SQLAlchemyObjectType):
 
     def resolve_workout_time(self, info):
         return to_local_time(self.workout_time)
+
+    def resolve_started_at(self, info):
+        return to_local_time(self.started_at)
+
+    def resolve_ended_at(self, info):
+        return to_local_time(self.ended_at)
 
 
 # MARK: - Report
@@ -1249,6 +1260,85 @@ class logWorkout(graphene.Mutation):
         return workout
 
 
+def _optional_text(value, field, max_length):
+    """Strip a text field, returning None when it's empty. Raises if it's too long."""
+    value = (value or "").strip()
+    if len(value) > max_length:
+        raise GraphQLError(f"Workout {field} must be at most {max_length} characters.")
+    return value or None
+
+
+def _validate_workout_times(start_time, end_time):
+    """Return the start and end times in UTC. Raises unless the workout ends after it starts."""
+    start_utc, end_utc = ensure_utc(start_time), ensure_utc(end_time)
+    if end_utc <= start_utc:
+        raise GraphQLError("Workout end time must be after its start time.")
+    if end_utc - start_utc > timedelta(hours=WORKOUT_MAX_DURATION_HOURS):
+        raise GraphQLError(f"Workouts can be at most {WORKOUT_MAX_DURATION_HOURS} hours long.")
+    return start_utc, end_utc
+
+
+class SaveWorkout(graphene.Mutation):
+    """
+    Save a workout's details after the user finishes it.
+
+    Pass `workout_id` to update the workout created at check-in. Without it, a
+    new workout is created, and `facility_id` is required. The workout always
+    belongs to the signed-in user. Title, description, and rating are replaced
+    with what's sent, so leaving one out clears it.
+    """
+
+    class Arguments:
+        workout_id = graphene.Int()
+        facility_id = graphene.Int()
+        start_time = graphene.DateTime(required=True)
+        end_time = graphene.DateTime(required=True)
+        title = graphene.String()
+        description = graphene.String()
+        rating = graphene.Int()
+
+    Output = Workout
+
+    @jwt_required()
+    def mutate(
+        self, info, start_time, end_time, workout_id=None, facility_id=None, title=None, description=None, rating=None
+    ):
+        user_id = int(get_jwt_identity())
+        start_utc, end_utc = _validate_workout_times(start_time, end_time)
+        title = _optional_text(title, "title", WORKOUT_TITLE_MAX_LENGTH)
+        description = _optional_text(description, "description", WORKOUT_DESCRIPTION_MAX_LENGTH)
+        if rating is not None and not WORKOUT_RATING_MIN <= rating <= WORKOUT_RATING_MAX:
+            raise GraphQLError(f"Workout rating must be between {WORKOUT_RATING_MIN} and {WORKOUT_RATING_MAX}.")
+
+        if facility_id is not None:
+            if not db_session.query(FacilityModel).filter(FacilityModel.id == facility_id).first():
+                raise GraphQLError("Facility with given ID does not exist.")
+
+        if workout_id is not None:
+            workout = db_session.query(WorkoutModel).filter(WorkoutModel.id == workout_id).first()
+            # Someone else's workout gets the same error, so IDs can't be probed
+            if not workout or workout.user_id != user_id:
+                raise GraphQLError("Workout with given ID does not exist.")
+            if facility_id is not None:
+                workout.facility_id = facility_id
+        else:
+            if facility_id is None:
+                raise GraphQLError("A facility ID is required to save a new workout.")
+            if not db_session.query(UserModel).filter(UserModel.id == user_id).first():
+                raise GraphQLError("User with given ID does not exist.")
+            workout = WorkoutModel(workout_time=start_utc, user_id=user_id, facility_id=facility_id)
+            db_session.add(workout)
+
+        workout.started_at = start_utc
+        workout.ended_at = end_utc
+        workout.title = title
+        workout.description = description
+        workout.rating = rating
+
+        db_session.commit()
+        return workout
+
+
 class CreateReport(graphene.Mutation):
     class Arguments:
         issue = graphene.String(required=True)
@@ -1644,6 +1734,7 @@ class Mutation(graphene.ObjectType):
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
+    save_workout = SaveWorkout.Field(description="Save a finished workout's times, title, notes, and rating.")
     login_user = LoginUser.Field(description="Deprecated: login a user by NetID. Use loginWithGoogle instead.")
     login_with_google = LoginWithGoogle.Field(description="Exchanges a verified Google ID token for Uplift tokens.")
     logout_user = LogoutUser.Field(description="Logs out a user.")
