@@ -77,6 +77,24 @@ class TestWebsiteSnapshots(unittest.TestCase):
             ["6:00am - 9:00pm", "6:00am - 7:00pm", "6:00am - 12:00pm", "Closed", "Closed", "Closed", "Closed"],
         )
 
+    def test_special_hours_only_open_when_listed(self):
+        html = """
+        <table>
+          <caption>Winter Break: December 21 - December 22, 2026</caption>
+          <tr><th>Fitness Center</th><th>Monday</th><th>Tuesday</th></tr>
+          <tr><td>Helen Newman</td><td>8:00am - 4:00pm</td><td></td></tr>
+        </table>
+        """
+        rows = by_name(parse_fitness_center_hours(html)[1])
+
+        self.assertEqual(len(rows), 5)
+        # Listed with a blank day: closed that day
+        self.assertEqual(
+            (rows["HNH Fitness Center"]["Monday"], rows["HNH Fitness Center"]["Tuesday"]), ("8:00am - 4:00pm", "Closed")
+        )
+        # Not listed at all: closed for the whole range
+        self.assertEqual({rows["Noyes Fitness Center"][day] for day in DAYS_OF_WEEK}, {"Closed"})
+
     def test_building_hours(self):
         hnh = parse_building_hours(fixture("helen-newman-hall.html"), "Helen Newman", "helen newman")[0]
         noyes = parse_building_hours(fixture("noyes-recreation-center.html"), "Noyes", "noyes")[0]

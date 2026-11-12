@@ -315,15 +315,16 @@ def _sheet_row(name, hours, facility_type=None, date_range=None):
     """
     Build a sheet-format row.
 
-    Special-hours rows (with a date range) get every weekday column, blank for
-    days without hours, because the special hours scraper skips blank days.
+    Special-hours rows (with a date range) get every weekday column. Days the
+    website doesn't give usable hours for are "Closed": during special hours,
+    a fitness center is only open when the website says so.
     """
     row = {SHEET_COLUMN_NAME: name}
     if facility_type:
         row[SHEET_COLUMN_TYPE] = facility_type
     if date_range:
         row[SHEET_COLUMN_DATE_RANGE] = _format_date_range(date_range)
-        row.update({day: hours.get(day, "") for day in DAYS_OF_WEEK})
+        row.update({day: hours.get(day, MARKER_CLOSED) for day in DAYS_OF_WEEK})
     else:
         row.update(hours)
     return row
@@ -350,6 +351,13 @@ def _fitness_center_rows(table):
             continue
         hours = _hours_by_day("%s (%s)" % (name, table["caption"] or "regular"), row["days"])
         rows.append(_sheet_row(name, hours, MARKER_FITNESS, table["date_range"]))
+
+    if table["date_range"]:
+        # A fitness center left out of a special hours table is closed for those dates
+        listed = {row[SHEET_COLUMN_NAME] for row in rows}
+        for name in sorted(set(WEB_FITNESS_CENTER_URLS.values()) - listed):
+            logger.info("%s isn't listed in special hours table %r; marking it closed", name, table["caption"])
+            rows.append(_sheet_row(name, {}, MARKER_FITNESS, table["date_range"]))
     return rows
 
 
