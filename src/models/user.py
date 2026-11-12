@@ -16,8 +16,12 @@ class User(Base):
         - `giveaways`                             (nullable) The list of giveaways a user is entered into.
         - `net_id`                                The user's Net ID.
         - `name`                                  The user's name.
-        - `workout_goal`                          The latest selected goal.
-          `currentWeekGoal` exposes this week's effective target.
+        - `workout_goal`                          The most recently selected goal. Applies from the
+                                                  following Monday, i.e. it is the *next* week's goal;
+                                                  the current week's target lives on the user's
+                                                  `user_workout_week` row and is exposed as
+                                                  `currentWeekGoal`. A user's first selection is the
+                                                  one exception and applies immediately.
         - `active_streak`                         The number of consecutive weeks the user has met their personal goal.
         - `max_streak`                            The maximum number of consecutive weeks the user has met their personal goal.
         - `last_goal_change`                      The date and time the user last changed their personal goal.
