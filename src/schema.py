@@ -629,6 +629,11 @@ class Workout(SQLAlchemyObjectType):
     def resolve_ended_at(self, info):
         return to_local_time(self.ended_at)
 
+
+# The GraphQL enum graphene-sqlalchemy generates for Workout.muscle_groups, reused for saveWorkout's argument
+MuscleGroupGraphQLEnum = enum_for_sa_enum(WorkoutModel.muscle_groups.type.item_type, get_global_registry())
+
+
 # MARK: - Report
 
 
@@ -1261,18 +1266,20 @@ class logWorkout(graphene.Mutation):
         return workout
 
 
-def _optional_text(value, field, max_length):
+# MARK: - Save workout
+
+
+def _get_by_id(model, row_id):
+    """Return the `model` row with the given ID, or None."""
+    return db_session.query(model).filter(model.id == row_id).first()
+
+
+def _clean_text(value, field, max_length):
     """Strip a text field, returning None when it's empty. Raises if it's too long."""
     value = (value or "").strip()
     if len(value) > max_length:
         raise GraphQLError(f"Workout {field} must be at most {max_length} characters.")
     return value or None
-
-
-def _muscle_groups(values):
-    """Convert muscle group names to MuscleGroupEnum members, without duplicates, in a fixed order."""
-    chosen = {MuscleGroupEnum(value) for value in values or []}
-    return [group for group in MuscleGroupEnum if group in chosen]
 
 
 def _validate_workout_times(start_time, end_time):
@@ -1283,6 +1290,58 @@ def _validate_workout_times(start_time, end_time):
     if end_utc - start_utc > timedelta(hours=WORKOUT_MAX_DURATION_HOURS):
         raise GraphQLError(f"Workouts can be at most {WORKOUT_MAX_DURATION_HOURS} hours long.")
     return start_utc, end_utc
+
+
+def _validate_rating(rating):
+    """Return the rating, which may be None. Raises if it's out of range."""
+    if rating is not None and not WORKOUT_RATING_MIN <= rating <= WORKOUT_RATING_MAX:
+        raise GraphQLError(f"Workout rating must be between {WORKOUT_RATING_MIN} and {WORKOUT_RATING_MAX}.")
+    return rating
+
+
+def _muscle_groups(values):
+    """Convert muscle group names to MuscleGroupEnum members, without duplicates, in a fixed order."""
+    chosen = {MuscleGroupEnum(value) for value in values or []}
+    return [group for group in MuscleGroupEnum if group in chosen]
+
+
+def _workout_details(start_time, end_time, title=None, description=None, rating=None, muscle_groups=None):
+    """Validate the details a user saves for a workout, returned as Workout column values."""
+    started_at, ended_at = _validate_workout_times(start_time, end_time)
+    return {
+        "started_at": started_at,
+        "ended_at": ended_at,
+        "title": _clean_text(title, "title", WORKOUT_TITLE_MAX_LENGTH),
+        "description": _clean_text(description, "description", WORKOUT_DESCRIPTION_MAX_LENGTH),
+        "rating": _validate_rating(rating),
+        "muscle_groups": _muscle_groups(muscle_groups),
+    }
+
+
+def _workout_to_save(user_id, workout_id, facility_id, workout_time):
+    """
+    Return the workout a user is saving: their existing workout with
+    `workout_id`, or a new one at `facility_id` when there's no workout ID.
+    """
+    if facility_id is not None and not _get_by_id(FacilityModel, facility_id):
+        raise GraphQLError("Facility with given ID does not exist.")
+
+    if workout_id is not None:
+        workout = _get_by_id(WorkoutModel, workout_id)
+        # Someone else's workout gets the same error, so IDs can't be probed
+        if not workout or workout.user_id != user_id:
+            raise GraphQLError("Workout with given ID does not exist.")
+        if facility_id is not None:
+            workout.facility_id = facility_id
+        return workout
+
+    if facility_id is None:
+        raise GraphQLError("A facility ID is required to save a new workout.")
+    if not _get_by_id(UserModel, user_id):
+        raise GraphQLError("User with given ID does not exist.")
+    workout = WorkoutModel(workout_time=workout_time, user_id=user_id, facility_id=facility_id)
+    db_session.add(workout)
+    return workout
 
 
 class SaveWorkout(graphene.Mutation):
@@ -1303,59 +1362,16 @@ class SaveWorkout(graphene.Mutation):
         title = graphene.String()
         description = graphene.String()
         rating = graphene.Int()
-        # The same MuscleGroup GraphQL enum that Workout.muscleGroups uses
-        muscle_groups = graphene.List(
-            graphene.NonNull(enum_for_sa_enum(WorkoutModel.muscle_groups.type.item_type, get_global_registry()))
-        )
+        muscle_groups = graphene.List(graphene.NonNull(MuscleGroupGraphQLEnum))
 
     Output = Workout
 
     @jwt_required()
-    def mutate(
-        self,
-        info,
-        start_time,
-        end_time,
-        workout_id=None,
-        facility_id=None,
-        title=None,
-        description=None,
-        rating=None,
-        muscle_groups=None,
-    ):
-        user_id = int(get_jwt_identity())
-        start_utc, end_utc = _validate_workout_times(start_time, end_time)
-        title = _optional_text(title, "title", WORKOUT_TITLE_MAX_LENGTH)
-        description = _optional_text(description, "description", WORKOUT_DESCRIPTION_MAX_LENGTH)
-        if rating is not None and not WORKOUT_RATING_MIN <= rating <= WORKOUT_RATING_MAX:
-            raise GraphQLError(f"Workout rating must be between {WORKOUT_RATING_MIN} and {WORKOUT_RATING_MAX}.")
-
-        if facility_id is not None:
-            if not db_session.query(FacilityModel).filter(FacilityModel.id == facility_id).first():
-                raise GraphQLError("Facility with given ID does not exist.")
-
-        if workout_id is not None:
-            workout = db_session.query(WorkoutModel).filter(WorkoutModel.id == workout_id).first()
-            # Someone else's workout gets the same error, so IDs can't be probed
-            if not workout or workout.user_id != user_id:
-                raise GraphQLError("Workout with given ID does not exist.")
-            if facility_id is not None:
-                workout.facility_id = facility_id
-        else:
-            if facility_id is None:
-                raise GraphQLError("A facility ID is required to save a new workout.")
-            if not db_session.query(UserModel).filter(UserModel.id == user_id).first():
-                raise GraphQLError("User with given ID does not exist.")
-            workout = WorkoutModel(workout_time=start_utc, user_id=user_id, facility_id=facility_id)
-            db_session.add(workout)
-
-        workout.started_at = start_utc
-        workout.ended_at = end_utc
-        workout.title = title
-        workout.description = description
-        workout.rating = rating
-        workout.muscle_groups = _muscle_groups(muscle_groups)
-
+    def mutate(self, info, workout_id=None, facility_id=None, **details):
+        details = _workout_details(**details)
+        workout = _workout_to_save(int(get_jwt_identity()), workout_id, facility_id, details["started_at"])
+        for column, value in details.items():
+            setattr(workout, column, value)
         db_session.commit()
         return workout
 

@@ -18,7 +18,10 @@ down_revision = "c4e8b0d2a7f1"
 branch_labels = None
 depends_on = None
 
-muscle_group_enum = postgresql.ENUM("ARM", "LEG", "BACK", "CHEST", "SHOULDER", name="musclegroupenum")
+# Values are copied rather than imported so this migration doesn't change if the app's enum does
+muscle_group_enum = postgresql.ENUM(
+    "ARM", "LEG", "BACK", "CHEST", "SHOULDER", name="musclegroupenum", create_type=False
+)
 
 
 def upgrade():
@@ -32,12 +35,7 @@ def upgrade():
     muscle_group_enum.create(op.get_bind(), checkfirst=True)
     op.add_column(
         "workout",
-        sa.Column(
-            "muscle_groups",
-            postgresql.ARRAY(postgresql.ENUM(name="musclegroupenum", create_type=False)),
-            nullable=False,
-            server_default=sa.text("'{}'"),
-        ),
+        sa.Column("muscle_groups", postgresql.ARRAY(muscle_group_enum), nullable=False, server_default=sa.text("'{}'")),
     )
 
 

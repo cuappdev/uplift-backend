@@ -11,7 +11,8 @@ class Workout(Base):
     A workout logged by a user.
 
     A workout is created when a user checks in at a gym. Saving the workout
-    afterwards adds when it started and ended, a title, notes, and a rating.
+    afterwards adds when it started and ended, a title, notes, a rating, and
+    the muscle groups worked.
 
     Attributes:
         - `id`              The ID of the workout.
@@ -34,9 +35,7 @@ class Workout(Base):
     )
 
     id = Column(Integer, primary_key=True)
-    workout_time = Column(
-        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP")
-    )  # should this be nullable?
+    workout_time = Column(DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP"))  # should this be nullable?
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     facility_id = Column(Integer, ForeignKey("facility.id"), nullable=False)
     started_at = Column(DateTime(timezone=True), nullable=True)
@@ -45,5 +44,5 @@ class Workout(Base):
     description = Column(Text, nullable=True)
     rating = Column(Integer, nullable=True)
     muscle_groups = Column(ARRAY(SQLAEnum(MuscleGroupEnum)), nullable=False, server_default=text("'{}'"), default=list)
-
-    user = relationship("User", back_populates="workouts")
+    
+    user = relationship("User", back_populates='workouts')
