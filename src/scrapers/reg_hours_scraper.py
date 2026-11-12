@@ -1,27 +1,37 @@
-import gspread
 from datetime import datetime, timedelta
-from pandas import DataFrame
 from src.database import db_session
 from src.models.openhours import OpenHours
-from src.scrapers.scraper_helpers import clean_hours, determine_court_hours, determine_pool_hours, get_hours_datetimes
+from src.scrapers.scraper_helpers import (
+    clean_hours,
+    determine_court_hours,
+    determine_pool_hours,
+    get_hours_datetimes,
+    load_hours_records,
+    records_to_frame,
+)
+from src.scrapers.web_hours_scraper import fetch_web_building_rows, fetch_web_regular_facility_rows, merge_regular_rows
 from src.utils.constants import (
     DAYS_OF_WEEK,
+    HOURS_SOURCE,
+    HOURS_SOURCE_WEB,
     MARKER_BOWLING,
     MARKER_CLOSED,
     MARKER_COURT,
     MARKER_FITNESS,
     MARKER_POOL,
     MARKER_TIME_DELIMITER,
-    SERVICE_ACCOUNT_PATH,
-    SHEET_KEY,
     SHEET_REG_BUILDING,
     SHEET_REG_FACILITY,
 )
 from src.utils.utils import get_facility_id, get_gym_id, unix_time
 
-# Configure client and sheet
-gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
-sh = gc.open_by_key(SHEET_KEY)
+
+def load_regular_hours(worksheet_name, fetch_web_rows):
+    """Load regular hours from the sheet, overlaid with website hours when HOURS_SOURCE is "web"."""
+    records = load_hours_records(worksheet_name)
+    if HOURS_SOURCE == HOURS_SOURCE_WEB:
+        records = merge_regular_rows(records, fetch_web_rows())
+    return records_to_frame(records)
 
 
 def fetch_reg_building():
@@ -31,8 +41,7 @@ def fetch_reg_building():
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
     """
-    worksheet = sh.worksheet(SHEET_REG_BUILDING)
-    vals = DataFrame(worksheet.get_all_records())
+    vals = load_regular_hours(SHEET_REG_BUILDING, fetch_web_building_rows)
 
     for i in range(len(DAYS_OF_WEEK)):
         # Determine next day
@@ -62,8 +71,7 @@ def fetch_reg_facility():
     """
     Fetch regular facility hours.
     """
-    worksheet = sh.worksheet(SHEET_REG_FACILITY)
-    vals = DataFrame(worksheet.get_all_records())
+    vals = load_regular_hours(SHEET_REG_FACILITY, fetch_web_regular_facility_rows)
 
     fetch_reg_bowling(vals)
     fetch_reg_court(vals)

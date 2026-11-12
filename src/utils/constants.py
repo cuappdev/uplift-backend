@@ -6,6 +6,9 @@ ASSET_BASE_URL = "https://appdev-upload.nyc3.cdn.digitaloceanspaces.com/uplift"
 # Base URL for Cornell Recreation Website
 BASE_URL = "https://scl.cornell.edu/recreation/"
 
+# The path for Helen Newman bowling center hours
+BOWLING_HOURS_URL = "https://scl.cornell.edu/recreation/bowling"
+
 # The old path for capacities
 C2C_URL = "https://connect2concepts.com/connect2/?type=bar&key=355de24d-d0e4-4262-ae97-bc0c78b92839&loc_status=false"
 # The new path for capacities
@@ -55,6 +58,9 @@ GYM_HOUR_BASE_URL = "https://scl.cornell.edu/recreation/cornell-fitness-centers"
 
 # The path for Helen Newman Fitness Center details
 HNH_DETAILS = "https://scl.cornell.edu/recreation/facility/helen-newman-fitness-center"
+
+# The path for Helen Newman Hall building hours
+HNH_BUILDING_URL = "https://scl.cornell.edu/recreation/facility/helen-newman-hall"
 
 # JWT secret key
 JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]
@@ -110,6 +116,9 @@ MORRISON_DETAILS = "https://scl.cornell.edu/recreation/facility/toni-morrison-fi
 # The path for Noyes Fitness Center details
 NOYES_DETAILS = "https://scl.cornell.edu/recreation/facility/noyes-fitness-center"
 
+# The path for Noyes Recreation Center building hours
+NOYES_BUILDING_URL = "https://scl.cornell.edu/recreation/facility/noyes-recreation-center"
+
 # The number of seconds in a day
 SECONDS_IN_DAY = 86400
 
@@ -140,11 +149,75 @@ SHEET_REPORTS = "Reports"
 # Worksheet name for special facility hours
 SHEET_SP_FACILITY = "[SP] Facility Hours"
 
+# The path for Teagle Hall building hours
+TEAGLE_BUILDING_URL = "https://scl.cornell.edu/recreation/facility/teagle-hall"
+
 # The path for Teagle Down Fitness Center details
 TEAGLE_DOWN_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-downstairs"
 
 # The path for Teagle Up Fitness Center details
 TEAGLE_UP_DETAILS = "https://scl.cornell.edu/recreation/facility/teagle-upstairs"
+
+
+# MARK: - Website hours scraping
+
+# Values for HOURS_SOURCE
+HOURS_SOURCE_SHEET = "sheet"
+HOURS_SOURCE_WEB = "web"
+
+# Where fitness center, building, and bowling hours come from: "web" scrapes the
+# Cornell Recreation website and falls back to the sheet for anything it can't
+# parse; "sheet" uses only the Google Sheet. Courts and pools always use the sheet.
+HOURS_SOURCE = os.environ.get("HOURS_SOURCE", HOURS_SOURCE_WEB).strip().lower()
+
+# Seconds to wait for a Cornell Recreation page before giving up
+HOURS_REQUEST_TIMEOUT_SECONDS = 15
+
+# Hours that end later than this hour the next morning are treated as typos
+# (ex: "11:30pm - 5:30pm" written instead of "11:30am - 5:30pm")
+HOURS_LATEST_CLOSING_HOUR = 3
+
+# The longest a facility is expected to stay open in one stretch
+HOURS_MAX_OPEN_HOURS = 20
+
+# Column names in the hours worksheets
+SHEET_COLUMN_DATE_RANGE = "Date Range"
+SHEET_COLUMN_NAME = "Name"
+SHEET_COLUMN_TYPE = "Type"
+
+# Date format in the special hours worksheet's Date Range column (ex: `12/27/23`)
+SHEET_DATE_FORMAT = "%m/%d/%y"
+
+# Fitness center links on GYM_HOUR_BASE_URL, mapped to facility names
+WEB_FITNESS_CENTER_URLS = {
+    HNH_DETAILS: "HNH Fitness Center",
+    MORRISON_DETAILS: "Morrison Fitness Center",
+    NOYES_DETAILS: "Noyes Fitness Center",
+    TEAGLE_DOWN_DETAILS: "Teagle Down Fitness Center",
+    TEAGLE_UP_DETAILS: "Teagle Up Fitness Center",
+}
+
+# Lowercase fitness center labels on GYM_HOUR_BASE_URL, for rows without a link
+WEB_FITNESS_CENTER_LABELS = {
+    "helen newman": "HNH Fitness Center",
+    "toni morrison": "Morrison Fitness Center",
+    "noyes": "Noyes Fitness Center",
+    "teagle downstairs": "Teagle Down Fitness Center",
+    "teagle upstairs": "Teagle Up Fitness Center",
+}
+
+# Building hours pages as (URL, gym name, lowercase text in the hours row label)
+WEB_BUILDING_PAGES = [
+    (HNH_BUILDING_URL, "Helen Newman", "helen newman"),
+    (NOYES_BUILDING_URL, "Noyes", "noyes"),
+    (TEAGLE_BUILDING_URL, "Teagle", "teagle"),
+]
+
+# Facility whose hours are on BOWLING_HOURS_URL
+WEB_BOWLING_FACILITY = "HNH Bowling"
+
+# Words in an hours table caption that mark it as regular (not special) hours
+WEB_REGULAR_CAPTION_WORDS = ("regular", "academic")
 
 
 def get_digital_ocean_s3_endpoint_url():

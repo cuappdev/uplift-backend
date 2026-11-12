@@ -1,33 +1,52 @@
-import gspread
-from pandas import DataFrame
 from src.database import db_session
 from src.models.openhours import OpenHours
-from src.scrapers.scraper_helpers import clean_hours, determine_court_hours, determine_pool_hours, get_hours_datetimes
+from src.scrapers.scraper_helpers import (
+    clean_hours,
+    determine_court_hours,
+    determine_pool_hours,
+    get_hours_datetimes,
+    load_hours_records,
+    records_to_frame,
+)
+from src.scrapers.web_hours_scraper import fetch_web_special_fitness_rows
 from src.utils.constants import (
     DAYS_OF_WEEK,
+    HOURS_SOURCE,
+    HOURS_SOURCE_WEB,
     MARKER_BOWLING,
     MARKER_CLOSED,
     MARKER_COURT,
     MARKER_FITNESS,
     MARKER_POOL,
     MARKER_TIME_DELIMITER,
-    SERVICE_ACCOUNT_PATH,
+    SHEET_COLUMN_DATE_RANGE,
+    SHEET_COLUMN_TYPE,
     SHEET_SP_FACILITY,
-    SHEET_KEY,
 )
 from src.utils.utils import unix_time, within_week, get_date_ranges, get_facility_id
 
-# Configure client and sheet
-gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
-sh = gc.open_by_key(SHEET_KEY)
+
+def load_special_hours():
+    """
+    Load special hours from the sheet.
+
+    When HOURS_SOURCE is "web" and the fitness centers page loads, its special
+    hours replace the sheet's fitness center rows.
+    """
+    records = load_hours_records(SHEET_SP_FACILITY)
+    web_rows = fetch_web_special_fitness_rows() if HOURS_SOURCE == HOURS_SOURCE_WEB else None
+    if web_rows is not None:
+        records = [record for record in records if record.get(SHEET_COLUMN_TYPE) != MARKER_FITNESS] + web_rows
+    return records_to_frame(records)
 
 
 def fetch_sp_facility():
     """
     Fetch special facility hours.
     """
-    worksheet = sh.worksheet(SHEET_SP_FACILITY)
-    vals = DataFrame(worksheet.get_all_records())
+    vals = load_special_hours()
+    if SHEET_COLUMN_DATE_RANGE not in vals:
+        return
 
     # Grab sheet data
     names = vals["Name"]

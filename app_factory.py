@@ -174,7 +174,7 @@ def setup_scrapers(app):
         next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
         logging.info('Running job "scrape_hours (trigger: interval[0:15:00], next run at: %s EST)"', next_run)
         try:
-            logging.info("Scraping hours from sheets...")
+            logging.info("Scraping hours from the website and sheets...")
             # Clear hours
             db_session.query(OpenHours).delete()
             fetch_reg_facility()

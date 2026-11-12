@@ -36,6 +36,7 @@ export DB_PORT=5432
 export DB_NAME=upliftdb
 export JWT_SECRET_KEY=CHANGE_ME
 export GOOGLE_WEB_CLIENT_ID=CHANGE_ME.apps.googleusercontent.com
+export HOURS_SOURCE=web  # or "sheet" to read all hours from the Google Sheet
 ````
 
 To use `autoenv` with this repository, run the following and set the variables appropriately.
