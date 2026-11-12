@@ -116,7 +116,7 @@ def fetch_capacities():
                 
             except Exception as e:
                 logging.exception(f"Error processing facility {facility.get('LocationName', 'unknown')}: {str(e)}")
-                # db_session.rollback()
+                db_session.rollback()
                 
     except Exception as e:
         logging.error(f"Error fetching capacities: {str(e)}")
