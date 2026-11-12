@@ -1,38 +1,63 @@
-import gspread
 from datetime import datetime, timedelta
-from pandas import DataFrame
 from src.database import db_session
 from src.models.openhours import OpenHours
-from src.scrapers.scraper_helpers import clean_hours, determine_court_hours, determine_pool_hours, get_hours_datetimes
+from src.scrapers.scraper_helpers import (
+    clean_hours,
+    determine_court_hours,
+    determine_pool_hours,
+    get_hours_datetimes,
+    get_sheet_records,
+    records_to_frame,
+)
+from src.scrapers.web_hours_scraper import fetch_web_building_rows, fetch_web_regular_facility_rows, merge_regular_rows
 from src.utils.constants import (
     DAYS_OF_WEEK,
+    HOURS_SOURCE,
+    HOURS_SOURCE_WEB,
     MARKER_BOWLING,
     MARKER_CLOSED,
     MARKER_COURT,
     MARKER_FITNESS,
     MARKER_POOL,
     MARKER_TIME_DELIMITER,
-    SERVICE_ACCOUNT_PATH,
-    SHEET_KEY,
     SHEET_REG_BUILDING,
     SHEET_REG_FACILITY,
 )
 from src.utils.utils import get_facility_id, get_gym_id, unix_time
 
-# Configure client and sheet
-gc = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
-sh = gc.open_by_key(SHEET_KEY)
 
-
-def fetch_reg_building():
+def load_regular_hours(worksheet_name, fetch_web_rows):
     """
-    Fetch regular building hours for the next 7 days (inclusive of today).
+    Load regular hours from the sheet, overlaid with website hours when HOURS_SOURCE is "web".
+
+    Raises if the sheet can't be read, so callers can keep the hours they already have.
+    """
+    records = get_sheet_records(worksheet_name)
+    if HOURS_SOURCE == HOURS_SOURCE_WEB:
+        records = merge_regular_rows(records, fetch_web_rows())
+    return records_to_frame(records)
+
+
+def load_reg_building():
+    """Load regular building hours without touching the database."""
+    return load_regular_hours(SHEET_REG_BUILDING, fetch_web_building_rows)
+
+
+def load_reg_facility():
+    """Load regular facility hours without touching the database."""
+    return load_regular_hours(SHEET_REG_FACILITY, fetch_web_regular_facility_rows)
+
+
+def fetch_reg_building(vals):
+    """
+    Store regular building hours for the next 7 days (inclusive of today).
 
     For example, if today is Tuesday, fetch hours for today up to and including
     next Monday.
+
+    - Parameters:
+        - `vals`         The hours from `load_reg_building`.
     """
-    worksheet = sh.worksheet(SHEET_REG_BUILDING)
-    vals = DataFrame(worksheet.get_all_records())
 
     for i in range(len(DAYS_OF_WEEK)):
         # Determine next day
@@ -58,13 +83,13 @@ def fetch_reg_building():
                     add_regular_gym_hours(start, end, gym_id)
 
 
-def fetch_reg_facility():
+def fetch_reg_facility(vals):
     """
-    Fetch regular facility hours.
-    """
-    worksheet = sh.worksheet(SHEET_REG_FACILITY)
-    vals = DataFrame(worksheet.get_all_records())
+    Store regular facility hours.
 
+    - Parameters:
+        - `vals`         The hours from `load_reg_facility`.
+    """
     fetch_reg_bowling(vals)
     fetch_reg_court(vals)
     fetch_reg_pool(vals)

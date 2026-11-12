@@ -19,6 +19,7 @@ from src.models.token_blacklist import TokenBlocklist
 import firebase_admin
 from firebase_admin import credentials
 
+
 def initialize_firebase():
     if not firebase_admin._apps:
         if SERVICE_ACCOUNT_PATH:
@@ -73,7 +74,7 @@ def create_app(run_migrations=False):
     schema = Schema(query=Query, mutation=Mutation)
     swagger = Swagger(app)
 
-    app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
+    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 
@@ -131,9 +132,14 @@ def setup_scrapers(app):
     # Import scraper-related modules only when needed
     from flask_apscheduler import APScheduler
     from src.scrapers.capacities_scraper import fetch_capacities, update_hourly_capacity
-    from src.scrapers.reg_hours_scraper import fetch_reg_building, fetch_reg_facility
+    from src.scrapers.reg_hours_scraper import (
+        fetch_reg_building,
+        fetch_reg_facility,
+        load_reg_building,
+        load_reg_facility,
+    )
     from src.scrapers.scraper_helpers import clean_past_hours
-    from src.scrapers.sp_hours_scraper import fetch_sp_facility
+    from src.scrapers.sp_hours_scraper import fetch_sp_facility, load_special_hours
     from src.scrapers.equipment_scraper import scrape_equipment
     from src.scrapers.class_scraper import fetch_classes
     from src.scrapers.activities_scraper import fetch_activity
@@ -166,6 +172,23 @@ def setup_scrapers(app):
 
         return wrapper
 
+    def refresh_hours():
+        """
+        Replace all stored hours with freshly scraped ones.
+
+        Everything is loaded before the old hours are deleted, so if the sheet
+        can't be read the error is raised and the old hours are kept.
+        """
+        reg_facility = load_reg_facility()
+        reg_building = load_reg_building()
+        special = load_special_hours()
+
+        db_session.query(OpenHours).delete()
+        fetch_reg_facility(reg_facility)
+        fetch_reg_building(reg_building)
+        fetch_sp_facility(special)
+        clean_past_hours()
+
     # Scrape hours every 15 minutes
     @scheduler.task("interval", id="scrape_hours", seconds=900)
     @release_db_session
@@ -174,13 +197,8 @@ def setup_scrapers(app):
         next_run = job.next_run_time.strftime("%Y-%m-%d %H:%M:%S") if job and job.next_run_time else "Unknown"
         logging.info('Running job "scrape_hours (trigger: interval[0:15:00], next run at: %s EST)"', next_run)
         try:
-            logging.info("Scraping hours from sheets...")
-            # Clear hours
-            db_session.query(OpenHours).delete()
-            fetch_reg_facility()
-            fetch_reg_building()
-            fetch_sp_facility()
-            clean_past_hours()
+            logging.info("Scraping hours from the website and sheets...")
+            refresh_hours()
             logging.info(
                 'Job "scrape_hours (trigger: interval[0:15:00], next run at: %s EST)" executed successfully', next_run
             )
@@ -257,17 +275,10 @@ def setup_scrapers(app):
         logger.error(f"Error creating gym table: {e}")
         db_session.rollback()
 
-    def scrape_initial_hours():
-        db_session.query(OpenHours).delete()
-        fetch_reg_facility()
-        fetch_reg_building()
-        fetch_sp_facility()
-        clean_past_hours()
-
     # Run each scraper on its own so one failure doesn't skip the rest
     initial_scrapers = [
         ("classes", lambda: fetch_classes(10)),
-        ("hours", scrape_initial_hours),
+        ("hours", refresh_hours),
         ("capacities", fetch_capacities),
         ("equipment", scrape_equipment),
         ("activities", fetch_activity),

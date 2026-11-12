@@ -1,8 +1,11 @@
+import gspread
 from collections import namedtuple
 from datetime import datetime, timedelta
+from pandas import DataFrame
 from src.database import db_session
 from src.models.openhours import OpenHours
 from src.utils.constants import (
+    DAYS_OF_WEEK,
     MARKER_ALT,
     MARKER_BADMINTON,
     MARKER_BASKETBALL,
@@ -10,8 +13,42 @@ from src.utils.constants import (
     MARKER_VOLLEYBALL,
     MARKER_WOMEN,
     SECONDS_IN_DAY,
+    SERVICE_ACCOUNT_PATH,
+    SHEET_COLUMN_NAME,
+    SHEET_COLUMN_TYPE,
+    SHEET_KEY,
 )
 from src.utils.utils import unix_time
+
+# Opened on first use so a Google outage doesn't break importing the scrapers
+_hours_sheet = None
+
+
+def get_sheet_records(worksheet_name):
+    """
+    Return the rows of a worksheet in the hours Google Sheet as a list of dicts.
+
+    Parameters:
+        - `worksheet_name`  The name of the worksheet tab.
+    """
+    global _hours_sheet
+    if _hours_sheet is None:
+        client = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
+        _hours_sheet = client.open_by_key(SHEET_KEY)
+    return _hours_sheet.worksheet(worksheet_name).get_all_records()
+
+
+def records_to_frame(records):
+    """
+    Convert sheet-format rows to a DataFrame, with blanks instead of missing values.
+
+    Always has name, type, and weekday columns, even when there are no rows.
+    """
+    frame = DataFrame(records)
+    for column in [SHEET_COLUMN_NAME, SHEET_COLUMN_TYPE, *DAYS_OF_WEEK]:
+        if column not in frame:
+            frame[column] = ""
+    return frame.fillna("")
 
 
 def clean_past_hours():
