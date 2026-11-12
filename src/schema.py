@@ -8,6 +8,8 @@ from flask_jwt_extended import create_access_token, create_refresh_token, get_jw
 from functools import wraps
 from datetime import datetime, timedelta, time, timezone
 from graphene_sqlalchemy import SQLAlchemyObjectType
+from graphene_sqlalchemy.enums import enum_for_sa_enum
+from graphene_sqlalchemy.registry import get_global_registry
 from graphql import GraphQLError
 from src.models.capacity import Capacity as CapacityModel
 from src.models.capacity_reminder import CapacityReminder as CapacityReminderModel
@@ -22,7 +24,7 @@ from src.models.classes import ClassInstance as ClassInstanceModel
 from src.models.token_blacklist import TokenBlocklist
 from src.models.user import User as UserModel
 from src.models.friends import Friendship as FriendshipModel
-from src.models.enums import DayOfWeekGraphQLEnum, CapacityReminderGymGraphQLEnum
+from src.models.enums import DayOfWeekGraphQLEnum, CapacityReminderGymGraphQLEnum, MuscleGroupEnum
 from src.models.giveaway import Giveaway as GiveawayModel
 from src.models.giveaway import GiveawayInstance as GiveawayInstanceModel
 from src.models.workout import Workout as WorkoutModel
@@ -626,7 +628,6 @@ class Workout(SQLAlchemyObjectType):
 
     def resolve_ended_at(self, info):
         return to_local_time(self.ended_at)
-
 
 # MARK: - Report
 
@@ -1268,6 +1269,12 @@ def _optional_text(value, field, max_length):
     return value or None
 
 
+def _muscle_groups(values):
+    """Convert muscle group names to MuscleGroupEnum members, without duplicates, in a fixed order."""
+    chosen = {MuscleGroupEnum(value) for value in values or []}
+    return [group for group in MuscleGroupEnum if group in chosen]
+
+
 def _validate_workout_times(start_time, end_time):
     """Return the start and end times in UTC. Raises unless the workout ends after it starts."""
     start_utc, end_utc = ensure_utc(start_time), ensure_utc(end_time)
@@ -1284,8 +1291,8 @@ class SaveWorkout(graphene.Mutation):
 
     Pass `workout_id` to update the workout created at check-in. Without it, a
     new workout is created, and `facility_id` is required. The workout always
-    belongs to the signed-in user. Title, description, and rating are replaced
-    with what's sent, so leaving one out clears it.
+    belongs to the signed-in user. Title, description, rating, and muscle
+    groups are replaced with what's sent, so leaving one out clears it.
     """
 
     class Arguments:
@@ -1296,12 +1303,25 @@ class SaveWorkout(graphene.Mutation):
         title = graphene.String()
         description = graphene.String()
         rating = graphene.Int()
+        # The same MuscleGroup GraphQL enum that Workout.muscleGroups uses
+        muscle_groups = graphene.List(
+            graphene.NonNull(enum_for_sa_enum(WorkoutModel.muscle_groups.type.item_type, get_global_registry()))
+        )
 
     Output = Workout
 
     @jwt_required()
     def mutate(
-        self, info, start_time, end_time, workout_id=None, facility_id=None, title=None, description=None, rating=None
+        self,
+        info,
+        start_time,
+        end_time,
+        workout_id=None,
+        facility_id=None,
+        title=None,
+        description=None,
+        rating=None,
+        muscle_groups=None,
     ):
         user_id = int(get_jwt_identity())
         start_utc, end_utc = _validate_workout_times(start_time, end_time)
@@ -1334,6 +1354,7 @@ class SaveWorkout(graphene.Mutation):
         workout.title = title
         workout.description = description
         workout.rating = rating
+        workout.muscle_groups = _muscle_groups(muscle_groups)
 
         db_session.commit()
         return workout
@@ -1734,7 +1755,9 @@ class Mutation(graphene.ObjectType):
     enter_giveaway = EnterGiveaway.Field(description="Enters a user into a giveaway.")
     set_workout_goals = SetWorkoutGoals.Field(description="Set a user's workout goals.")
     log_workout = logWorkout.Field(description="Log a user's workout.")
-    save_workout = SaveWorkout.Field(description="Save a finished workout's times, title, notes, and rating.")
+    save_workout = SaveWorkout.Field(
+        description="Save a finished workout's times, title, notes, rating, and muscle groups."
+    )
     login_user = LoginUser.Field(description="Deprecated: login a user by NetID. Use loginWithGoogle instead.")
     login_with_google = LoginWithGoogle.Field(description="Exchanges a verified Google ID token for Uplift tokens.")
     logout_user = LogoutUser.Field(description="Logs out a user.")

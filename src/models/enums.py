@@ -11,6 +11,7 @@ class DayOfWeekEnum(enum.Enum):
     SATURDAY = "SATURDAY"
     SUNDAY = "SUNDAY"
 
+
 # GraphQL Enum
 class DayOfWeekGraphQLEnum(GrapheneEnum):
     MONDAY = "MONDAY"
@@ -21,6 +22,7 @@ class DayOfWeekGraphQLEnum(GrapheneEnum):
     SATURDAY = "SATURDAY"
     SUNDAY = "SUNDAY"
 
+
 class CapacityReminderGym(enum.Enum):
     TEAGLEUP = "TEAGLEUP"
     TEAGLEDOWN = "TEAGLEDOWN"
@@ -28,9 +30,20 @@ class CapacityReminderGym(enum.Enum):
     TONIMORRISON = "TONIMORRISON"
     NOYES = "NOYES"
 
+
 class CapacityReminderGymGraphQLEnum(GrapheneEnum):
     TEAGLEUP = "TEAGLEUP"
     TEAGLEDOWN = "TEAGLEDOWN"
     HELENNEWMAN = "HELENNEWMAN"
     TONIMORRISON = "TONIMORRISON"
     NOYES = "NOYES"
+
+
+class MuscleGroupEnum(enum.Enum):
+    """Muscle groups a user can tag a saved workout with."""
+
+    ARM = "ARM"
+    LEG = "LEG"
+    BACK = "BACK"
+    CHEST = "CHEST"
+    SHOULDER = "SHOULDER"

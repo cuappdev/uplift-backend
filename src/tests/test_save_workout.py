@@ -10,6 +10,7 @@ os.environ.setdefault("FLASK_ENV", "test")
 
 from graphql import GraphQLError  # noqa: E402
 
+from src.models.enums import MuscleGroupEnum  # noqa: E402
 from src.models.facility import Facility as FacilityModel  # noqa: E402
 from src.models.user import User as UserModel  # noqa: E402
 from src.models.workout import Workout as WorkoutModel  # noqa: E402
@@ -45,11 +46,23 @@ class TestSaveWorkout(unittest.TestCase):
         checked_in = WorkoutModel(id=3, user_id=USER_ID, facility_id=1, workout_time=START)
         self.use_rows(db_session, workout=checked_in)
 
-        workout = save_workout(None, None, START, END, workout_id=3, title="  Leg day ", description="Squats", rating=4)
+        workout = save_workout(
+            None,
+            None,
+            START,
+            END,
+            workout_id=3,
+            title="  Leg day ",
+            description="Squats",
+            rating=4,
+            muscle_groups=["LEG", "ARM", "LEG"],
+        )
 
         self.assertIs(workout, checked_in)
         self.assertEqual((workout.started_at, workout.ended_at), (START, END))
         self.assertEqual((workout.title, workout.description, workout.rating), ("Leg day", "Squats", 4))
+        # Duplicates are dropped and groups are kept in a fixed order
+        self.assertEqual(workout.muscle_groups, [MuscleGroupEnum.ARM, MuscleGroupEnum.LEG])
         self.assertEqual(workout.facility_id, 1)
         db_session.add.assert_not_called()
         db_session.commit.assert_called_once()
@@ -62,6 +75,7 @@ class TestSaveWorkout(unittest.TestCase):
         db_session.add.assert_called_once_with(workout)
         self.assertEqual((workout.user_id, workout.facility_id, workout.workout_time), (USER_ID, 2, START))
         self.assertEqual((workout.title, workout.description, workout.rating), (None, None, None))
+        self.assertEqual(workout.muscle_groups, [])
 
     def test_naive_times_are_treated_as_utc(self, db_session, _):
         self.use_rows(db_session)

@@ -1,6 +1,8 @@
-from sqlalchemy import CheckConstraint, Column, Integer, ForeignKey, String, Text, DateTime, text
+from sqlalchemy import ARRAY, CheckConstraint, Column, Integer, ForeignKey, String, Text, DateTime, text
+from sqlalchemy import Enum as SQLAEnum
 from sqlalchemy.orm import relationship
 from src.database import Base
+from src.models.enums import MuscleGroupEnum
 from src.utils.constants import WORKOUT_RATING_MAX, WORKOUT_RATING_MIN, WORKOUT_TITLE_MAX_LENGTH
 
 
@@ -21,6 +23,7 @@ class Workout(Base):
         - `title`           The user's name for the workout. Optional.
         - `description`     The user's notes about the workout. Optional.
         - `rating`          How satisfied the user was, from 0 to 5. Optional.
+        - `muscle_groups`   The muscle groups the user worked. Empty until the workout is saved.
     """
 
     __tablename__ = "workout"
@@ -41,5 +44,6 @@ class Workout(Base):
     title = Column(String(WORKOUT_TITLE_MAX_LENGTH), nullable=True)
     description = Column(Text, nullable=True)
     rating = Column(Integer, nullable=True)
+    muscle_groups = Column(ARRAY(SQLAEnum(MuscleGroupEnum)), nullable=False, server_default=text("'{}'"), default=list)
 
     user = relationship("User", back_populates="workouts")
