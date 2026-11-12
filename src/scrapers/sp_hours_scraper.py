@@ -127,12 +127,14 @@ def add_special_facility_hours(start_time, end_time, facility_id, court_type=Non
 
     if start_unix == end_unix:
         print(
-            f"Skipping special hours because times are equal: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}"
+            "Skipping special hours because times are equal: "
+            f"start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}"
         )
         return
 
     print(
-        f"Adding special hours: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}, is_special=True"
+        f"Adding special hours: start_unix={start_unix}, end_unix={end_unix}, "
+        f"facility_id={facility_id}, is_special=True"
     )
 
     # Create hours
