@@ -97,36 +97,38 @@ class WorkoutSchemaTests(WorkoutDatabaseTest):
         with self.assertRaisesRegex(GraphQLError, "30 days"):
             SetWorkoutGoals.mutate.__wrapped__(None, None, user_id=user.id, workout_goal=4)
 
-    def test_first_selection_applies_now_even_when_selecting_default(self):
-        """Treat both default and larger onboarding goals as explicit choices."""
-        for goal in (4, 1):
-            with self.subTest(goal=goal):
+    def test_first_selection_applies_now_for_fresh_and_epoch_baselines(self):
+        """Apply explicit onboarding choices now without treating fallback history as a choice."""
+        for goal, epoch_baseline in ((4, False), (1, False), (4, True)):
+            with self.subTest(goal=goal, epoch_baseline=epoch_baseline):
                 user = self.user(local("2026-10-26"), goal=1)
+                if epoch_baseline:
+                    self.session.add(
+                        UserWorkoutGoalHistory(
+                            user_id=user.id, workout_goal=1, effective_at=as_utc(datetime(1970, 1, 1))
+                        )
+                    )
+                    self.session.commit()
                 with patch("src.schema.get_jwt_identity", return_value=str(user.id)):
                     SetWorkoutGoals.mutate.__wrapped__(None, None, user_id=user.id, workout_goal=goal)
                     row = current_week(self.session, user, self.clock.now())
-                    history = self.session.query(UserWorkoutGoalHistory).filter_by(user_id=user.id).one()
-                    self.assertEqual((user.workout_goal, row.workout_goal, history.workout_goal), (goal, goal, goal))
-                    self.assertEqual(as_utc(history.effective_at), as_utc(local("2026-10-26", 0)))
+                    history = (
+                        self.session.query(UserWorkoutGoalHistory)
+                        .filter_by(user_id=user.id)
+                        .order_by(UserWorkoutGoalHistory.effective_at)
+                        .all()
+                    )
+                    self.assertEqual([entry.workout_goal for entry in history], [1, goal] if epoch_baseline else [goal])
+                    self.assertEqual(
+                        (user.workout_goal, row.workout_goal, UserType.resolve_current_week_goal(user, None)),
+                        (goal, goal, goal),
+                    )
+                    self.assertEqual(as_utc(history[-1].effective_at), as_utc(local("2026-10-26", 0)))
                     self.assertEqual(as_utc(user.last_goal_change), as_utc(self.clock.now()))
                     logWorkout.mutate.__wrapped__(None, None, user_id=user.id, facility_id=1)
                     self.assertEqual((row.goal_awarded, user.active_streak), (goal == 1, int(goal == 1)))
                     with self.assertRaisesRegex(GraphQLError, "30 days"):
                         SetWorkoutGoals.mutate.__wrapped__(None, None, user_id=user.id, workout_goal=2)
-
-    def test_epoch_migration_baseline_does_not_count_as_first_selection(self):
-        """Apply an untouched migrated user's first explicit goal immediately."""
-        user = self.user(local("2026-10-26"), goal=1)
-        self.session.add(
-            UserWorkoutGoalHistory(user_id=user.id, workout_goal=1, effective_at=as_utc(datetime(1970, 1, 1)))
-        )
-        self.session.commit()
-        SetWorkoutGoals.mutate.__wrapped__(None, None, user_id=user.id, workout_goal=4)
-        self.assertEqual((user.workout_goal, UserType.resolve_current_week_goal(user, None)), (4, 4))
-        self.assertEqual(as_utc(user.last_goal_change), as_utc(self.clock.now()))
-        history = self.session.query(UserWorkoutGoalHistory).order_by(UserWorkoutGoalHistory.effective_at).all()
-        self.assertEqual([entry.workout_goal for entry in history], [1, 4])
-        self.assertEqual(as_utc(history[-1].effective_at), as_utc(local("2026-10-26", 0)))
 
     def test_goal_change_allowed_at_exact_thirty_day_boundary(self):
         """Enforce the cooldown through its last microsecond across DST."""

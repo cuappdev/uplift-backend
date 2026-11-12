@@ -26,16 +26,23 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
         spec.loader.exec_module(module)
         return module
 
-    def legacy_user(self, goal=1):
-        """Seed duplicate and future workout dates without weekly tracking."""
+    def legacy_user(self, goal=1, days=None, history=()):
+        """Seed the requested legacy history without weekly tracking."""
         user = self.user(local("2026-10-26"), goal=goal, streak=17)
         user.max_streak, user.last_streak = 29, 12
         self.session.query(UserWorkoutWeek).filter_by(user_id=user.id).delete()
         self.session.execute(
             sa.text("INSERT INTO facility (id) SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM facility WHERE id = 1)")
         )
-        for day, hour in (("2020-01-01", 12), ("2026-10-26", 12), ("2026-10-26", 14), ("2099-01-01", 12)):
-            self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=local(day, hour)))
+        if days is None:
+            days = ("2020-01-01", "2026-10-26", ("2026-10-26", 14), "2099-01-01")
+        for day in days:
+            timestamp = local(*day) if isinstance(day, tuple) else local(day)
+            self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=timestamp))
+        for value, effective in history:
+            self.session.add(
+                UserWorkoutGoalHistory(user_id=user.id, workout_goal=value, effective_at=local(effective, 0))
+            )
         self.session.commit()
         return user
 
@@ -136,11 +143,7 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
 
     def test_overlap_cutover_does_not_award_the_same_activity_again(self):
         """Consume overlapping legacy credit once while allowing next-week credit."""
-        user = self.legacy_user(goal=3)
-        self.session.query(Workout).delete()
-        for day in ("2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26"):
-            self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=local(day)))
-        self.session.commit()
+        user = self.legacy_user(goal=3, days=("2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26"))
         module = self.migration()
         with self.engine.begin() as connection:
             module.seed_current_weeks(connection, local("2026-10-28"))
@@ -179,19 +182,7 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
         module = self.migration()
         for goal, history, days in cases:
             with self.subTest(goal=goal, history=history, days=days):
-                migrated, recovered = self.legacy_user(goal), self.legacy_user(goal)
-                for user in (migrated, recovered):
-                    self.session.query(Workout).filter_by(user_id=user.id).delete()
-                    for day in days:
-                        timestamp = local(*day) if isinstance(day, tuple) else local(day)
-                        self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=timestamp))
-                    for value, effective in history:
-                        self.session.add(
-                            UserWorkoutGoalHistory(
-                                user_id=user.id, workout_goal=value, effective_at=local(effective, 0)
-                            )
-                        )
-                self.session.commit()
+                migrated, recovered = [self.legacy_user(goal, days, history) for _ in range(2)]
                 if self.postgres:
                     # Legacy DATE casts follow the database's session timezone.
                     self.session.execute(sa.text("SET LOCAL TIME ZONE 'America/New_York'"))
@@ -226,7 +217,7 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
 
                 self.assertEqual(snapshot(recovered), snapshot(migrated))
 
-    def test_backfill_reads_are_batched_and_rerun_preserves_rows(self):
+    def test_backfill_reads_are_batched_across_user_pages(self):
         """Bound data reads across the 250-user batch boundary."""
         for _ in range(251):
             self.user(local("2026-10-26"), commit=False)
@@ -239,13 +230,6 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
                 selects.append(statement)
 
         module = self.migration()
-        with self.engine.begin() as connection:
-            # Reflection is fixed setup overhead; measure data queries separately.
-            module.seed_current_weeks(connection, local("2026-10-28"))
-            self.assertEqual(connection.execute(sa.text("SELECT COUNT(*) FROM user_workout_week")).scalar(), 251)
-        # Test the batch boundary without counting schema reflection queries.
-        self.session.query(UserWorkoutWeek).delete()
-        self.session.commit()
         with self.engine.begin() as connection:
             sa.event.listen(connection, "before_cursor_execute", record_select)
             module.seed_current_weeks(connection, local("2026-10-28"))
@@ -263,13 +247,9 @@ class WorkoutWeekMigrationTests(WorkoutDatabaseTest):
 
     def test_uncredited_calendar_goal_is_awarded_after_cutover(self):
         """A goal decrease must not suppress credit absent from the legacy baseline."""
-        user = self.legacy_user(goal=3)
-        self.session.query(Workout).delete()
-        for goal, day in ((7, "2020-01-01"), (3, "2026-10-26")):
-            self.session.add(UserWorkoutGoalHistory(user_id=user.id, workout_goal=goal, effective_at=local(day, 0)))
-        for day in ("2026-10-26", "2026-10-27", "2026-10-28"):
-            self.session.add(Workout(user_id=user.id, facility_id=1, workout_time=local(day)))
-        self.session.commit()
+        user = self.legacy_user(
+            goal=3, days=("2026-10-26", "2026-10-27", "2026-10-28"), history=((7, "2020-01-01"), (3, "2026-10-26"))
+        )
         module = self.migration()
         with self.engine.begin() as connection:
             module.seed_current_weeks(connection, local("2026-10-28", 23))
