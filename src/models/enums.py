@@ -34,3 +34,13 @@ class CapacityReminderGymGraphQLEnum(GrapheneEnum):
     HELENNEWMAN = "HELENNEWMAN"
     TONIMORRISON = "TONIMORRISON"
     NOYES = "NOYES"
+
+
+class MuscleGroupEnum(enum.Enum):
+    """Muscle groups a user can tag a saved workout with."""
+
+    ARM = "ARM"
+    LEG = "LEG"
+    BACK = "BACK"
+    CHEST = "CHEST"
+    SHOULDER = "SHOULDER"
