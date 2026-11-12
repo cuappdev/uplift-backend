@@ -1,5 +1,4 @@
 import gspread
-import logging
 from collections import namedtuple
 from datetime import datetime, timedelta
 from pandas import DataFrame
@@ -7,8 +6,6 @@ from src.database import db_session
 from src.models.openhours import OpenHours
 from src.utils.constants import (
     DAYS_OF_WEEK,
-    HOURS_SOURCE,
-    HOURS_SOURCE_WEB,
     MARKER_ALT,
     MARKER_BADMINTON,
     MARKER_BASKETBALL,
@@ -22,8 +19,6 @@ from src.utils.constants import (
     SHEET_KEY,
 )
 from src.utils.utils import unix_time
-
-logger = logging.getLogger(__name__)
 
 # Opened on first use so a Google outage doesn't break importing the scrapers
 _hours_sheet = None
@@ -41,22 +36,6 @@ def get_sheet_records(worksheet_name):
         client = gspread.service_account(filename=SERVICE_ACCOUNT_PATH)
         _hours_sheet = client.open_by_key(SHEET_KEY)
     return _hours_sheet.worksheet(worksheet_name).get_all_records()
-
-
-def load_hours_records(worksheet_name):
-    """
-    Return a worksheet's rows for the hours scrapers.
-
-    With HOURS_SOURCE "web", a sheet that can't be read is logged and treated
-    as empty so website hours still load. Otherwise errors are raised.
-    """
-    if HOURS_SOURCE != HOURS_SOURCE_WEB:
-        return get_sheet_records(worksheet_name)
-    try:
-        return get_sheet_records(worksheet_name)
-    except Exception:
-        logger.exception("Could not read %r from the sheet; using website hours only", worksheet_name)
-        return []
 
 
 def records_to_frame(records):

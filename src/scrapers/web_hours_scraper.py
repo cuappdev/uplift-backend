@@ -401,9 +401,13 @@ def _scrape(url, parse, *args):
     try:
         response = requests.get(url, timeout=HOURS_REQUEST_TIMEOUT_SECONDS)
         response.raise_for_status()
+    except requests.RequestException:
+        logger.exception("Could not load hours page %s", url)
+        return None
+    try:
         return parse(response.text, *args)
     except Exception:
-        logger.exception("Could not scrape hours from %s", url)
+        logger.exception("Could not parse hours page %s; its layout may have changed", url)
         return None
 
 
@@ -423,9 +427,21 @@ def fetch_web_building_rows():
 
 
 def fetch_web_special_fitness_rows():
-    """Special fitness center hours from the website, or None if the page couldn't be loaded or parsed."""
+    """
+    Special fitness center hours from the website.
+
+    Returns None if the page couldn't be loaded or parsed, or has no hours
+    tables at all, so the sheet's special hours are kept. Returns an empty list
+    only when the page has regular hours but no special hours.
+    """
     fitness_centers = _scrape(GYM_HOUR_BASE_URL, parse_fitness_center_hours)
-    return fitness_centers[1] if fitness_centers else None
+    if fitness_centers is None:
+        return None
+    regular_rows, special_rows = fitness_centers
+    if not regular_rows and not special_rows:
+        logger.warning("No hours tables found on %s; keeping the sheet's special hours", GYM_HOUR_BASE_URL)
+        return None
+    return special_rows
 
 
 # MARK: Merging with the sheet

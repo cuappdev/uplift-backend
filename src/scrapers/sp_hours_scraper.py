@@ -5,7 +5,7 @@ from src.scrapers.scraper_helpers import (
     determine_court_hours,
     determine_pool_hours,
     get_hours_datetimes,
-    load_hours_records,
+    get_sheet_records,
     records_to_frame,
 )
 from src.scrapers.web_hours_scraper import fetch_web_special_fitness_rows
@@ -28,23 +28,26 @@ from src.utils.utils import unix_time, within_week, get_date_ranges, get_facilit
 
 def load_special_hours():
     """
-    Load special hours from the sheet.
+    Load special hours from the sheet without touching the database.
 
-    When HOURS_SOURCE is "web" and the fitness centers page loads, its special
-    hours replace the sheet's fitness center rows.
+    When HOURS_SOURCE is "web" and the fitness centers page has hours tables,
+    its special hours replace the sheet's fitness center rows. Raises if the
+    sheet can't be read, so callers can keep the hours they already have.
     """
-    records = load_hours_records(SHEET_SP_FACILITY)
+    records = get_sheet_records(SHEET_SP_FACILITY)
     web_rows = fetch_web_special_fitness_rows() if HOURS_SOURCE == HOURS_SOURCE_WEB else None
     if web_rows is not None:
         records = [record for record in records if record.get(SHEET_COLUMN_TYPE) != MARKER_FITNESS] + web_rows
     return records_to_frame(records)
 
 
-def fetch_sp_facility():
+def fetch_sp_facility(vals):
     """
-    Fetch special facility hours.
+    Store special facility hours.
+
+    - Parameters:
+        - `vals`         The hours from `load_special_hours`.
     """
-    vals = load_special_hours()
     if SHEET_COLUMN_DATE_RANGE not in vals:
         return
 
@@ -123,10 +126,14 @@ def add_special_facility_hours(start_time, end_time, facility_id, court_type=Non
     end_unix = unix_time(end_time)
 
     if start_unix == end_unix:
-        print(f"Skipping special hours because times are equal: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}")
+        print(
+            f"Skipping special hours because times are equal: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}"
+        )
         return
-    
-    print(f"Adding special hours: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}, is_special=True")
+
+    print(
+        f"Adding special hours: start_unix={start_unix}, end_unix={end_unix}, facility_id={facility_id}, is_special=True"
+    )
 
     # Create hours
     hrs = OpenHours(

@@ -2,14 +2,18 @@ import os
 import unittest
 from datetime import datetime
 from pathlib import Path
+from unittest import mock
 
 # src.utils.constants reads these at import time.
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret")
 os.environ.setdefault("GOOGLE_SERVICE_ACCOUNT_PATH", "service-account-key.json")
 os.environ.setdefault("FLASK_ENV", "test")
 
+import requests  # noqa: E402
+
 from src.scrapers.web_hours_scraper import (  # noqa: E402
     check_hours,
+    fetch_web_special_fitness_rows,
     merge_regular_rows,
     normalize_hours,
     parse_bowling_hours,
@@ -132,6 +136,38 @@ class TestParsing(unittest.TestCase):
         """
         rows = parse_hours_tables(html)[0]["rows"]
         self.assertEqual(normalize_hours(rows[1]["days"][1]), "Closed")
+
+
+def page(html):
+    response = mock.Mock(text=html)
+    response.raise_for_status.return_value = None
+    return response
+
+
+@mock.patch("src.scrapers.web_hours_scraper.requests.get")
+class TestFetchSpecialFitnessRows(unittest.TestCase):
+    """None means "keep the sheet's special hours"; a list replaces them."""
+
+    def test_returns_website_rows(self, get):
+        get.return_value = page(fixture("cornell-fitness-centers.html"))
+        self.assertEqual(len(fetch_web_special_fitness_rows()), 5)
+
+    def test_page_without_hours_tables_keeps_sheet(self, get):
+        get.return_value = page("<html><body><p>Under maintenance</p></body></html>")
+        self.assertIsNone(fetch_web_special_fitness_rows())
+
+    def test_request_and_parse_failures_are_logged_differently(self, get):
+        get.side_effect = requests.ConnectionError()
+        with self.assertLogs("src.scrapers.web_hours_scraper", "ERROR") as logs:
+            self.assertIsNone(fetch_web_special_fitness_rows())
+        self.assertIn("Could not load", logs.output[0])
+
+        get.side_effect = None
+        get.return_value = page(fixture("cornell-fitness-centers.html"))
+        with mock.patch("src.scrapers.web_hours_scraper.parse_hours_tables", side_effect=ValueError):
+            with self.assertLogs("src.scrapers.web_hours_scraper", "ERROR") as logs:
+                self.assertIsNone(fetch_web_special_fitness_rows())
+        self.assertIn("Could not parse", logs.output[0])
 
 
 class TestMergeRegularRows(unittest.TestCase):
