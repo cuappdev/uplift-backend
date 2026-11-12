@@ -1,4 +1,5 @@
 """HTTP coverage owns JWT enforcement and GraphQL argument compatibility."""
+
 from contextlib import ExitStack
 from datetime import datetime
 from unittest.mock import patch

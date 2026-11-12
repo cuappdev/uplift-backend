@@ -19,6 +19,7 @@ from src.models.token_blacklist import TokenBlocklist
 import firebase_admin
 from firebase_admin import credentials
 
+
 def initialize_firebase():
     if not firebase_admin._apps:
         if SERVICE_ACCOUNT_PATH:
@@ -73,7 +74,7 @@ def create_app(run_migrations=False):
     schema = Schema(query=Query, mutation=Mutation)
     swagger = Swagger(app)
 
-    app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
+    app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 
@@ -248,6 +249,7 @@ def setup_scrapers(app):
     scheduler.init_app(app)
     # Register weekly rollover before starting the shared scheduler.
     from src.utils.workout_streaks import schedule_weekly_rollover
+
     schedule_weekly_rollover(scheduler, db_session)
 
     scheduler.start()

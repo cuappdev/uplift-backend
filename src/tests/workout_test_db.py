@@ -1,4 +1,5 @@
 """Isolated DB fixtures. PostgreSQL requires an explicit *_streak_test DB."""
+
 import os
 import unittest
 from datetime import datetime

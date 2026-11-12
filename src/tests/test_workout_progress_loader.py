@@ -1,4 +1,5 @@
 """Weekly GraphQL reads stay batched and fresh across serial mutations."""
+
 from datetime import datetime, timezone
 from unittest.mock import patch
 

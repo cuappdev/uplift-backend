@@ -1,4 +1,5 @@
 """Request-scoped, uncached batches for weekly progress GraphQL fields."""
+
 from promise import Promise
 from promise.dataloader import DataLoader
 from sqlalchemy import func

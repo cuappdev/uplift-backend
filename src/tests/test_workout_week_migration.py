@@ -1,4 +1,5 @@
 """Legacy display survives cutover; weekly state is seeded only once."""
+
 import importlib.util
 from datetime import datetime
 from pathlib import Path

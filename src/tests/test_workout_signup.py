@@ -1,4 +1,5 @@
 """Each supported signup path starts with the same weekly baseline."""
+
 from datetime import datetime, timezone
 from unittest.mock import patch
 

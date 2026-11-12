@@ -1,4 +1,5 @@
 """Persist individual gym check-ins and their timestamps."""
+
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, text, Index
 from sqlalchemy.orm import relationship
 from src.database import Base

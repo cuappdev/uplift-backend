@@ -1,4 +1,5 @@
 """Stored progress for one user's Monday-Sunday week."""
+
 from sqlalchemy import Boolean, CheckConstraint, Column, Date, ForeignKey, Integer, Index
 from src.database import Base
 

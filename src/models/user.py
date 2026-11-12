@@ -5,6 +5,7 @@ from src.models.enums import DayOfWeekEnum
 from src.models.friends import Friendship
 import sqlalchemy as sa
 
+
 class User(Base):
     """
     An uplift user.
@@ -32,31 +33,32 @@ class User(Base):
     giveaways = relationship("Giveaway", secondary="giveaway_instance", back_populates="users")
     net_id = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    active_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
-    max_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
+    active_streak = Column(Integer, nullable=False, default=0, server_default=sa.text("0"))
+    max_streak = Column(Integer, nullable=False, default=0, server_default=sa.text("0"))
     # Latest selection (fallback 1 before onboarding); weekly rows hold the effective target.
-    workout_goal = Column(Integer, nullable=False, default=1, server_default=sa.text('1'))
+    workout_goal = Column(Integer, nullable=False, default=1, server_default=sa.text("1"))
     last_goal_change = Column(DateTime, nullable=True)
-    last_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
+    last_streak = Column(Integer, nullable=False, default=0, server_default=sa.text("0"))
     encoded_image = Column(String, nullable=True)
     streak_started_at = Column(DateTime(timezone=True), nullable=True)
 
-    goal_history = relationship("UserWorkoutGoalHistory", back_populates="user", cascade="all, delete-orphan", order_by="UserWorkoutGoalHistory.effective_at.desc()")
+    goal_history = relationship(
+        "UserWorkoutGoalHistory",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="UserWorkoutGoalHistory.effective_at.desc()",
+    )
 
-    friend_requests_sent = relationship("Friendship",
-                                        foreign_keys="Friendship.user_id",
-                                        back_populates="user")
+    friend_requests_sent = relationship("Friendship", foreign_keys="Friendship.user_id", back_populates="user")
 
-    friend_requests_received = relationship("Friendship",
-                                            foreign_keys="Friendship.friend_id",
-                                            back_populates="friend")
+    friend_requests_received = relationship("Friendship", foreign_keys="Friendship.friend_id", back_populates="friend")
 
     workouts = relationship("Workout", cascade="all, delete-orphan", back_populates="user")
+
     def add_friend(self, friend):
         # Check if friendship already exists
         existing = Friendship.query.filter(
-            (Friendship.user_id == self.id) &
-            (Friendship.friend_id == friend.id)
+            (Friendship.user_id == self.id) & (Friendship.friend_id == friend.id)
         ).first()
 
         if not existing:
@@ -66,8 +68,7 @@ class User(Base):
 
     def remove_friend(self, friend):
         friendship = Friendship.query.filter(
-            (Friendship.user_id == self.id) &
-            (Friendship.friend_id == friend.id)
+            (Friendship.user_id == self.id) & (Friendship.friend_id == friend.id)
         ).first()
 
         if friendship:

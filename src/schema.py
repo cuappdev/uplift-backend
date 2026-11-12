@@ -37,8 +37,13 @@ from src.utils.constants import (
 )
 from src.utils.google_auth import GoogleAuthUnavailableError, GoogleTokenVerificationError, verify_google_identity
 from src.utils.workout_streaks import (
-    WORKOUT_TIMEZONE, DAY_NAMES, current_week, initialize_tracking,
-    next_week_start, record_checkin, week_midnight,
+    WORKOUT_TIMEZONE,
+    DAY_NAMES,
+    current_week,
+    initialize_tracking,
+    next_week_start,
+    record_checkin,
+    week_midnight,
 )
 from src.utils.workout_progress_loader import load_workout_progress
 from src.database import db_session
@@ -51,6 +56,7 @@ from botocore.config import Config
 
 
 local_tz = WORKOUT_TIMEZONE
+
 
 def resolve_enum_value(entry):
     """Return the raw value for Enum objects while leaving plain strings untouched."""
@@ -217,7 +223,6 @@ class Class(SQLAlchemyObjectType):
 # MARK: - Class Instance
 
 
-
 class ClassInstance(SQLAlchemyObjectType):
     class Meta:
         model = ClassInstanceModel
@@ -263,7 +268,8 @@ class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
         exclude_fields = (
-            "google_sub", "streak_started_at",
+            "google_sub",
+            "streak_started_at",
         )
 
     friendships = graphene.List(lambda: Friendship)
@@ -277,13 +283,13 @@ class User(SQLAlchemyObjectType):
     current_week_goal = graphene.Int(
         required=True, description="Effective target for this New York calendar week; may differ from workoutGoal."
     )
-    streak_start = graphene.DateTime(
-        description="The first qualifying workout date in the stored active streak."
-    )
+    streak_start = graphene.DateTime(description="The first qualifying workout date in the stored active streak.")
     workout_history = graphene.List(lambda: Workout)
 
     def resolve_workout_history(self, info):
-        query = Workout.get_query(info).filter(WorkoutModel.user_id == self.id).order_by(WorkoutModel.workout_time.desc())
+        query = (
+            Workout.get_query(info).filter(WorkoutModel.user_id == self.id).order_by(WorkoutModel.workout_time.desc())
+        )
         return query.all()
 
     def resolve_total_gym_days(self, info):
@@ -432,7 +438,7 @@ class CapacityReminder(SQLAlchemyObjectType):
     class Meta:
         model = CapacityReminderModel
         exclude_fields = ("fcm_token",)
-        
+
 
 # MARK: - Query
 
@@ -704,7 +710,7 @@ class CreateUser(graphene.Mutation):
             raise GraphQLError("NetID already exists.")
 
         final_photo_url = None
-        
+
         if encoded_image:
             bucket = "appdev-upload"
             path = f"uplift-dev/user-profile/{net_id}-profile.png"
@@ -757,7 +763,7 @@ class CreateUser(graphene.Mutation):
                     e,
                 )
                 raise GraphQLError(f"S3 error: {type(e).__name__}: {e}")
-        
+
         new_user = UserModel(
             workout_goal=1,
             name=name,
@@ -790,7 +796,7 @@ class EditUserById(graphene.Mutation):
     @jwt_required()
     def mutate(self, info, user_id, name=None, email=None, encoded_image=None):
         existing_user = db_session.query(UserModel).filter(UserModel.id == user_id).first()
-        
+
         if not existing_user:
             raise GraphQLError("User with given id does not exist.")
         if int(get_jwt_identity()) != user_id:
@@ -992,7 +998,9 @@ class SetWorkoutGoals(graphene.Mutation):
             1970, 1, 1, tzinfo=timezone.utc
         )
         first_selection = (
-            baseline_only and last_change_dt is None and not user.active_streak
+            baseline_only
+            and last_change_dt is None
+            and not user.active_streak
             and not db_session.query(WorkoutModel.id).filter_by(user_id=user.id).first()
         )
         if user.workout_goal == workout_goal and not first_selection:
@@ -1014,10 +1022,13 @@ class SetWorkoutGoals(graphene.Mutation):
         user.last_streak = user.active_streak or 0
         if not has_history and user.workout_goal and not first_selection:
             # Preserve a legacy user's existing goal before scheduling a new one.
-            db_session.add(UserWorkoutGoalHistoryModel(
-                user_id=user.id, workout_goal=user.workout_goal,
-                effective_at=datetime(1970, 1, 1, tzinfo=timezone.utc),
-            ))
+            db_session.add(
+                UserWorkoutGoalHistoryModel(
+                    user_id=user.id,
+                    workout_goal=user.workout_goal,
+                    effective_at=datetime(1970, 1, 1, tzinfo=timezone.utc),
+                )
+            )
         # First selection before any check-in applies now; subsequent changes wait.
         effective_at = next_week_start(now)
         if first_selection:
@@ -1036,7 +1047,8 @@ class SetWorkoutGoals(graphene.Mutation):
 
         db_session.commit()
         return user
-    
+
+
 class logWorkout(graphene.Mutation):
     # Check-ins use server time; accept the old timestamp argument for clients.
     class Arguments:
@@ -1162,7 +1174,7 @@ class DeleteUserById(graphene.Mutation):
     def mutate(self, info, user_id):
         # Check if user exists
         user = User.get_query(info).filter(UserModel.id == user_id).first()
-        
+
         if not user:
             raise GraphQLError("User with given ID does not exist.")
 

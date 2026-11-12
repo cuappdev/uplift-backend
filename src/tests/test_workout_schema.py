@@ -1,4 +1,5 @@
 """Goal changes and workout writes preserve transaction/week boundaries."""
+
 from contextlib import ExitStack
 from datetime import datetime, timedelta
 from pathlib import Path
