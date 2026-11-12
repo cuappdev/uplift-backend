@@ -37,9 +37,10 @@ from src.utils.constants import (
 )
 from src.utils.google_auth import GoogleAuthUnavailableError, GoogleTokenVerificationError, verify_google_identity
 from src.utils.workout_streaks import (
-    WORKOUT_TIMEZONE, DAY_NAMES, active_days, current_week, initialize_tracking,
-    next_week_start, record_checkin,
+    WORKOUT_TIMEZONE, DAY_NAMES, current_week, initialize_tracking,
+    next_week_start, record_checkin, week_midnight,
 )
+from src.utils.workout_progress_loader import load_workout_progress
 from src.database import db_session
 import requests
 from firebase_admin import messaging
@@ -273,6 +274,9 @@ class User(SQLAlchemyObjectType):
     current_week_active_days = graphene.Int(
         required=True, description="Unique check-in days this Monday-Sunday week in America/New_York."
     )
+    current_week_goal = graphene.Int(
+        required=True, description="Effective target for this New York calendar week; may differ from workoutGoal."
+    )
     streak_start = graphene.DateTime(
         description="The first qualifying workout date in the stored active streak."
     )
@@ -293,8 +297,14 @@ class User(SQLAlchemyObjectType):
         )
 
     def resolve_current_week_active_days(self, info):
-        row = current_week(db_session, self, datetime.now(timezone.utc))
-        return active_days(row.checked_in_days) if row else 0
+        """Batch this week's active-day count with other users' progress reads."""
+        progress = load_workout_progress(info, db_session, self, datetime.now(timezone.utc))
+        return progress.then(lambda value: value[0]) if hasattr(progress, "then") else progress[0]
+
+    def resolve_current_week_goal(self, info):
+        """Return the frozen weekly target, including weeks not yet materialized."""
+        progress = load_workout_progress(info, db_session, self, datetime.now(timezone.utc))
+        return progress.then(lambda value: value[1]) if hasattr(progress, "then") else progress[1]
 
     def resolve_active_streak(self, info):
         # Stored counter: no workout history query or rollover during reads.
@@ -969,9 +979,6 @@ class SetWorkoutGoals(graphene.Mutation):
         if not user:
             raise GraphQLError("User with given ID does not exist.")
 
-        if user.workout_goal == workout_goal:
-            return user
-
         last_change_dt = user.last_goal_change
         latest_history_entry = (
             db_session.query(UserWorkoutGoalHistoryModel)
@@ -980,9 +987,21 @@ class SetWorkoutGoals(graphene.Mutation):
             .first()
         )
         has_history = latest_history_entry is not None
+        # A fallback goal is not an onboarding choice. Never rewrite earned credit.
+        baseline_only = not has_history or ensure_utc(latest_history_entry.effective_at) == datetime(
+            1970, 1, 1, tzinfo=timezone.utc
+        )
+        first_selection = (
+            baseline_only and last_change_dt is None and not user.active_streak
+            and not db_session.query(WorkoutModel.id).filter_by(user_id=user.id).first()
+        )
+        if user.workout_goal == workout_goal and not first_selection:
+            return user
 
         if last_change_dt is None and latest_history_entry is not None:
-            last_change_dt = latest_history_entry.effective_at
+            effective = ensure_utc(latest_history_entry.effective_at)
+            if effective > datetime(1970, 1, 1, tzinfo=timezone.utc):
+                last_change_dt = effective
 
         if last_change_dt is not None:
             now_utc = datetime.now(timezone.utc)
@@ -993,15 +1012,22 @@ class SetWorkoutGoals(graphene.Mutation):
         now = datetime.now(timezone.utc)
         # Snapshot the stored streak under the same lock as the goal update.
         user.last_streak = user.active_streak or 0
-        if not has_history and user.workout_goal:
+        if not has_history and user.workout_goal and not first_selection:
             # Preserve a legacy user's existing goal before scheduling a new one.
             db_session.add(UserWorkoutGoalHistoryModel(
                 user_id=user.id, workout_goal=user.workout_goal,
                 effective_at=datetime(1970, 1, 1, tzinfo=timezone.utc),
             ))
-        # Goals are always defined (default 1); changes start next local Monday.
+        # First selection before any check-in applies now; subsequent changes wait.
         effective_at = next_week_start(now)
-        user.last_goal_change = now
+        if first_selection:
+            row = initialize_tracking(db_session, user, now)
+            if row.checked_in_days or row.goal_awarded:
+                raise GraphQLError("Initial goal must be selected before the first check-in.")
+            row.workout_goal = workout_goal
+            effective_at = week_midnight(row.week_start)
+        # This existing column is timestamp-without-time-zone; store UTC explicitly.
+        user.last_goal_change = ensure_utc(now).replace(tzinfo=None)
         user.workout_goal = workout_goal
 
         db_session.add(
@@ -1034,6 +1060,11 @@ class logWorkout(graphene.Mutation):
         # not write into a week the rollover worker has already finalized.
         # Ignore legacy client time; one instant drives the workout and day.
         now = datetime.now(timezone.utc)
+        if workout_time is not None and abs((ensure_utc(workout_time) - now).total_seconds()) > 300:
+            # No identity or supplied timestamp is logged. Offline credit is unsupported.
+            logging.getLogger(__name__).warning(
+                "Legacy workout timestamp differs from server time by over five minutes"
+            )
         facility = Facility.get_query(info).filter(FacilityModel.id == facility_id).first()
         if not facility:
             raise GraphQLError("Facility with given ID does not exist.")

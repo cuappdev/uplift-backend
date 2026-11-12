@@ -325,6 +325,9 @@ type User {
   friends: [User]
   totalGymDays: Int!
   currentWeekActiveDays: Int!
+
+  """Effective target for this New York calendar week; may differ from workoutGoal."""
+  currentWeekGoal: Int!
   streakStart: DateTime
   workoutHistory: [Workout]
 }

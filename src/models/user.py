@@ -15,10 +15,10 @@ class User(Base):
         - `giveaways`                             (nullable) The list of giveaways a user is entered into.
         - `net_id`                                The user's Net ID.
         - `name`                                  The user's name.
-        - `workout_goal`                          The number of days the user has set as their personal goal.
+        - `workout_goal`                          The latest selected goal.
+          `currentWeekGoal` exposes this week's effective target.
         - `active_streak`                         The number of consecutive weeks the user has met their personal goal.
         - `max_streak`                            The maximum number of consecutive weeks the user has met their personal goal.
-        - `workout_goal`                          The max number of weeks the user has met their personal goal.
         - `last_goal_change`                      The date and time the user last changed their personal goal.
         - `last_streak`                           The number of consecutive weeks the user has met their personal goal before the last goal change.
         - `encoded_image`                         The profile picture URL of the user.
@@ -34,6 +34,7 @@ class User(Base):
     name = Column(String, nullable=False)
     active_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
     max_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
+    # Latest selection (fallback 1 before onboarding); weekly rows hold the effective target.
     workout_goal = Column(Integer, nullable=False, default=1, server_default=sa.text('1'))
     last_goal_change = Column(DateTime, nullable=True)
     last_streak = Column(Integer, nullable=False, default=0, server_default=sa.text('0'))
