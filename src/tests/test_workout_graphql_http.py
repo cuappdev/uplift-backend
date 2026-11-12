@@ -150,3 +150,29 @@ class WorkoutGraphQLHTTPTests(WorkoutDatabaseTest):
                 result.get("data", {}).get("getUserByNetId"), [{"workoutGoal": 4, "currentWeekGoal": 4}], result
             )
 
+    def test_checkin_recovers_missing_legacy_baseline_without_duplicate_credit(self):
+        """Heal rollout-gap accounts through the public authenticated mutation."""
+        self.session.query(UserWorkoutWeek).delete()
+        self.owner.workout_goal = 3
+        self.session.add_all(
+            Workout(user_id=self.owner.id, facility_id=1, workout_time=local(day))
+            for day in ("2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26")
+        )
+        self.session.commit()
+        with patch("src.schema.datetime", wraps=datetime) as clock:
+            clock.now.return_value = local("2026-10-28")
+            for _ in range(2):
+                result = self.execute(
+                    "mutation { logWorkout(userId: %s, facilityId: 1) { id user { "
+                    "workoutGoal currentWeekGoal activeStreak maxStreak currentWeekActiveDays } } }" % self.owner.id
+                )
+                self.assertNotIn("errors", result, result)
+                self.assertEqual(
+                    result["data"]["logWorkout"]["user"],
+                    dict(workoutGoal=3, currentWeekGoal=3, activeStreak=1, maxStreak=1, currentWeekActiveDays=2),
+                )
+        self.session.expire_all()
+        row = self.session.query(UserWorkoutWeek).one()
+        self.assertEqual((row.checked_in_days, row.goal_awarded, row.finalized), (5, True, False))
+        self.assertEqual(self.session.query(UserWorkoutGoalHistory).count(), 1)
+        self.assertEqual(self.session.query(Workout).count(), 6)
