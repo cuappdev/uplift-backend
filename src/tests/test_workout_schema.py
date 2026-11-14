@@ -58,7 +58,7 @@ class WorkoutSchemaTests(WorkoutDatabaseTest):
             "Mutation": {
                 "createUser": (
                     "User",
-                    dict(email="String", encodedImage="String", idToken="String", name="String!", netId="String"),
+                    dict(encodedImage="String", idToken="String!", name="String!"),
                 ),
                 "setWorkoutGoals": ("User", dict(userId="Int!", workoutGoal="Int!")),
                 "logWorkout": ("Workout", dict(facilityId="Int!", userId="Int!", workoutTime="DateTime")),

@@ -47,20 +47,18 @@ class TestCreateUser(unittest.TestCase):
 
         db_session.add.assert_not_called()
 
-    def test_legacy_net_id_signup_still_works(self, verify_identity, db_session):
+    def test_rejects_legacy_net_id_signup(self, verify_identity, db_session):
         db_session.query.return_value.filter.return_value.first.return_value = None
 
-        user = CreateUser().mutate(None, name="Test User", net_id="abc123", email="abc123@cornell.edu")
+        with self.assertRaises((GraphQLError, TypeError)):
+            CreateUser().mutate(None, name="Test User", net_id="abc123", email="abc123@cornell.edu")
 
         verify_identity.assert_not_called()
-        db_session.add.assert_called_once_with(user)
-        self.assertEqual(user.net_id, "abc123")
-        self.assertEqual(user.email, "abc123@cornell.edu")
-        self.assertIsNone(user.google_sub)
+        db_session.add.assert_not_called()
 
-    def test_requires_token_or_legacy_fields(self, verify_identity, db_session):
+    def test_requires_google_token(self, verify_identity, db_session):
         with self.assertRaises(GraphQLError):
-            CreateUser().mutate(None, name="Test User")
+            CreateUser().mutate(None, name="Test User", id_token=None)
 
         db_session.add.assert_not_called()
 
