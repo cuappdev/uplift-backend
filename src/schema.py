@@ -1104,31 +1104,6 @@ class CreateReport(graphene.Mutation):
         return CreateReport(report=report)
 
 
-class DeleteReport(graphene.Mutation):
-    class Arguments:
-        report_id = graphene.Int(required=True)
-
-    Output = Report
-
-    def mutate(self, info, report_id):
-        # Check if report exists
-        report = Report.get_query(info).filter(ReportModel.id == report_id).first()
-        if not report:
-            raise GraphQLError("Report with given ID does not exist.")
-
-        try:
-            worksheet = sh.worksheet(SHEET_REPORTS)
-            cell = worksheet.find(str(report_id), in_column=1)
-            worksheet.delete_rows(cell.row)
-        except Exception as e:
-            print(f"Error deleting report from sheet: {e}")
-
-        db_session.delete(report)
-        db_session.commit()
-        return report
-
-
-
 class DeleteUserById(graphene.Mutation):
     class Arguments:
         user_id = graphene.Int(required=False)
@@ -1464,7 +1439,6 @@ class Mutation(graphene.ObjectType):
     logout_user = LogoutUser.Field(description="Logs out a user.")
     refresh_access_token = RefreshAccessToken.Field(description="Refreshes the access token.")
     create_report = CreateReport.Field(description="Creates a new report.")
-    delete_report = DeleteReport.Field(description="Deletes a report by ID.")
     delete_user = DeleteUserById.Field(description="Deletes a user by ID.")
     create_capacity_reminder = CreateCapacityReminder.Field(description="Create a new capacity reminder.")
     edit_capacity_reminder = EditCapacityReminder.Field(description="Edit capacity reminder.")
