@@ -1,7 +1,6 @@
 """Real-route authorization checks using synthetic accounts and verified JWTs."""
 
 from datetime import datetime, timedelta, timezone
-
 from unittest.mock import patch
 
 from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
@@ -19,18 +18,12 @@ from src.utils.google_auth import GoogleIdentity, GoogleTokenVerificationError
 class UserAuthorizationHTTPTests(WorkoutHTTPTest):
     """Exercise public documents, nested ORM results and account ownership."""
 
-    def execute(self, query, variables=None, authenticated=True):
-        response = self.client.post(
-            "/graphql",
-            json={"query": query, "variables": variables or {}},
-            headers=self.headers if authenticated else {},
-        )
-        self.assertIn(response.status_code, (200, 400), response.get_data(as_text=True))
-        return response.get_json()
+    response_statuses = (200, 400)
+    tables = (Friendship.__table__, Giveaway.__table__, GiveawayInstance.__table__)
 
     def setUp(self):
         super().setUp()
-        for table in (Friendship.__table__, Giveaway.__table__, GiveawayInstance.__table__):
+        for table in self.tables:
             table.create(self.engine, checkfirst=True)
         self.owner.email = "tester@cornell.edu"
         self.bob = User(name="Bob", net_id="bob", email="bob@cornell.edu", workout_goal=2)
@@ -40,7 +33,7 @@ class UserAuthorizationHTTPTests(WorkoutHTTPTest):
 
     def tearDown(self):
         self.session.rollback()
-        for table in (GiveawayInstance.__table__, Giveaway.__table__, Friendship.__table__):
+        for table in reversed(self.tables):
             table.drop(self.engine, checkfirst=True)
         super().tearDown()
 
@@ -100,23 +93,19 @@ class UserAuthorizationHTTPTests(WorkoutHTTPTest):
             self.assert_rejected(signup, {"idToken": "google", "name": "Failed"}, False)
         self.assertEqual(self.session.query(User).filter_by(net_id="failed").count(), 0)
 
-    def test_optional_actor_arguments_and_old_required_variable_documents(self):
-        for argument in ("", "(id: %s)" % self.owner.id):
-            result = self.execute("{ getWeeklyWorkoutDays%s getWorkoutsById%s { id } }" % (argument, argument))
+    def test_owner_reads_writes_and_legacy_documents(self):
+        for kind, variables in ((None, {}), ("Int", {}), ("Int", {"id": None}), ("Int!", {"id": self.owner.id})):
+            query = "query Owner($id: %s) { getWeeklyWorkoutDays(id: $id) getWorkoutsById(id: $id) { id } }"
+            result = self.execute(
+                query % kind if kind else "{ getWeeklyWorkoutDays getWorkoutsById { id } }", variables
+            )
             self.assertEqual(result.get("data"), dict(getWeeklyWorkoutDays=[], getWorkoutsById=[]), result)
-        result = self.execute(
-            "query Nullable($id: Int) { getWeeklyWorkoutDays(id: $id) getWorkoutsById(id: $id) { id } }", {"id": None}
+        self.assertNotIn(
+            "errors",
+            self.execute(
+                'mutation Nullable($id: Int) { editUser(userId: $id, name: "Updated") { name } }', {"id": None}
+            ),
         )
-        self.assertNotIn("errors", result, result)
-        result = self.execute(
-            'mutation Nullable($id: Int) { editUser(userId: $id, name: "Updated") { name } }', {"id": None}
-        )
-        self.assertNotIn("errors", result, result)
-        result = self.execute(
-            "query Old($id: Int!) { getWeeklyWorkoutDays(id: $id) getWorkoutsById(id: $id) { id } }",
-            {"id": self.owner.id},
-        )
-        self.assertNotIn("errors", result, result)
         for supplied in (str(self.bob.id), "0", '"wrong"'):
             self.assert_rejected("{ getWorkoutsById(id: %s) { id } }" % supplied)
         for argument in ("", "userId: %s, " % self.owner.id):
@@ -136,7 +125,6 @@ class UserAuthorizationHTTPTests(WorkoutHTTPTest):
         self.assertEqual(self.session.query(Workout).count(), 0)
         self.assertEqual(self.session.query(Friendship).count(), 0)
 
-    def test_token_derived_workout_writes_and_netid_reads(self):
         for supplied in ({}, {"netId": None}, {"netId": "tester"}):
             result = self.execute("query Owner($netId: String) { getUserByNetId(netId: $netId) { email } }", supplied)
             self.assertEqual(result.get("data", {}).get("getUserByNetId"), [{"email": "tester@cornell.edu"}], result)

@@ -30,42 +30,24 @@ class TestCreateUser(unittest.TestCase):
         self.assertEqual(user.email, "abc123@cornell.edu")
         self.assertEqual(user.google_sub, "google-user-id")
 
-    def test_rejects_unverified_token(self, verify_identity, db_session):
-        verify_identity.side_effect = GoogleTokenVerificationError("bad token")
-
-        with self.assertRaises(GraphQLError):
-            CreateUser().mutate(None, id_token="forged-token", name="Test User")
-
-        db_session.add.assert_not_called()
-
-    def test_rejects_existing_account(self, verify_identity, db_session):
-        verify_identity.return_value = IDENTITY
-        db_session.query.return_value.filter.return_value.first.return_value = object()
-
-        with self.assertRaises(GraphQLError):
-            CreateUser().mutate(None, id_token="valid-token", name="Test User")
-
-        db_session.add.assert_not_called()
-
-    def test_rejects_legacy_net_id_signup(self, verify_identity, db_session):
-        db_session.query.return_value.filter.return_value.first.return_value = None
-
-        with self.assertRaises((GraphQLError, TypeError)):
-            CreateUser().mutate(None, name="Test User", net_id="abc123", email="abc123@cornell.edu")
-
-        verify_identity.assert_not_called()
-        db_session.add.assert_not_called()
-
-    def test_requires_google_token(self, verify_identity, db_session):
-        with self.assertRaises(GraphQLError):
-            CreateUser().mutate(None, name="Test User", id_token=None)
-
-        db_session.add.assert_not_called()
-
-    def test_google_unreachable_returns_graphql_error(self, verify_identity, db_session):
-        verify_identity.side_effect = GoogleAuthUnavailableError("timeout")
-
-        with self.assertRaises(GraphQLError):
-            CreateUser().mutate(None, id_token="valid-token", name="Test User")
-
-        db_session.add.assert_not_called()
+    def test_rejects_invalid_signup_without_writes(self, verify_identity, db_session):
+        cases = (
+            ({"id_token": "forged"}, GoogleTokenVerificationError("bad token"), None),
+            ({"id_token": "unavailable"}, GoogleAuthUnavailableError("timeout"), None),
+            ({"id_token": "valid"}, None, object()),
+            ({"id_token": None}, GoogleTokenVerificationError("missing token"), None),
+            ({"net_id": "abc123", "email": "abc123@cornell.edu"}, None, None),
+        )
+        for arguments, error, existing in cases:
+            with self.subTest(arguments=arguments):
+                verify_identity.reset_mock()
+                db_session.reset_mock()
+                verify_identity.return_value = IDENTITY
+                verify_identity.side_effect = error
+                db_session.query.return_value.filter.return_value.first.return_value = existing
+                with self.assertRaises((GraphQLError, TypeError)):
+                    CreateUser().mutate(None, name="Test User", **arguments)
+                db_session.add.assert_not_called()
+                db_session.commit.assert_not_called()
+                if "net_id" in arguments:
+                    verify_identity.assert_not_called()

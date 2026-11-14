@@ -15,6 +15,8 @@ from src.tests.workout_test_db import WorkoutDatabaseTest, local
 class WorkoutHTTPTest(WorkoutDatabaseTest):
     """Bind the real app route to synthetic database sessions."""
 
+    response_statuses = (200,)
+
     def setUp(self):
         """Prepare an isolated database and controlled mutation dependencies."""
         super().setUp()
@@ -22,7 +24,8 @@ class WorkoutHTTPTest(WorkoutDatabaseTest):
 
         self.owner = self.user(local("2026-10-26"), goal=1)
         with self.engine.begin() as conn:
-            for name, kind in (("name", "VARCHAR"), ("gym_id", "INTEGER"), ("facility_type", "VARCHAR")):
+            columns = {"name": "VARCHAR", "gym_id": "INTEGER", "facility_type": "VARCHAR"}
+            for name, kind in columns.items():
                 conn.execute(sa.text("ALTER TABLE facility ADD COLUMN " + name + " " + kind))
             conn.execute(sa.text("INSERT INTO facility VALUES (1, 'Test gym', 1, 'fitness')"))
         TokenBlocklist.__table__.create(self.engine, checkfirst=True)
@@ -58,5 +61,5 @@ class WorkoutHTTPTest(WorkoutDatabaseTest):
             json={"query": query, "variables": variables or {}},
             headers=self.headers if authenticated else {},
         )
-        self.assertEqual(response.status_code, 200, response.get_data(as_text=True))
+        self.assertIn(response.status_code, self.response_statuses, response.get_data(as_text=True))
         return response.get_json()
