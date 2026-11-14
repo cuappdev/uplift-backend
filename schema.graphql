@@ -187,11 +187,6 @@ type HourlyAverageCapacity {
   history: [Float]!
 }
 
-type LoginUser {
-  accessToken: String
-  refreshToken: String
-}
-
 type LoginWithGoogle {
   accessToken: String
   refreshToken: String
@@ -218,25 +213,23 @@ enum MuscleGroup {
 
 type Mutation {
   createGiveaway(name: String!): Giveaway
-  createUser(email: String, encodedImage: String, idToken: String, name: String!, netId: String): User
-  editUser(email: String, encodedImage: String, name: String, userId: Int!): User
-  enterGiveaway(giveawayId: Int!, userNetId: String!): GiveawayInstance
-  setWorkoutGoals(userId: Int!, workoutGoal: Int!): User
-  logWorkout(facilityId: Int!, userId: Int!, workoutTime: DateTime): Workout
-  loginUser(netId: String!): LoginUser
+  createUser(encodedImage: String, idToken: String!, name: String!): User
+  editUser(email: String, encodedImage: String, name: String, userId: Int): User
+  enterGiveaway(giveawayId: Int!, userNetId: String): GiveawayInstance
+  setWorkoutGoals(userId: Int, workoutGoal: Int!): User
+  logWorkout(facilityId: Int!, userId: Int, workoutTime: DateTime): Workout
   loginWithGoogle(idToken: String!): LoginWithGoogle
   logoutUser: LogoutUser
   refreshAccessToken: RefreshAccessToken
   createReport(createdAt: DateTime, description: String!, gymId: Int!, issue: String!): CreateReport
-  deleteReport(reportId: Int!): Report
-  deleteUser(userId: Int!): User
+  deleteUser(userId: Int): User
   createCapacityReminder(capacityPercent: Int!, daysOfWeek: [String]!, fcmToken: String!, gyms: [String]!): CapacityReminder
   editCapacityReminder(daysOfWeek: [String]!, newCapacityThreshold: Int!, newGyms: [String]!, reminderId: Int!): CapacityReminder
   deleteCapacityReminder(reminderId: Int!): CapacityReminder
-  addFriend(friendId: Int!, userId: Int!): Friendship
+  addFriend(friendId: Int!, userId: Int): Friendship
   acceptFriendRequest(friendshipId: Int!): Friendship
-  removeFriend(friendId: Int!, userId: Int!): RemoveFriend
-  getPendingFriendRequests(userId: Int!): GetPendingFriendRequests
+  removeFriend(friendId: Int!, userId: Int): RemoveFriend
+  getPendingFriendRequests(userId: Int): GetPendingFriendRequests
 }
 
 type OpenHours {
@@ -266,8 +259,9 @@ enum PriceType {
 }
 
 type Query {
+  me: User
   getAllGyms: [Gym]
-  getUserByNetId(netId: String): [User]
+  getUserByNetId(netId: String): [User] @deprecated(reason: "Use me instead.")
   getUsersFriends(id: Int): [User]
   getUsersByGiveawayId(id: Int): [User]
   getWeeklyWorkoutDays(id: Int): [String]
@@ -275,7 +269,7 @@ type Query {
   activities: [Activity]
   getAllReports: [Report]
   getHourlyAverageCapacitiesByFacilityId(facilityId: Int): [HourlyAverageCapacity]
-  getUserFriends(userId: Int!): [User]
+  getUserFriends(userId: Int): [User]
   getCapacityReminderById(id: Int!): CapacityReminder
   getAllCapacityReminders: [CapacityReminder]
 }

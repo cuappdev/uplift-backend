@@ -26,6 +26,7 @@ class WorkoutSchemaTests(WorkoutDatabaseTest):
         self.addCleanup(stack.close)
         stack.enter_context(patch("src.schema.db_session", self.session))
         stack.enter_context(patch("src.schema.get_jwt_identity", return_value="1"))
+        stack.enter_context(patch("src.schema.verify_jwt_in_request"))
         stack.enter_context(patch("src.schema.User.get_query", return_value=self.session.query(UserModel)))
         self.clock = stack.enter_context(patch("src.schema.datetime", wraps=datetime))
         self.clock.now.return_value = local("2026-10-28")
@@ -35,9 +36,8 @@ class WorkoutSchemaTests(WorkoutDatabaseTest):
         self.session.commit()
 
     def test_legacy_workout_contract_in_runtime_and_published_schema(self):
-        """Freeze the workout surface from auth base 6be8f2b and PR HEAD 09cff5b."""
-        # The only intentional changes from base are additive weekly fields,
-        # non-null workoutGoal output, and accepting omitted/null workoutTime.
+        """Preserve workout outputs while allowing token-derived actor IDs."""
+        # Actor IDs are now optional; signup requires verified Google identity.
         user_fields = dict(
             item.split(":", 1)
             for item in (
@@ -58,10 +58,10 @@ class WorkoutSchemaTests(WorkoutDatabaseTest):
             "Mutation": {
                 "createUser": (
                     "User",
-                    dict(email="String", encodedImage="String", idToken="String", name="String!", netId="String"),
+                    dict(encodedImage="String", idToken="String!", name="String!"),
                 ),
-                "setWorkoutGoals": ("User", dict(userId="Int!", workoutGoal="Int!")),
-                "logWorkout": ("Workout", dict(facilityId="Int!", userId="Int!", workoutTime="DateTime")),
+                "setWorkoutGoals": ("User", dict(userId="Int", workoutGoal="Int!")),
+                "logWorkout": ("Workout", dict(facilityId="Int!", userId="Int", workoutTime="DateTime")),
             },
             "User": {name: (kind, {}) for name, kind in user_fields.items()},
             "Workout": {

@@ -12,7 +12,7 @@ from src.database import db_session, init_db
 from src.database import Base as db
 from src.database import db_url, db_user, db_password, db_name, db_host, db_port
 from flask_migrate import Migrate
-from src.schema import Query, Mutation
+from src.schema import Query, Mutation, UserPrivacyMiddleware
 from flasgger import Swagger
 from flask_graphql import GraphQLView
 from src.models.token_blacklist import TokenBlocklist
@@ -100,7 +100,10 @@ def create_app(run_migrations=False):
         except Exception:
             return jsonify({"status": "unhealthy", "database": "disconnected"}), 503
 
-    app.add_url_rule("/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True))
+    app.add_url_rule(
+        "/graphql",
+        view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True, middleware=[UserPrivacyMiddleware()]),
+    )
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):
