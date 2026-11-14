@@ -1,7 +1,10 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, String, DateTime, text
-from sqlalchemy.orm import backref, relationship
+"""Persist workout goal selections with their effective timestamps."""
+
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, text, Index
+from sqlalchemy.orm import relationship
 from src.database import Base
 from datetime import datetime, timezone
+
 
 class UserWorkoutGoalHistory(Base):
     """
@@ -15,10 +18,16 @@ class UserWorkoutGoalHistory(Base):
     """
 
     __tablename__ = "user_workout_goal_history"
+    __table_args__ = (Index("ix_workout_goal_user_effective", "user_id", "effective_at"),)
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     workout_goal = Column(Integer, nullable=False)
-    effective_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), server_default=text("CURRENT_TIMESTAMP"))
+    effective_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        server_default=text("CURRENT_TIMESTAMP"),
+    )
 
-    user = relationship("User", back_populates='goal_history')
+    user = relationship("User", back_populates="goal_history")
