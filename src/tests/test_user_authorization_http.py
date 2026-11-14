@@ -213,6 +213,12 @@ class UserAuthorizationHTTPTests(WorkoutHTTPTest):
         self.headers = {"Authorization": "Bearer invalid"}
         self.assert_rejected("{ me { email } }")
         token = self.as_user(self.owner)
+        from src.schema import verify_jwt_in_request
+
+        with patch("src.schema.verify_jwt_in_request", wraps=verify_jwt_in_request) as verify:
+            result = self.execute("{ me { email workoutGoal workoutHistory { id workoutTime } } }")
+            self.assertNotIn("errors", result, result)
+            self.assertEqual(verify.call_count, 1)
         with self.client.application.app_context():
             jti = decode_token(token)["jti"]
         self.session.add(TokenBlocklist(jti=jti, expires_at=datetime.now(timezone.utc) + timedelta(hours=1)))

@@ -4,6 +4,7 @@ import graphene
 import base64
 import gspread
 import os
+from flask import has_request_context, request
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -66,13 +67,18 @@ local_tz = WORKOUT_TIMEZONE
 
 
 def token_owner_id():
-    """Validate an access token and return its account ID without a database lookup."""
+    """Validate once per HTTP request; keep object ownership checks independent."""
+    cache_key = "uplift.verified_owner_id"
+    if has_request_context() and cache_key in request.environ:
+        return request.environ[cache_key]
     verify_jwt_in_request()
-    identity = get_jwt_identity()
     try:
-        return int(identity)
+        owner_id = int(get_jwt_identity())
     except (TypeError, ValueError):
         raise GraphQLError("Invalid account identity.")
+    if has_request_context():
+        request.environ[cache_key] = owner_id
+    return owner_id
 
 
 def actor_id(supplied_id=None):
